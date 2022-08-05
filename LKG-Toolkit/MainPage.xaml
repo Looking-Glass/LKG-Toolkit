@@ -1,36 +1,54 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="LKG_Toolkit.MainPage">
+             x:Class="LKG_Toolkit.MainPage"
+             Loaded="PageLoaded">
 
     <ScrollView>
-        <VerticalStackLayout
-            Spacing="25"
-            Padding="30,0"
-            VerticalOptions="Center">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
 
-            <Label
-                Text="Hello, World!"
-                SemanticProperties.HeadingLevel="Level1"
-                FontSize="32"
-                HorizontalOptions="Center" />
+            <VerticalStackLayout
+                Grid.Column="1"
+                Spacing="25"
+                Padding="30,0"
+                HorizontalOptions="Fill">
 
-            <Label
-                x:Name="text"
-                Text="Click To Send Hologram"
-                SemanticProperties.HeadingLevel="Level2"
-                SemanticProperties.Description="Welcome to dot net Multi platform App U I"
-                FontSize="18"
-                HorizontalOptions="Center" />
+                <VerticalStackLayout x:Name="devices">
+                    
+                </VerticalStackLayout>
 
-            <Button
-                x:Name="Send"
-                Text="Send"
-                SemanticProperties.Hint="Sends Hologram to Service 2.0"
-                Clicked="OnCounterClicked"
-                HorizontalOptions="Center" />
+                <Label x:Name="deviceInfo"/>
 
-        </VerticalStackLayout>
+                <Button 
+                    Text="Save Calibration To File"
+                    Clicked="Save_Cal_Clicked"/>
+
+                <Button
+                    Text="Show File On Selected"
+                    Clicked="Show_File"
+                    />
+
+                <Button
+                    Text="Show On Selected Display"
+                    Clicked="Show_Selected"/>
+
+                <Button
+                    Text="Hide On Selected Display"
+                    Clicked="Hide_Selected"/>
+
+                <Label
+                    x:Name="text"
+                    FontSize="18"
+                    HeightRequest="1000"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="FillAndExpand"/>
+
+            </VerticalStackLayout>
+        </Grid>
     </ScrollView>
 
 </ContentPage>
