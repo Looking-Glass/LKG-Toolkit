@@ -8,21 +8,23 @@ public partial class MainPage : ContentPage
     LKG.Display[] displays;
     int selectedDisp = 0;
 
+    string selectedFilePath;
+
 	public MainPage()
 	{
 		InitializeComponent();
 
         LKG.ServiceConnection.setResponseCallback(GetResponse);
         LKG.ServiceConnection.setAlertCallback(GetAlert);
+        LKG.ServiceConnection.setPollCallback(GetUpdateCallback);
+        LKG.ServiceConnection.setConnectionStateCallback(GetConnectionState);
 	}
 
-    private void PageLoaded(object sender, EventArgs e)
+    private void UpdateDevicePicker()
     {
-        displays = LKG.ServiceConnection.GetDisplays();
-
         devices.Children.Clear();
 
-        if(displays.Length != 0)
+        if (displays.Length != 0)
         {
             foreach (var disp in displays)
             {
@@ -39,7 +41,7 @@ public partial class MainPage : ContentPage
                             ((Button)c).BackgroundColor = Color.FromRgb(198, 196, 211);
                         }
 
-                        if(c == sender)
+                        if (c == sender)
                         {
                             selectedDisp = i;
                         }
@@ -49,7 +51,7 @@ public partial class MainPage : ContentPage
                     deviceInfo.Text = disp.getInfoString();
                 };
 
-                if(devices.Children.Count == 0)
+                if (devices.Children.Count == 0)
                 {
                     selectedDisp = 0;
                     displayButton.BackgroundColor = Color.FromRgb(23, 22, 36);
@@ -60,6 +62,37 @@ public partial class MainPage : ContentPage
             }
 
         }
+    }
+
+    private void UpdateFilePreview()
+    {
+        if (selectedFilePath != null && selectedFilePath != "")
+        {
+            ImagePreview.Source = selectedFilePath;
+            fileLabel.Text = selectedFilePath;
+        }
+    }
+
+    private void GetConnectionState(bool state)
+    {
+        if (state)
+        {
+            stateLabel.BackgroundColor = Color.FromRgb(0, 255, 0);
+            stateLabel.TextColor = Color.FromRgb(0, 0, 0);
+            stateLabel.Text = "Connection State: Connected";
+        }
+        else
+        {
+            stateLabel.BackgroundColor = Color.FromRgb(255, 0, 0);
+            stateLabel.TextColor = Color.FromRgb(0, 0, 0);
+            stateLabel.Text = "Connection State: Disconnected";
+        }
+    }
+
+    private void GetUpdateCallback(LKG.Display[] displays)
+    {
+        this.displays = displays;
+        UpdateDevicePicker();
     }
 
     private void GetResponse(string response)
@@ -88,59 +121,19 @@ public partial class MainPage : ContentPage
 
     private async void Show_File(object sender, EventArgs e)
     {
-        string path = (await FilePicker.PickAsync())?.FullPath;
-        LKG.ServiceConnection.ShowFile(selectedDisp, path);
+        if(selectedFilePath == null || selectedFilePath == "")
+        {
+            selectedFilePath = (await FilePicker.PickAsync())?.FullPath;
+            UpdateFilePreview();
+        }
+
+        LKG.ServiceConnection.ShowFile(selectedDisp, selectedFilePath);
     }
 
-    private void OnCounterClicked(object sender, EventArgs e)
-	{
-
-
-
-        //        HttpClient client = new HttpClient();
-        //        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, "http://localhost:33334/show");
-        //        request.Content = new StringContent(
-        //"""
-        //        {
-        //            "targetDisplay" : 1,
-        //            "source" : "C:\\Users\\zinsl\\Downloads\\tunnel_8K_qs5x9(1).mp4",
-        //        }
-        //"""
-        //            );
-
-        //var resp = client.Send(request);
-        //text.Text = resp.ToString() + "\n" + resp.Content.ReadAsStringAsync().Result;
-
-//        HttpClient client = new HttpClient();
-//        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, "http://localhost:33334/show");
-//        request.Content = new StringContent(
-//"""
-//                {
-//                    "targetDisplay" : 1,
-//                }
-//"""
-//            );
-
-//        var resp = client.Send(request);
-//        text.Text = resp.ToString() + "\n" + resp.Content.ReadAsStringAsync().Result;
-
-        //      HttpClient client = new HttpClient();
-        //		HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, "http://localhost:33334/encode");
-        //		request.Content = new StringContent(
-        //"""
-        //{
-        //    "calibration" : "D:\\LKG_calibration\\visual.json",
-        //    "source" : "C:\\Users\\zinsl\\Downloads\\tunnel_8K_qs5x9(1).mp4",
-        //    "destination" : "C:\\temp\\prelenticular.mp4",
-        //    "encoder" : "h265",
-        //    "crf" : "12",
-        //    "show_window" : "true"
-        //}
-        //"""
-        //            );
-
-        //       var resp = client.Send(request);
-        //       text.Text = resp.ToString() + "\n" + resp.Content.ReadAsStringAsync().Result;
+    private async void FileSelect_Clicked(object sender, EventArgs e)
+    {
+        selectedFilePath = (await FilePicker.PickAsync())?.FullPath;
+        UpdateFilePreview();
     }
 }
 
