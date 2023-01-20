@@ -4,8 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using static System.Net.Mime.MediaTypeNames;
-using Application = Microsoft.Maui.Controls.Application;
 
 namespace LKG_Toolkit.LKG
 {
