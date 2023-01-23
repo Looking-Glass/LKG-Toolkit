@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net7.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('OSX'))">net7.0-maccatalyst</TargetFrameworks>
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net7.0-windows10.0.19041.0</TargetFrameworks>
+		<TargetFrameworks>net7.0</TargetFrameworks>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>LKG_Toolkit</RootNamespace>
 		<UseMaui>true</UseMaui>
@@ -47,5 +48,19 @@
 	<ItemGroup>
 	  <None Include="..\.editorconfig" Link=".editorconfig" />
 	</ItemGroup>
+
+	<!-- Needed to Support Linux -->
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('windows'))">
+  		<DefineConstants>_WINDOWS</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+  		<DefineConstants>_MACOS</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+  		<DefineConstants>_LINUX</DefineConstants>
+	</PropertyGroup>
+
 
 </Project>
