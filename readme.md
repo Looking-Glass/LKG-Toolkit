@@ -104,6 +104,16 @@ Display Loc: [3840, 0]
 Calibration Version: 3.0
 ```
 
+## Playback quilt
+
+```sh
+> Toolkit-CLI.exe -t play -i https://s3.amazonaws.com/lkg-blocks/legacy/715/source.png -c 7 -r 11 -v 77 --loop --aspect 0.75
+
+Connecting to: ws://localhost:9724/event_source
+Connected to bridge
+Listening for events, press any key to stop.
+```
+
 # API Examples
 
 ## Listening for events
@@ -202,5 +212,62 @@ else
 {
     Console.WriteLine("Failed to connect to bridge, ensure bridge is running");
     return;
+}
+```
+
+## Playback Quilt
+
+This is the exact code executed by: ```Toolkit-CLI.exe -t play -i https://s3.amazonaws.com/lkg-blocks/legacy/715/source.png -c 7 -r 11 -v 77 --loop --aspect 0.75```
+
+```csharp
+// Create BridgeConnectionHTTP instance.
+// Make sure to use the using pattern or properly dispose of the BridgeConnectionHTTP object
+using BridgeConnectionHTTP b = new BridgeConnectionHTTP(args.address);
+
+// Connect to bridge
+bool connectionStatus = b.Connect();
+if (connectionStatus)
+{
+    Console.WriteLine("Connected to bridge");
+
+    // Enter the named Orchestration
+    // This is similar to a session but multiple
+    // clients can connect to the same instance, receive
+    // the same events and control the same state
+    if (!b.TryEnterOrchestration(args.orchestrationName))
+    {
+        Console.WriteLine("Failed to enter orchestration");
+        return;
+    }
+
+    if (!b.TrySubscribeToEvents())
+    {
+        Console.WriteLine("Failed to subscribe to events");
+        return;
+    }
+
+    if (!b.TryUpdateDevices())
+    {
+        Console.WriteLine("Failed to update devices");
+        return;
+    }
+
+    Playlist p = new Playlist("default", args.loopPlaylist);
+    p.AddItem(args.inputFile, args.rows, args.cols, args.aspect, args.viewCount);
+
+    if (!b.TryPlayPlaylist(p, args.head))
+    {
+        Console.WriteLine("Failed to play playlist");
+        return;
+    }
+}
+else
+{
+    Console.WriteLine("Failed to connect to bridge, ensure bridge is running");
+    return;
+}
+
+Console.WriteLine("Listening for events, press any key to stop.");
+Console.ReadKey();
 }
 ```

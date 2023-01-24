@@ -23,6 +23,11 @@ namespace ToolKit_CLI
                 case CLI_Task.list:
                     ListDevices.Run(args);
                     break;
+                case CLI_Task.play:
+                    PlayItem.Run(args);
+                    break;
+                case CLI_Task.playlist:
+                    break;
             }
 
         }

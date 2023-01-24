@@ -260,6 +260,31 @@ namespace Toolkit_API.Bridge
             return false;
         }
 
+        public bool TryPlayPlaylist(Playlist p, int head)
+        {
+            string message = p.GetInstanceJson(session);
+            string? resp = TrySendMessage("instance_playlist", message);
+
+            //Console.WriteLine(resp);
+
+            string[] playlistItems = p.GetPlaylistItemsAsJson(session);
+
+            for(int i = 0; i < playlistItems.Length; i++)
+            {
+                string pMessage = playlistItems[i];
+                string pResp = TrySendMessage("insert_playlist_entry", pMessage);
+
+                //Console.WriteLine(pResp);
+            }
+
+            string playMessage = p.GetPlayPlaylistJson(session, head);
+            string? playResp = TrySendMessage("play_playlist", playMessage);
+
+            //Console.WriteLine(playResp);
+
+            return true;
+        }
+
         public void Dispose()
         {
             if (session != default)
