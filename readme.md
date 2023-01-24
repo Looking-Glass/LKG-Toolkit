@@ -84,7 +84,7 @@ Listen for Bridge events:
 ## Listening for events
 
 ```sh
-> Toolkit_CLI.exe -t listen
+> Toolkit-CLI.exe -t listen
 
 Connecting to: ws://localhost:9724/event_source
 Connected to bridge
@@ -94,7 +94,7 @@ Listening for events, press any key to stop.
 ## List connected devices
 
 ```sh
-> Toolkit_CLI.exe -t list
+> Toolkit-CLI.exe -t list
 
 Connecting to: ws://localhost:9724/event_source
 Connected to bridge
@@ -108,7 +108,7 @@ Calibration Version: 3.0
 
 ## Listening for events
 
-This is the exact code executed by: ```Toolkit_CLI.exe -t listen```
+This is the exact code executed by: ```Toolkit-CLI.exe -t listen```
 
 ```csharp
 // Create BridgeConnectionHTTP instance with the default IP address and ports
@@ -155,7 +155,7 @@ Console.ReadKey();
 
 ## List Devices
 
-This is the exact code executed by: ```Toolkit_CLI.exe -t list```
+This is the exact code executed by: ```Toolkit-CLI.exe -t list```
 
 ```csharp
 // Create BridgeConnectionHTTP instance.
