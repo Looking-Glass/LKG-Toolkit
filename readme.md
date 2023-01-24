@@ -10,13 +10,13 @@ Toolkit consists of 3 tools:
 
 Toolkit-API is an C# library consisting of a client for accessing the bridge API.
 
-Toolkit-CLI is a C# CLI application for working with bridge it allows you to:
+Toolkit-CLI is a C# CLI application for working with bridge it:
 
 * Supports Windows, MacOS, and Linux
-* Check display state
-* Monitor display state changes
-* Playback sets of quilts and quilt videos
-* Syncronize sets of quilts and quilt videos
+* Checks display state
+* Monitors display state changes
+* Plays sets of quilts and quilt videos
+* Synchronizes sets of quilts and quilt videos
 
 LKG-Toolkit is a GUI version of Toolkit CLI for MacOS and Windows.
 
