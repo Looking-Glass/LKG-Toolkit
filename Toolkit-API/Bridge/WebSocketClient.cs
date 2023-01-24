@@ -17,20 +17,28 @@ namespace Toolkit_API.Bridge
             this.messageReceivedCallback = messageReceivedCallback; 
         }
 
-        public void ConnectAsync(string url)
+        public bool TryConnect(string url)
         {
             Console.WriteLine("Connecting to: " + url);
 
             WS = new WebSocket(url);
+
             WS.OnMessage += (sender, e) =>
             {
                 messageReceivedCallback(e.Data);
             };
 
             WS.Connect();
+
+            return WS.IsAlive;
         }
 
-        public void DisconnectAsync()
+        private void WS_OnError(object? sender, WebSocketSharp.ErrorEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Disconnect()
         {
             WS?.Close();
         }
@@ -57,7 +65,7 @@ namespace Toolkit_API.Bridge
 
         public void Dispose()
         {
-            DisconnectAsync();
+            Disconnect();
         }
     }
 }

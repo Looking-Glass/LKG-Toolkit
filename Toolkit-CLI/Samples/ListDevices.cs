@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Toolkit_API.Bridge;
+using Toolkit_API.Device;
 
 namespace ToolKit_CLI.Samples
 {
-    internal static class ListenForEvents
+    internal class ListDevices
     {
         public static void Run(CommandLineOptions args)
         {
@@ -20,7 +21,6 @@ namespace ToolKit_CLI.Samples
             if (connectionStatus)
             {
                 Console.WriteLine("Connected to bridge");
-                b.AddListener("", (e) => { Console.WriteLine(e); });
 
                 // Enter the named Orchestration
                 // This is similar to a session but multiple
@@ -38,7 +38,15 @@ namespace ToolKit_CLI.Samples
                     return;
                 }
 
-                if (!b.TryUpdateDevices())
+                if (b.TryUpdateDevices())
+                {
+                    List<Display> displays = b.GetLKGDisplays();
+                    foreach (Display display in displays)
+                    {
+                        Console.WriteLine(display.getInfoString());
+                    }
+                }
+                else
                 {
                     Console.WriteLine("Failed to update devices");
                     return;
@@ -50,8 +58,6 @@ namespace ToolKit_CLI.Samples
                 return;
             }
 
-            Console.WriteLine("Listening for events, press any key to stop.");
-            Console.ReadKey();
         }
     }
 }

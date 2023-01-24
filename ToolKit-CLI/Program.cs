@@ -20,6 +20,9 @@ namespace ToolKit_CLI
                 case CLI_Task.listen:
                     ListenForEvents.Run(args);
                     break;
+                case CLI_Task.list:
+                    ListDevices.Run(args);
+                    break;
             }
 
         }

@@ -28,9 +28,9 @@ namespace Toolkit_API.Bridge.EventListeners
             {
                 int head_index = int.Parse(node["head_index"]?["value"]?.ToString());
 
-                if (bridge.displays.ContainsKey(head_index))
+                if (bridge.all_displays.ContainsKey(head_index))
                 {
-                    bridge.displays.Remove(head_index);
+                    bridge.all_displays.Remove(head_index);
                 }
 
                 if(bridge.LKG_Displays.ContainsKey(head_index))
@@ -48,7 +48,7 @@ namespace Toolkit_API.Bridge.EventListeners
             {
                 int head_index = int.Parse(node["head_index"]?["value"]?.ToString());
 
-                if (!bridge.displays.ContainsKey(head_index))
+                if (!bridge.all_displays.ContainsKey(head_index))
                 {
                     bridge.TryUpdateDevices();
                 }

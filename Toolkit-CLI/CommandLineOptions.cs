@@ -11,6 +11,7 @@ namespace ToolKit_CLI
     public enum CLI_Task
     {
         listen,
+        list,
     }
 
     public class CommandLineOptions
@@ -30,6 +31,7 @@ namespace ToolKit_CLI
         {
             get
             {
+                yield return new Example("\nList connected displays", new CommandLineOptions { task = CLI_Task.list });
                 yield return new Example("\nListen for Bridge events", new CommandLineOptions { task = CLI_Task.listen });
             }
         }

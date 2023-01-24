@@ -85,6 +85,23 @@ Listen for Bridge events:
 
 ```sh
 > Toolkit_CLI.exe -t listen
+
+Connecting to: ws://localhost:9724/event_source
+Connected to bridge
+Listening for events, press any key to stop.
+```
+
+## List connected devices
+
+```sh
+> Toolkit_CLI.exe -t list
+
+Connecting to: ws://localhost:9724/event_source
+Connected to bridge
+Display Type: portrait
+Display Serial: LKG-P03273
+Display Loc: [3840, 0]
+Calibration Version: 3.0
 ```
 
 # API Examples
@@ -126,7 +143,64 @@ if (connectionStatus)
         return;
     }
 }
+else
+{
+    Console.WriteLine("Failed to connect to bridge, ensure bridge is running");
+    return;
+}
 
 Console.WriteLine("Listening for events, press any key to stop.");
 Console.ReadKey();
+```
+
+## List Devices
+
+This is the exact code executed by: ```Toolkit_CLI.exe -t list```
+
+```csharp
+// Create BridgeConnectionHTTP instance.
+// Make sure to use the using pattern or properly dispose of the BridgeConnectionHTTP object
+using BridgeConnectionHTTP b = new BridgeConnectionHTTP(args.address);
+
+// Connect to bridge
+bool connectionStatus = b.Connect();
+if (connectionStatus)
+{
+    Console.WriteLine("Connected to bridge");
+
+    // Enter the named Orchestration
+    // This is similar to a session but multiple
+    // clients can connect to the same instance, receive
+    // the same events and control the same state
+    if (!b.TryEnterOrchestration(args.orchestrationName))
+    {
+        Console.WriteLine("Failed to enter orchestration");
+        return;
+    }
+
+    if (!b.TrySubscribeToEvents())
+    {
+        Console.WriteLine("Failed to subscribe to events");
+        return;
+    }
+
+    if (b.TryUpdateDevices())
+    {
+        List<Display> displays = b.GetLKGDisplays();
+        foreach (Display display in displays)
+        {
+            Console.WriteLine(display.getInfoString());
+        }
+    }
+    else
+    {
+        Console.WriteLine("Failed to update devices");
+        return;
+    }
+}
+else
+{
+    Console.WriteLine("Failed to connect to bridge, ensure bridge is running");
+    return;
+}
 ```

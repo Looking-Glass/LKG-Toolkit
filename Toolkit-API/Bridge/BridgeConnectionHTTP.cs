@@ -16,8 +16,9 @@ namespace Toolkit_API.Bridge
 
         private Orchestration session;
 
-        public Dictionary<int, Display> displays { get; private set; }
+        public Dictionary<int, Display> all_displays { get; private set; }
         public Dictionary<int, Display> LKG_Displays { get; private set; }
+
 
         private Dictionary<string, List<Action<string>>> eventListeners;
 
@@ -29,7 +30,7 @@ namespace Toolkit_API.Bridge
             this.port = port;
             this.webSocketPort = webSocketPort;
 
-            displays = new Dictionary<int, Display>();
+            all_displays = new Dictionary<int, Display>();
             LKG_Displays = new Dictionary<int, Display>();
 
             eventListeners = new Dictionary<string, List<Action<string>>>();
@@ -41,17 +42,8 @@ namespace Toolkit_API.Bridge
         {
             client = new HttpClient();
             webSocket = new BridgeWebSocketClient(UpdateListeners);
-            try
-            {
-                webSocket.ConnectAsync($"ws://{url}:{webSocketPort}/event_source");
-                LastConnectionState = true;
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                LastConnectionState = false;
-            }
-
+            
+            LastConnectionState = webSocket.TryConnect($"ws://{url}:{webSocketPort}/event_source");
             return LastConnectionState;
         }
 
@@ -112,10 +104,28 @@ namespace Toolkit_API.Bridge
             }
         }
 
-        public void Dispose()
+        public List<Display> GetAllDisplays()
         {
-            webSocket.Dispose();
-            client.Dispose();
+            List<Display> displays = new List<Display>();
+
+            foreach(var kvp in all_displays)
+            {
+                displays.Add(kvp.Value);
+            }
+
+            return displays;
+        }
+
+        public List<Display> GetLKGDisplays()
+        {
+            List<Display> displays = new List<Display>();
+
+            foreach (var kvp in LKG_Displays)
+            {
+                displays.Add(kvp.Value);
+            }
+
+            return displays;
         }
 
         public string? TrySendMessage(string endpoint, string content)
@@ -170,6 +180,26 @@ namespace Toolkit_API.Bridge
             return false;
         }
 
+        public bool TryExitOrchestration()
+        {
+            string message =
+                $$"""
+                {
+                    "orchestration": "{{session.token}}"
+                }
+                """;
+
+            string? resp = TrySendMessage("exit_orchestration", message);
+
+            if (resp != null)
+            {
+                session = default;
+                return true;
+            }
+
+            return false;
+        }
+
         public bool TrySubscribeToEvents()
         {
             if(session == null)
@@ -212,9 +242,9 @@ namespace Toolkit_API.Bridge
                     for (int i = 0; i < node.Count; i++)
                     {
                         Display? d = Display.ParseJson(i, node[i.ToString()]!["value"]!);
-                        if (d != null && !displays.ContainsKey(d.hardwareInfo.index))
+                        if (d != null && !all_displays.ContainsKey(d.hardwareInfo.index))
                         {
-                            displays.Add(d.hardwareInfo.index, d);
+                            all_displays.Add(d.hardwareInfo.index, d);
 
                             if (d.hardwareInfo.hardwareVersion != "thirdparty")
                             {
@@ -228,6 +258,17 @@ namespace Toolkit_API.Bridge
             }
 
             return false;
+        }
+
+        public void Dispose()
+        {
+            if (session != default)
+            {
+                TryExitOrchestration();
+            }
+
+            webSocket.Dispose();
+            client.Dispose();
         }
     }
 }
