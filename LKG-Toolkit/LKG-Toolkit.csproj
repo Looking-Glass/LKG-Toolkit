@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net6.0-windows10.0.19041.0</TargetFrameworks>
-		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
-		<!-- <TargetFrameworks>$(TargetFrameworks);net6.0-tizen</TargetFrameworks> -->
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('OSX'))">net7.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net7.0-windows10.0.19041.0</TargetFrameworks>
+		<TargetFrameworks>net7.0</TargetFrameworks>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>LKG_Toolkit</RootNamespace>
 		<UseMaui>true</UseMaui>
@@ -15,31 +15,16 @@
 
 		<!-- App Identifier -->
 		<ApplicationId>com.companyname.lkg_toolkit</ApplicationId>
-		<ApplicationIdGuid>9EDB895A-801A-4EF5-8970-3B0ED8D5F7FB</ApplicationIdGuid>
+		<ApplicationIdGuid>bcdf53e9-47ea-4def-8240-ab12ba72e11a</ApplicationIdGuid>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
 
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">13.1</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
-		<Platforms>AnyCPU;x64</Platforms>
-	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-windows10.0.19041.0|AnyCPU'">
-	  <LangVersion>preview</LangVersion>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-windows10.0.19041.0|x64'">
-	  <LangVersion>preview</LangVersion>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-windows10.0.19041.0|AnyCPU'">
-	  <LangVersion>preview</LangVersion>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-windows10.0.19041.0|x64'">
-	  <LangVersion>preview</LangVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -63,5 +48,19 @@
 	<ItemGroup>
 	  <None Include="..\.editorconfig" Link=".editorconfig" />
 	</ItemGroup>
+
+	<!-- Needed to Support Linux -->
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('windows'))">
+  		<DefineConstants>_WINDOWS</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+  		<DefineConstants>_MACOS</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+  		<DefineConstants>_LINUX</DefineConstants>
+	</PropertyGroup>
+
 
 </Project>
