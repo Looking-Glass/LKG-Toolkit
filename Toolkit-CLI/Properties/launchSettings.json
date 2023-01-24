@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Toolkit-CLI": {
+      "commandName": "Project",
+      "commandLineArgs": "--help"
+    }
+  }
+}

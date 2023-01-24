@@ -12,7 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolkit-API", "Toolkit-API\Toolkit-API.csproj", "{4F4A8088-1EA2-41A4-9FC3-79E5513A9811}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToolKit-CLI", "ToolKit-CLI\ToolKit-CLI.csproj", "{01A23BCF-CDC7-4848-865D-9736129017EA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolkit-CLI", "ToolKit-CLI\Toolkit-CLI.csproj", "{01A23BCF-CDC7-4848-865D-9736129017EA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

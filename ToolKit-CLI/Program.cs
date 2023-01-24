@@ -1,41 +1,27 @@
-﻿using Toolkit_API.Bridge;
+﻿using CommandLine;
+using Toolkit_API.Bridge;
+using ToolKit_CLI.Samples;
 
 namespace ToolKit_CLI
 {
+
     internal class Program
     {
         static void Main(string[] args)
         {
-            if(args.Length == 0)
+            Parser.Default.ParseArguments<CommandLineOptions>(args)
+                .WithParsed(RunOptions);
+        }
+
+        private static void RunOptions(CommandLineOptions args)
+        {
+            switch (args.task)
             {
-                using BridgeConnectionHTTP b = new BridgeConnectionHTTP();
-                if(b.Connect())
-                {
-                    Console.WriteLine("Connected to bridge");
-                    if(!b.TryEnterOrchestration())
-                    {
-                        return;
-                    }
-
-                    if(!b.TrySubscribeToEvents() )
-                    {
-                        return;
-                    }
-
-                    if(!b.TryUpdateDevices())
-                    {
-                        return;
-                    }
-                }
-
-                Console.WriteLine("Listening for events, press any key to stop.");
-
-                Console.ReadKey();
+                case CLI_Task.listen:
+                    ListenForEvents.Run(args);
+                    break;
             }
-            else
-            {
-                // TODO args parser
-            }
+
         }
     }
 }

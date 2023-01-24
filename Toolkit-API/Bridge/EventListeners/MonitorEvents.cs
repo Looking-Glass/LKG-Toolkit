@@ -2,13 +2,13 @@
 
 namespace Toolkit_API.Bridge.EventListeners
 {
-    public class MonitorEvents
+    public class DisplayEvents
     {
         public readonly string prefix = "Monitor ";
 
         private BridgeConnectionHTTP bridge;
 
-        public MonitorEvents(BridgeConnectionHTTP bridge)
+        public DisplayEvents(BridgeConnectionHTTP bridge)
         {
             this.bridge = bridge;
             SetupListeners();
@@ -27,8 +27,6 @@ namespace Toolkit_API.Bridge.EventListeners
             if (node != null)
             {
                 int head_index = int.Parse(node["head_index"]?["value"]?.ToString());
-
-                Console.WriteLine($"removing head @ {head_index}");
 
                 if (bridge.displays.ContainsKey(head_index))
                 {
@@ -49,8 +47,6 @@ namespace Toolkit_API.Bridge.EventListeners
             if(node != null)
             {
                 int head_index = int.Parse(node["head_index"]?["value"]?.ToString());
-
-                Console.WriteLine($"head added @ {head_index}");
 
                 if (!bridge.displays.ContainsKey(head_index))
                 {

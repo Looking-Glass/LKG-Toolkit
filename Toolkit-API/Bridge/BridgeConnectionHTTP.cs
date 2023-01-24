@@ -21,7 +21,7 @@ namespace Toolkit_API.Bridge
 
         private Dictionary<string, List<Action<string>>> eventListeners;
 
-        private MonitorEvents monitorEvents;
+        private DisplayEvents monitorEvents;
 
         public BridgeConnectionHTTP(string url = "localhost", int port = 33334, int webSocketPort = 9724)
         {
@@ -34,7 +34,7 @@ namespace Toolkit_API.Bridge
 
             eventListeners = new Dictionary<string, List<Action<string>>>();
 
-            monitorEvents = new MonitorEvents(this);
+            monitorEvents = new DisplayEvents(this);
         }
 
         public bool Connect()
@@ -55,15 +55,9 @@ namespace Toolkit_API.Bridge
             return LastConnectionState;
         }
 
-        public void Dispose()
-        {
-            webSocket.Dispose();
-            client.Dispose();
-        }
-
         public int AddListener(string name, Action<string> callback)
         {
-            if(eventListeners.ContainsKey(name))
+            if (eventListeners.ContainsKey(name))
             {
                 int id = eventListeners[name].Count;
                 eventListeners[name].Add(callback);
@@ -79,15 +73,49 @@ namespace Toolkit_API.Bridge
             }
         }
 
-        public void RemoveListener(string name, Action<string> callback) 
+        public void RemoveListener(string name, Action<string> callback)
         {
-            if(eventListeners.ContainsKey(name))
+            if (eventListeners.ContainsKey(name))
             {
                 if (eventListeners[name].Contains(callback))
                 {
                     eventListeners[name].Remove(callback);
                 }
             }
+        }
+
+        private void UpdateListeners(string message)
+        {
+            JsonNode? json = JsonNode.Parse(message)["payload"]?["value"];
+
+            if (json != null)
+            {
+                string eventName = json["event"]["value"].ToString();
+                string eventData = json.ToString();
+
+                if (eventListeners.ContainsKey(eventName))
+                {
+                    foreach (var listener in eventListeners[eventName])
+                    {
+                        listener(eventData);
+                    }
+                }
+
+                // special case for listeners with empty names
+                if(eventListeners.ContainsKey(""))
+                {
+                    foreach (var listener in eventListeners[""])
+                    {
+                        listener(eventData);
+                    }
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            webSocket.Dispose();
+            client.Dispose();
         }
 
         public string? TrySendMessage(string endpoint, string content)
@@ -186,8 +214,6 @@ namespace Toolkit_API.Bridge
                         Display? d = Display.ParseJson(i, node[i.ToString()]!["value"]!);
                         if (d != null && !displays.ContainsKey(d.hardwareInfo.index))
                         {
-                            Console.WriteLine($"found {d.hardwareInfo.hardwareVersion} head @ {d.hardwareInfo.index}");
-
                             displays.Add(d.hardwareInfo.index, d);
 
                             if (d.hardwareInfo.hardwareVersion != "thirdparty")
@@ -202,25 +228,6 @@ namespace Toolkit_API.Bridge
             }
 
             return false;
-        }
-
-        private void UpdateListeners(string message)
-        {
-            JsonNode? json = JsonNode.Parse(message)["payload"]?["value"];
-
-            if(json != null)
-            {
-                string eventName = json["event"]["value"].ToString();
-                string eventData = json.ToString();
-
-                if (eventListeners.ContainsKey(eventName))
-                {
-                    foreach(var listener in eventListeners[eventName])
-                    {
-                        listener(eventData);
-                    }
-                }
-            }
         }
     }
 }
