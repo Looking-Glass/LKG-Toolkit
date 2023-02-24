@@ -1,37 +1,28 @@
 # Looking Glass Toolkit
 
-Looking Glass Toolkit is an open source set of tools for interacting with the Looking Glass Bridge API.
+Looking Glass Toolkit is an open source set of tools for interacting with Looking Glass [Bridge](https://docs.lookingglassfactory.com/getting-started/looking-glass-bridge). Bridge facilitates communication between your computer and any connected Looking Glass devices. 
 
-> :warning: **NOTE**: This is ALPHA software and as such should not be used in any critical applications. 
-> If you find any bugs or issues, please open an issue on this github repo.
+Toolkit currently consists of three core tools:
 
-Toolkit consists of 3 tools:
+* `SDK` - C# Bridge SDK for accessing the Bridge API.
+* `CLI` - CLI wrapper around the Bridge API for Windows, MacOS, and Linux
+  * Checks display state
+  * Monitors display state changes
+  * Plays sets of quilts and quilt videos
+  * Synchronizes sets of quilts and quilt videos
+* `GUI` - GUI version of the CLI for MacOS and Windows.
 
-* Toolkit-API  
-* Toolkit-CLI
-* LKG-Toolkit
+> :warning: **NOTE**: This is ALPHA software and as such should not be used in any critical applications.  If you find any bugs or issues, please open an issue on this github repo. 
+> 
+> This project is still a WIP some features may not be included currently. LKG-Toolkit may be behind Toolkit CLI, which may not implement all of the Bridge API.
 
-Toolkit-API is an C# library consisting of a client for accessing the bridge API.
-
-Toolkit-CLI is a C# CLI application for working with bridge it:
-
-* Supports Windows, MacOS, and Linux
-* Checks display state
-* Monitors display state changes
-* Plays sets of quilts and quilt videos
-* Synchronizes sets of quilts and quilt videos
-
-LKG-Toolkit is a GUI version of Toolkit CLI for MacOS and Windows.
-
-> :warning: **NOTE**: This project is still a WIP some features may not be included currently. LKG-Toolkit may be behind Toolkit CLI, which may not implement all of the Bridge API.
-
-# How to build:
+# How to build
 
 Prerequisites:
 1. [Looking Glass Bridge](https://lookingglassfactory.com/software-downloads)
 2. [.Net 7.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
 
-## Windows and Mac:
+## Windows and Mac
 
 1. Install Visual Studio 2022 ([Windows](https://visualstudio.microsoft.com/vs/community/) or [MacOS](https://visualstudio.microsoft.com/vs/mac/)).
 2. Make sure to include the .Net Multi-platform App UI development workload
