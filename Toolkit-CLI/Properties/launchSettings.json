@@ -2,7 +2,7 @@
   "profiles": {
     "Toolkit-CLI": {
       "commandName": "Project",
-      "commandLineArgs": "--help"
+      "commandLineArgs": "Toolkit-CLI.exe -t play -i C:\\\\Users\\\\zinsl\\\\Downloads\\\\trex8k.mp4 -c 5 -r 9 -v 45 --loop --aspect 1.77"
     }
   }
 }

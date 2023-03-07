@@ -19,10 +19,10 @@ namespace Toolkit_API.Bridge
         public Dictionary<int, Display> all_displays { get; private set; }
         public Dictionary<int, Display> LKG_Displays { get; private set; }
 
-
         private Dictionary<string, List<Action<string>>> eventListeners;
-
         private DisplayEvents monitorEvents;
+
+        private HashSet<Action<bool>> connectionStateListeners;
 
         public BridgeConnectionHTTP(string url = "localhost", int port = 33334, int webSocketPort = 9724)
         {
@@ -36,14 +36,26 @@ namespace Toolkit_API.Bridge
             eventListeners = new Dictionary<string, List<Action<string>>>();
 
             monitorEvents = new DisplayEvents(this);
+
+            connectionStateListeners = new HashSet<Action<bool>>();
         }
 
         public bool Connect()
         {
             client = new HttpClient();
             webSocket = new BridgeWebSocketClient(UpdateListeners);
-            
-            LastConnectionState = webSocket.TryConnect($"ws://{url}:{webSocketPort}/event_source");
+            return UpdateConnectionState(webSocket.TryConnect($"ws://{url}:{webSocketPort}/event_source"));
+        }
+
+        public bool UpdateConnectionState(bool state)
+        {
+            LastConnectionState = state;
+
+            foreach (Action<bool> callback in connectionStateListeners)
+            {
+                callback(LastConnectionState);
+            }
+
             return LastConnectionState;
         }
 
@@ -73,6 +85,24 @@ namespace Toolkit_API.Bridge
                 {
                     eventListeners[name].Remove(callback);
                 }
+            }
+        }
+
+        public void AddConnectionStateListener(Action<bool> callback)
+        {
+            if (!connectionStateListeners.Contains(callback))
+            {
+                connectionStateListeners.Add(callback);
+
+                callback(LastConnectionState);
+            }
+        }
+
+        public void RemoveConnectionStateListener(Action<bool> callback)
+        {
+            if (connectionStateListeners.Contains(callback))
+            {
+                connectionStateListeners.Remove(callback);
             }
         }
 
@@ -139,7 +169,7 @@ namespace Toolkit_API.Bridge
                 var resp = client.Send(request);
                 string toReturn = resp.Content.ReadAsStringAsync().Result;
 
-                LastConnectionState = true;
+                UpdateConnectionState(true);
 
                 return toReturn;
             }
@@ -152,7 +182,7 @@ namespace Toolkit_API.Bridge
                 Console.WriteLine(ex.ToString());
             }
 
-            LastConnectionState = false;
+            UpdateConnectionState(false);
 
             return null;
         }
@@ -264,8 +294,9 @@ namespace Toolkit_API.Bridge
         {
             string message = p.GetInstanceJson(session);
             string? resp = TrySendMessage("instance_playlist", message);
-
-            //Console.WriteLine(resp);
+            
+            Console.WriteLine(message);
+            Console.WriteLine(resp);
 
             string[] playlistItems = p.GetPlaylistItemsAsJson(session);
 
@@ -274,13 +305,15 @@ namespace Toolkit_API.Bridge
                 string pMessage = playlistItems[i];
                 string pResp = TrySendMessage("insert_playlist_entry", pMessage);
 
-                //Console.WriteLine(pResp);
+                Console.WriteLine(pMessage);
+                Console.WriteLine(pResp);
             }
 
             string playMessage = p.GetPlayPlaylistJson(session, head);
             string? playResp = TrySendMessage("play_playlist", playMessage);
 
-            //Console.WriteLine(playResp);
+            Console.WriteLine(playMessage);
+            Console.WriteLine(playResp);
 
             return true;
         }

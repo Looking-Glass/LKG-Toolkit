@@ -2,6 +2,9 @@
 
 Looking Glass Toolkit is an open source set of tools for interacting with the Looking Glass Bridge API.
 
+> :warning: **NOTE**: This is ALPHA software and as such should not be used in any critical applications. 
+> If you find any bugs or issues, please open an issue on this github repo.
+
 Toolkit consists of 3 tools:
 
 * Toolkit-API  

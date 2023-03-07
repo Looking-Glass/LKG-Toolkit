@@ -19,7 +19,7 @@ namespace ToolKit_CLI
 
     public class CommandLineOptions
     {
-        [Option('t', "task", Default = CLI_Task.listen, HelpText = "Task to perform")]
+        [Option('t', "task", Default = CLI_Task.list, HelpText = "Task to perform")]
         public CLI_Task task { get; set; }
 
         [Option('o', "orchestration", Default = "default", HelpText = "Sets the orchestration to connect to")]
