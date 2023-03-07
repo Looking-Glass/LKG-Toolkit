@@ -10,21 +10,21 @@ namespace Toolkit_API.Device
     public struct Calibration
     {
         public string rawJson;
-        public int DPI;
-        public float center;
-        public string configVersion;
-        public float flipImageX;
-        public float flipImageY;
-        public float flipSubp;
-        public int fringe;
-        public int invView;
-        public float pitch;
-        public int screenH;
-        public int screenW;
-        public string serial;
-        public float slope;
-        public float verticalAngle;
-        public int viewCone;
+        public int DPI = 1;
+        public float center = 1;
+        public string configVersion = "";
+        public float flipImageX = 1;
+        public float flipImageY = 1;
+        public float flipSubp = 1;
+        public int fringe = 1;
+        public int invView = 1 ;
+        public float pitch = 1;
+        public int screenH = 1;
+        public int screenW = 1;
+        public string serial = "";
+        public float slope = 1;
+        public float verticalAngle = 1;
+        public int viewCone = 1;
 
         private Calibration(JsonNode node)
         {

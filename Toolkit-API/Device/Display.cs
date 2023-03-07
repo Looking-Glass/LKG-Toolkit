@@ -14,9 +14,12 @@ namespace Toolkit_API.Device
         public DefaultQuilt defautQuilt;
         public DisplayInfo hardwareInfo;
 
-        private Display() 
+        public Display() 
         {
             id = -1;
+            calibration = new Calibration();
+            defautQuilt = new DefaultQuilt();
+            hardwareInfo = new DisplayInfo();
         }
 
         private Display(int id)
@@ -30,6 +33,18 @@ namespace Toolkit_API.Device
             this.calibration = calibration;
             this.defautQuilt = defautQuilt;
             this.hardwareInfo = hardwareInfo;
+        }
+
+        public bool SeemsGood()
+        {
+            if(calibration.screenW != 0 && calibration.screenH != 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public static Display? ParseJson(int id, JsonNode node)
