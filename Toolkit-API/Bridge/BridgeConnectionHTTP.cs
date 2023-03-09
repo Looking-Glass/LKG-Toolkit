@@ -272,13 +272,19 @@ namespace Toolkit_API.Bridge
                     for (int i = 0; i < node.Count; i++)
                     {
                         Display? d = Display.ParseJson(i, node[i.ToString()]!["value"]!);
-                        if (d != null && !all_displays.ContainsKey(d.hardwareInfo.index))
+                        if (d != null)
                         {
-                            all_displays.Add(d.hardwareInfo.index, d);
+                            if(!all_displays.ContainsKey(d.hardwareInfo.index))
+                            {
+                                all_displays.Add(d.hardwareInfo.index, d);
+                            }
 
                             if (d.hardwareInfo.hardwareVersion != "thirdparty" && !LKG_Displays.ContainsKey(d.hardwareInfo.index))
                             {
-                                LKG_Displays.Add(d.hardwareInfo.index, d);
+                                if (!LKG_Displays.ContainsKey(d.hardwareInfo.index))
+                                {
+                                    LKG_Displays.Add(d.hardwareInfo.index, d);
+                                }
                             }
                         }
                     }

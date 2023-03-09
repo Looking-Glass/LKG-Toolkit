@@ -12,11 +12,14 @@ namespace Toolkit_API.Device
 
         private DefaultQuilt(JsonNode node)
         {
-            quiltAspect = float.Parse(node.AsObject()["quiltAspect"]!.ToString());
-            quiltY = int.Parse(node.AsObject()["quiltY"]!.ToString());
-            quiltX = int.Parse(node.AsObject()["quiltX"]!.ToString());
-            tileX = int.Parse(node.AsObject()["tileX"]!.ToString());
-            tileY = int.Parse(node.AsObject()["tileY"]!.ToString());
+            if(node.AsArray().Count > 0)
+            {
+                quiltAspect = float.Parse(node.AsObject()["quiltAspect"]!.ToString());
+                quiltY = int.Parse(node.AsObject()["quiltY"]!.ToString());
+                quiltX = int.Parse(node.AsObject()["quiltX"]!.ToString());
+                tileX = int.Parse(node.AsObject()["tileX"]!.ToString());
+                tileY = int.Parse(node.AsObject()["tileY"]!.ToString());
+            }
         }
 
         public static bool TryParse(string obj, out DefaultQuilt value)

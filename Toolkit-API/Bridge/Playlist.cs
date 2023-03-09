@@ -81,13 +81,23 @@ namespace Toolkit_API.Bridge
         {
             PlaylistItem item = items[id];
 
+            string URI = item.URI;
+
+            if(Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                if (new Uri(URI).IsFile)
+                {
+                    URI = URI.Replace("\\", "\\\\");
+                }
+            }
+
             string content =
                 $$"""
                 {
                     "orchestration": "{{session.token}}",
                     "name": "{{name}}",
                     "index": "{{id}}",
-                    "uri": "{{item.URI}}",
+                    "uri": "{{URI}}",
                     "rows": "{{item.rows}}",
                     "cols": "{{item.cols}}",
                     "aspect": "{{item.aspect}}",
