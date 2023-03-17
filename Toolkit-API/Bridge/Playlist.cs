@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Collections.Specialized.BitVector32;
@@ -20,10 +21,17 @@ namespace Toolkit_API.Bridge
             items = new List<PlaylistItem>();
         }
 
-        public void AddItem(string URI, int rows, int cols, float aspect, int viewCount)
+        public void AddQuiltItem(string URI, int rows, int cols, float aspect, int viewCount)
         {
             int id = items.Count;
             PlaylistItem p = new PlaylistItem(id, URI, rows, cols, aspect, viewCount);
+            items.Add(p);
+        }
+
+        public void AddRGBDItem(string URI, int rows, int cols, float aspect, float depthiness, float depth_cutoff, float focus, int depth_loc, float cam_dist, float fov, float zoom = 1, Vector2 crop_pos = new Vector2(), bool doDepthInversion = false, bool chromaDepth = false)
+        {
+            int id = items.Count;
+            PlaylistItem p = new PlaylistItem(id, URI, rows, cols, aspect, depthiness, depth_cutoff, focus, depth_loc, cam_dist, fov, zoom, crop_pos, doDepthInversion, chromaDepth);
             items.Add(p);
         }
 
@@ -93,7 +101,7 @@ namespace Toolkit_API.Bridge
 
             string content =
                 $$"""
-                {
+                {   
                     "orchestration": "{{session.token}}",
                     "name": "{{name}}",
                     "index": "{{id}}",
@@ -101,7 +109,19 @@ namespace Toolkit_API.Bridge
                     "rows": "{{item.rows}}",
                     "cols": "{{item.cols}}",
                     "aspect": "{{item.aspect}}",
-                    "view_count": "{{item.viewCount}}"
+                    "view_count": "{{item.viewCount}}",
+                    "isRGBD": "{{item.isRGBD}}",
+                    "depth_inversion": "{{item.depth_inversion}}",
+                    "chroma_depth": "{{item.chroma_depth}}",
+                    "crop_pos_x": "{{item.crop_pos_x}}",
+                    "crop_pos_y": "{{item.crop_pos_y}}",
+                    "depthiness": "{{item.depthiness}}",
+                    "depth_cutoff": "{{item.depth_cutoff}}",
+                    "depth_loc": "{{item.depth_loc}}",
+                    "focus": "{{item.focus}}",
+                    "cam_dist": "{{item.cam_dist}}",
+                    "fov": "{{item.fov}}",
+                    "zoom": "{{item.zoom}}"
                 }
                 """;
 
@@ -118,6 +138,23 @@ namespace Toolkit_API.Bridge
         public float aspect = 1;
         public int viewCount = 1;
 
+        public int isRGBD = 0;
+
+        public float cam_dist = 0;
+        public float fov = 0;
+
+        public int depth_loc = 0;
+        public int depth_inversion = 0;
+        public int chroma_depth = 0;
+
+        public float crop_pos_x = 0;
+        public float crop_pos_y = 0;
+
+        public float depthiness = 0;
+        public float depth_cutoff = 0;
+        public float focus = 0;
+        public float zoom = 0;
+
         public PlaylistItem(int id, string URI, int rows, int cols, float aspect, int viewCount)
         {
             this.id = id;
@@ -126,6 +163,33 @@ namespace Toolkit_API.Bridge
             this.cols = cols;
             this.aspect = aspect;
             this.viewCount = viewCount;
+        }
+        public PlaylistItem(int id, string URI, int rows, int cols, float aspect, 
+            float depthiness, float depth_cutoff, float focus, int depth_loc, 
+            float cam_dist, float fov, float zoom = 1, Vector2 crop_pos = new Vector2(), 
+            bool doDepthInversion = false, bool chromaDepth = false)
+        {
+            this.id = id;
+            this.URI = URI;
+            this.rows = rows;
+            this.cols = cols;
+            viewCount = rows * cols;
+            this.aspect = aspect;
+            
+            isRGBD = 1;
+
+            this.cam_dist = cam_dist;
+            this.fov = fov;
+
+            this.depth_loc = depth_loc;
+            this.depthiness = depthiness;
+            this.depth_cutoff = depth_cutoff;
+            this.focus = focus;
+            this.zoom = zoom;
+            crop_pos_x = crop_pos.X;
+            crop_pos_y = crop_pos.Y;
+            depth_inversion = doDepthInversion ? 1 : 0;
+            chroma_depth = chromaDepth ? 1 : 0;
         }
     }
 }

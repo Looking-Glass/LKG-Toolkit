@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Toolkit_API.Bridge;
 
 namespace ToolKit_CLI.Samples
 {
-    internal class PlayItem
+    internal class PlayRGBDItem
     {
         public static void Run(CommandLineOptions args)
         {
@@ -43,9 +42,17 @@ namespace ToolKit_CLI.Samples
                     Console.WriteLine("Failed to update devices");
                     return;
                 }
-
-                Playlist p = new Playlist("default", args.loopPlaylist);
-                p.AddItem(args.inputFile, args.rows, args.cols, args.aspect, args.viewCount);
+                Random rng = new Random();
+                Playlist p = new Playlist("default_" + rng.Next(0, 10000), args.loopPlaylist);
+                p.AddQuiltItem("C:\\Users\\zinsl\\source\\repos\\Lent\\Lent\\Assets\\nikki_headshot2.jpg", 10, 6, 1.77f, 58);
+                p.AddRGBDItem(args.inputFile, args.rows, args.cols, args.aspect,
+                    0.9f,    //depthiness
+                    0.18f,    //depth_cutoff
+                    -0.01f,      //focus
+                    2,       //depth_loc right
+                    1.5f,    //cam_dist
+                    35,      //fov
+                    1.7f);   //zoom 
 
                 if (!b.TryPlayPlaylist(p, args.head))
                 {
@@ -62,6 +69,5 @@ namespace ToolKit_CLI.Samples
             Console.WriteLine("Listening for events, press any key to stop.");
             Console.ReadKey();
         }
-
     }
 }
