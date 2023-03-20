@@ -24,7 +24,8 @@ namespace ToolKit_CLI
                     ListDevices.Run(args);
                     break;
                 case CLI_Task.play:
-                    PlayItem.Run(args);
+                    PlayRGBDItem.Run(args);
+                    //PlayQuiltItem.Run(args);
                     break;
                 case CLI_Task.playlist:
                     break;
