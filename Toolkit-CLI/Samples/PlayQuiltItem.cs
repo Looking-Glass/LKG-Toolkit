@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Toolkit_API.Bridge;
 
-namespace ToolKit_CLI.Samples
+namespace Toolkit_CLI.Samples
 {
     internal class PlayQuiltItem
     {

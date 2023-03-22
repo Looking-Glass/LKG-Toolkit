@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Toolkit_API.Bridge;
 using Toolkit_API.Device;
 
-namespace ToolKit_CLI.Samples
+namespace Toolkit_CLI.Samples
 {
     internal class ListDevices
     {

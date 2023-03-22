@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Toolkit_API.Bridge;
 
-namespace ToolKit_CLI.Samples
+namespace Toolkit_CLI.Samples
 {
     internal class PlayRGBDItem
     {
