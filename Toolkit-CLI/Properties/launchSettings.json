@@ -2,7 +2,7 @@
   "profiles": {
     "Toolkit-CLI": {
       "commandName": "Project",
-      "commandLineArgs": "Toolkit-CLI.exe -t play -i  C:\\Users\\zinsl\\Desktop\\Voxel_Depth_Test\\Nikki_RGBD.jpg -c 5 -r 9 -v 45 --aspect 1.77 --loop"
+      "commandLineArgs": "Toolkit-CLI.exe -t play -i /Users/alec/Downloads/Nikki_RGBD.jpg -c 5 -r 9 -v 45 --aspect 1.77 --loop"
     }
   }
 }
