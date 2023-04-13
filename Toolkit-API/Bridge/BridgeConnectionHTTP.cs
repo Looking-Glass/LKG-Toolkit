@@ -252,6 +252,30 @@ namespace Toolkit_API.Bridge
             return webSocket.TrySendMessage(message);
         }
 
+        public bool TryUpdatingFocus(string playlistName, float newFocusValue)
+        {
+            string message =
+                $$"""
+                {
+                    "orchestration": "{{session.token}}",
+                    "name": "{{playlistName}}",
+                    "focus": "{{newFocusValue}}",
+                }
+                """;
+
+            string? resp = TrySendMessage("update_current_entry", message);
+
+            if (resp != null)
+            {
+                Console.WriteLine(resp);
+                return true;
+            }
+            else
+            { 
+                return false;
+            }
+        }
+
         public bool TryUpdateDevices()
         {
             string message =
@@ -267,28 +291,36 @@ namespace Toolkit_API.Bridge
             {
                 JsonObject node = JsonNode.Parse(resp)?["payload"]?["value"]?.AsObject();
 
-                if(node != null)
+                lock(this)
                 {
-                    for (int i = 0; i < node.Count; i++)
+                    if (node != null)
                     {
-                        Display? d = Display.ParseJson(i, node[i.ToString()]!["value"]!);
-                        if (d != null)
-                        {
-                            if(!all_displays.ContainsKey(d.hardwareInfo.index))
-                            {
-                                all_displays.Add(d.hardwareInfo.index, d);
-                            }
+                        all_displays.Clear();
+                        LKG_Displays.Clear();
 
-                            if (d.hardwareInfo.hardwareVersion != "thirdparty" && !LKG_Displays.ContainsKey(d.hardwareInfo.index))
+                        for (int i = 0; i < node.Count; i++)
+                        {
+                            Display? d = Display.ParseJson(i, node[i.ToString()]!["value"]!);
+                            if (d != null)
                             {
-                                if (!LKG_Displays.ContainsKey(d.hardwareInfo.index))
+                                if (!all_displays.ContainsKey(d.hardwareInfo.index))
                                 {
-                                    LKG_Displays.Add(d.hardwareInfo.index, d);
+                                    all_displays.Add(d.hardwareInfo.index, d);
+                                }
+
+                                if (d.hardwareInfo.hardwareVersion != "thirdparty" && !LKG_Displays.ContainsKey(d.hardwareInfo.index))
+                                {
+                                    if (!LKG_Displays.ContainsKey(d.hardwareInfo.index))
+                                    {
+                                        LKG_Displays.Add(d.hardwareInfo.index, d);
+                                    }
                                 }
                             }
                         }
                     }
                 }
+
+
 
                 return true;
             }
