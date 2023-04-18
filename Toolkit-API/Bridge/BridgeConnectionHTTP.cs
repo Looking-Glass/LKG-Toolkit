@@ -276,6 +276,31 @@ namespace Toolkit_API.Bridge
             }
         }
 
+        public bool TryUpdatingCenter(string playlistName, float new_crop_x, float new_crop_y)
+        {
+            string message =
+                $$"""
+                {
+                    "orchestration": "{{session.token}}",
+                    "name": "{{playlistName}}",
+                    "crop_pos_x": "{{new_crop_x}}",
+                    "crop_pos_y": "{{new_crop_y}}",
+                }
+                """;
+
+            string? resp = TrySendMessage("update_current_entry", message);
+
+            if (resp != null)
+            {
+                Console.WriteLine(resp);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public bool TryUpdateDevices()
         {
             string message =
