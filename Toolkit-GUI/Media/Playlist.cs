@@ -106,14 +106,17 @@ namespace ToolkitGUI.Media
 
         public Toolkit_API.Bridge.Playlist GetBridgePlaylist()
         {
-            var bridgePlaylist = new Toolkit_API.Bridge.Playlist(name, false);
+            var bridgePlaylist = new Toolkit_API.Bridge.Playlist(name, true);
 
             for(int i = 0; i < items.Count; i++)
             {
                 PlaylistItem item = items[i];
                 if(item.isRGBD == 1)
                 {
-                    bridgePlaylist.AddRGBDItem(Path.GetFullPath(item.path), item.rows, item.cols, item.aspect, item.depthiness, item.depth_cutoff, item.focus, item.depth_loc, 0, 0, item.zoom, new System.Numerics.Vector2(item.crop_pos_x, item.crop_pos_y), item.depth_inversion == 0, item.chroma_depth == 0);
+                    bridgePlaylist.AddRGBDItem(Path.GetFullPath(item.path), item.rows, item.cols, item.aspect, 
+                        item.depthiness, item.depth_cutoff, item.focus, item.depth_loc, 0, 0, 
+                        item.zoom, new System.Numerics.Vector2(item.crop_pos_x, item.crop_pos_y), 
+                        item.depth_inversion == 1, item.chroma_depth == 1);
                 }
                 else
                 {

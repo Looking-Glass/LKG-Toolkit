@@ -37,7 +37,7 @@ namespace ToolkitGUI.Media
 
         // combo box bottom = 0, top = 1, left = 2, right = 3
         [JsonInclude]
-        public int depth_loc = 3;
+        public int depth_loc = 2;
         
         // this is a bool
         [JsonInclude]

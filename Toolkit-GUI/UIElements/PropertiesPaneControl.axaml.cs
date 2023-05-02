@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using System;
+using Toolkit_API.Bridge.Params;
 using ToolkitGUI.Media;
 
 namespace ToolkitGUI
@@ -47,7 +48,7 @@ namespace ToolkitGUI
         }
 
 
-        private void AddComboBoxInput(string[] items, Action<int> onItemSelected)
+        private void AddComboBoxInput(string[] items, int initialValue, Action<int> onItemSelected)
         {
             var comboBoxControl = new ComboBox();
             comboBoxControl.Items = items;
@@ -59,7 +60,7 @@ namespace ToolkitGUI
                     onItemSelected(comboBoxControl.SelectedIndex);
                 }
             };
-
+            comboBoxControl.SelectedIndex = initialValue;
             currentPanelToWriteTo.Children.Add(comboBoxControl);
         }
 
@@ -108,12 +109,29 @@ namespace ToolkitGUI
             currentPanelToWriteTo.Children.Add(floatTextInputControl);
         }
 
+
+        private DateTime lastUpdateTime = DateTime.MinValue;
+
+        private void TryUpdatingParameter(string playlistName, int playlistItem, Parameters parameter, float value)
+        {
+            TimeSpan timeSinceLastUpdate = DateTime.Now - lastUpdateTime;
+
+            if (!addingNewItem && MainWindow.instance.bridgeConnection != null && timeSinceLastUpdate.TotalSeconds >= 2)
+            {
+                lastUpdateTime = DateTime.Now;
+                MainWindow.instance.bridgeConnection.TryUpdatingParameter(playlistName, playlistItem, parameter, value);
+            }
+        }
+
+
         // This is a hack and it will work but is easy to break
         // TODO fix this when I am not in a hurry
         StackPanel currentPanelToWriteTo;
 
+        volatile bool addingNewItem = false;
         public void OnItemUpdated(Playlist playlist, PlaylistItem item)
         {
+            addingNewItem = true;
             // Clear existing UI elements
             PropertiesStackPanel.Children.Clear();
             PropertiesBelowCollapseStackPanel.Children.Clear();
@@ -125,18 +143,21 @@ namespace ToolkitGUI
             AddIntegerInput("Rows", item.rows, (newValue) =>
             {
                 item.rows = newValue;
+                TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.rows, item.rows);
                 playlist.UpdateItem(item);
             });
 
             AddIntegerInput("Cols", item.cols, (newValue) =>
             {
                 item.cols = newValue;
+                TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.cols, item.cols);
                 playlist.UpdateItem(item);
             });
 
             AddIntegerInput("View Count", item.viewCount, (newValue) =>
             {
                 item.viewCount = newValue;
+                TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.viewCount, item.viewCount);
                 playlist.UpdateItem(item);
             });
 
@@ -144,6 +165,7 @@ namespace ToolkitGUI
             AddFloatTextInput("Aspect Ratio", item.aspect, (newValue) =>
             {
                 item.aspect = newValue;
+                TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.aspect, item.aspect);
                 playlist.UpdateItem(item);
             });
 
@@ -151,6 +173,7 @@ namespace ToolkitGUI
             AddBoolInput("RGBD On", "RGBD Off", item.isRGBD == 1, (newValue) =>
             {
                 item.isRGBD = newValue ? 1 : 0;
+                TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.isRGBD, item.isRGBD);
                 PropertiesBelowCollapseStackPanel.IsVisible = newValue;
                 playlist.UpdateItem(item);
             });
@@ -158,9 +181,10 @@ namespace ToolkitGUI
             PropertiesBelowCollapseStackPanel.IsVisible = item.isRGBD == 1;
 
             // Add ComboBoxInput for depth_loc
-            AddComboBoxInput(new[] { "Bottom", "Top", "Left", "Right" }, (selectedIndex) =>
+            AddComboBoxInput(new[] { "Bottom", "Top", "Left", "Right" }, item.depth_loc, (selectedIndex) =>
             {
                 item.depth_loc = selectedIndex;
+                TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.depth_loc, item.depth_loc);
                 playlist.UpdateItem(item);
             });
 
@@ -168,6 +192,7 @@ namespace ToolkitGUI
             AddBoolInput("Depth Inversion On", "Depth Inversion Off", item.depth_inversion == 1, (newValue) =>
             {
                 item.depth_inversion = newValue ? 1 : 0;
+                TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.depth_inversion, item.depth_inversion);
                 playlist.UpdateItem(item);
             });
 
@@ -175,6 +200,7 @@ namespace ToolkitGUI
             AddBoolInput("Chroma Depth On", "Chroma Depth Off", item.chroma_depth == 1, (newValue) =>
             {
                 item.chroma_depth = newValue ? 1 : 0;
+                TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.chroma_depth, item.chroma_depth);
                 playlist.UpdateItem(item);
             });
 
@@ -182,38 +208,46 @@ namespace ToolkitGUI
             AddFloatInput("Crop Position X", item.crop_pos_x, -1, 1, (newValue) =>
             {
                 item.crop_pos_x = newValue;
+                TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.crop_pos_x, item.crop_pos_x);
                 playlist.UpdateItem(item);
             });
 
             AddFloatInput("Crop Position Y", item.crop_pos_y, -1, 1, (newValue) =>
             {
                 item.crop_pos_y = newValue;
+                TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.crop_pos_y, item.crop_pos_y);
                 playlist.UpdateItem(item);
             });
 
             AddFloatInput("Depthiness", item.depthiness, 0, 1, (newValue) =>
             {
                 item.depthiness = newValue;
+                TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.depthiness, item.depthiness);
                 playlist.UpdateItem(item);
             });
 
             AddFloatInput("Depth Cutoff", item.depth_cutoff, 0, 1, (newValue) =>
             {
                 item.depth_cutoff = newValue;
+                TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.depth_cutoff, item.depth_cutoff);
                 playlist.UpdateItem(item);
             });
 
             AddFloatInput("Focus", item.focus, -1, 1, (newValue) =>
             {
                 item.focus = newValue;
+                TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.focus, item.focus);
                 playlist.UpdateItem(item);
             });
 
             AddFloatInput("Zoom", item.zoom, 0, 2, (newValue) =>
             {
                 item.zoom = newValue;
+                TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.zoom, item.zoom);
                 playlist.UpdateItem(item);
             });
+
+            addingNewItem = false;
         }
 
     }

@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Nodes;
 using Toolkit_API.Bridge.EventListeners;
+using Toolkit_API.Bridge.Params;
 using Toolkit_API.Device;
 
 namespace Toolkit_API.Bridge
@@ -252,18 +253,20 @@ namespace Toolkit_API.Bridge
             return webSocket.TrySendMessage(message);
         }
 
-        public bool TryUpdatingFocus(string playlistName, float newFocusValue)
+
+        public bool TryUpdatingParameter(string playlistName, int playlistItem, Parameters param, float newValue)
         {
             string message =
                 $$"""
                 {
                     "orchestration": "{{session.token}}",
                     "name": "{{playlistName}}",
-                    "focus": "{{newFocusValue}}",
+                    "index": "{{playlistItem}}",
+                    "{{ParameterUtils.GetParamName(param)}}": "{{(ParameterUtils.IsFloatParam(param) ? newValue : (int)newValue)}}",
                 }
                 """;
 
-            string? resp = TrySendMessage("update_current_entry", message);
+            string? resp = TrySendMessage("update_playlist_entry", message);
 
             if (resp != null)
             {
@@ -271,20 +274,20 @@ namespace Toolkit_API.Bridge
                 return true;
             }
             else
-            { 
+            {
                 return false;
             }
         }
 
-        public bool TryUpdatingCenter(string playlistName, float new_crop_x, float new_crop_y)
+
+        public bool TryUpdatingParameter(string playlistName, Parameters param, float newValue)
         {
             string message =
                 $$"""
                 {
                     "orchestration": "{{session.token}}",
                     "name": "{{playlistName}}",
-                    "crop_pos_x": "{{new_crop_x}}",
-                    "crop_pos_y": "{{new_crop_y}}",
+                    "{{ParameterUtils.GetParamName(param)}}": "{{(ParameterUtils.IsFloatParam(param) ? newValue : (int) newValue)}}",
                 }
                 """;
 

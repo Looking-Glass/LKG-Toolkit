@@ -45,9 +45,9 @@ namespace ToolKit_CLI.Samples
                 Random rng = new Random();
                 Playlist p = new Playlist("default_" + rng.Next(0, 10000), args.loopPlaylist);
                 p.AddRGBDItem(args.inputFile, args.rows, args.cols, args.aspect,
-                    0.5f,    //depthiness
-                    1f,   //depth_cutoff
-                    -0.08f,  //focus
+                    1.0f,    //depthiness
+                    0.9f,   //depth_cutoff
+                    -0.04f,  //focus
                     2,       //depth_loc right
                     5f,    //cam_dist
                     30,      //fov
