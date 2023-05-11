@@ -336,7 +336,7 @@ namespace Toolkit_API.Bridge
                                     all_displays.Add(d.hardwareInfo.index, d);
                                 }
 
-                                if (d.hardwareInfo.hardwareVersion != "thirdparty" && !LKG_Displays.ContainsKey(d.hardwareInfo.index))
+                                if (d.hardwareInfo.hwid.Contains("LKG") && !LKG_Displays.ContainsKey(d.hardwareInfo.index))
                                 {
                                     if (!LKG_Displays.ContainsKey(d.hardwareInfo.index))
                                     {
