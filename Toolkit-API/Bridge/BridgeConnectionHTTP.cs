@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Nodes;
 using Toolkit_API.Bridge.EventListeners;
+using Toolkit_API.Bridge.Params;
 using Toolkit_API.Device;
 
 namespace Toolkit_API.Bridge
@@ -10,7 +11,7 @@ namespace Toolkit_API.Bridge
         private int webSocketPort;
         private string url;
 
-        private HttpClient client;
+        private HttpClient client = null;
         private BridgeWebSocketClient webSocket;
         private volatile bool LastConnectionState = false;
 
@@ -162,7 +163,6 @@ namespace Toolkit_API.Bridge
         {
             try
             {
-                HttpClient client = new HttpClient();
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, $"http://{url}:{port}/{endpoint}");
                 request.Content = new StringContent(content);
 
@@ -252,18 +252,20 @@ namespace Toolkit_API.Bridge
             return webSocket.TrySendMessage(message);
         }
 
-        public bool TryUpdatingFocus(string playlistName, float newFocusValue)
+
+        public bool TryUpdatingParameter(string playlistName, int playlistItem, Parameters param, float newValue)
         {
             string message =
                 $$"""
                 {
                     "orchestration": "{{session.token}}",
                     "name": "{{playlistName}}",
-                    "focus": "{{newFocusValue}}",
+                    "index": "{{playlistItem}}",
+                    "{{ParameterUtils.GetParamName(param)}}": "{{(ParameterUtils.IsFloatParam(param) ? newValue : (int)newValue)}}",
                 }
                 """;
 
-            string? resp = TrySendMessage("update_current_entry", message);
+            string? resp = TrySendMessage("update_playlist_entry", message);
 
             if (resp != null)
             {
@@ -271,20 +273,20 @@ namespace Toolkit_API.Bridge
                 return true;
             }
             else
-            { 
+            {
                 return false;
             }
         }
 
-        public bool TryUpdatingCenter(string playlistName, float new_crop_x, float new_crop_y)
+
+        public bool TryUpdatingParameter(string playlistName, Parameters param, float newValue)
         {
             string message =
                 $$"""
                 {
                     "orchestration": "{{session.token}}",
                     "name": "{{playlistName}}",
-                    "crop_pos_x": "{{new_crop_x}}",
-                    "crop_pos_y": "{{new_crop_y}}",
+                    "{{ParameterUtils.GetParamName(param)}}": "{{(ParameterUtils.IsFloatParam(param) ? newValue : (int) newValue)}}",
                 }
                 """;
 
@@ -333,7 +335,7 @@ namespace Toolkit_API.Bridge
                                     all_displays.Add(d.hardwareInfo.index, d);
                                 }
 
-                                if (d.hardwareInfo.hardwareVersion != "thirdparty" && !LKG_Displays.ContainsKey(d.hardwareInfo.index))
+                                if (d.hardwareInfo.hwid.Contains("LKG") && !LKG_Displays.ContainsKey(d.hardwareInfo.index))
                                 {
                                     if (!LKG_Displays.ContainsKey(d.hardwareInfo.index))
                                     {

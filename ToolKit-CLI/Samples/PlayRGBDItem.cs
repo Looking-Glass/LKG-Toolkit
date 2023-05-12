@@ -43,23 +43,11 @@ namespace ToolKit_CLI.Samples
                     return;
                 }
                 Random rng = new Random();
-                // Toolkit-CLI.exe -t play -i "C:\Users\zinsl\source\python\scratch\combined.png" -c 5 -r 9 -v 45 --aspect 0.563 -loop
-                //Playlist p = new Playlist("default_" + rng.Next(0, 10000), args.loopPlaylist);
-                //p.AddRGBDItem(args.inputFile, args.rows, args.cols, args.aspect,
-                //    0.5f,    //depthiness
-                //    1f,   //depth_cutoff
-                //    -0.08f,  //focus
-                //    2,       //depth_loc right
-                //    10f,    //cam_dist
-                //    30,      //fov
-                //    1f);   //zoom 
-
-                // Toolkit-CLI.exe -t play -i "C:\Users\zinsl\Desktop\test_data\Voxel_Depth_Test\Nikki_RGBD.jpg" -c 5 -r 9 -v 45 --aspect 1.7 -loop
                 Playlist p = new Playlist("default_" + rng.Next(0, 10000), args.loopPlaylist);
                 p.AddRGBDItem(args.inputFile, args.rows, args.cols, args.aspect,
-                    0.5f,    //depthiness
-                    1f,   //depth_cutoff
-                    -0.08f,  //focus
+                    1.0f,    //depthiness
+                    0.9f,   //depth_cutoff
+                    -0.04f,  //focus
                     2,       //depth_loc right
                     5f,    //cam_dist
                     30,      //fov

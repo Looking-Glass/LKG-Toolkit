@@ -40,7 +40,16 @@ namespace Toolkit_API.Device
             flipImageX = float.Parse(obj["flipImageX"]!["value"]!.ToString());
             flipImageY = float.Parse(obj["flipImageY"]!["value"]!.ToString());
             flipSubp = float.Parse(obj["flipSubp"]!["value"]!.ToString());
-            fringe = (int)float.Parse(obj["fringe"]!["value"]!.ToString());
+            
+            try
+            {
+                fringe = (int)float.Parse(obj["fringe"]!["value"]!.ToString());
+            }
+            catch  (Exception e) 
+            {
+                fringe = 0;
+            }
+
             invView = (int)float.Parse(obj["invView"]!["value"]!.ToString());
             pitch = float.Parse(obj["pitch"]!["value"]!.ToString());
             screenH = (int)float.Parse(obj["screenH"]!["value"]!.ToString());
