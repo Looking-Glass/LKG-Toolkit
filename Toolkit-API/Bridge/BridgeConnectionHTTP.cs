@@ -11,7 +11,7 @@ namespace Toolkit_API.Bridge
         private int webSocketPort;
         private string url;
 
-        private HttpClient client;
+        private HttpClient client = null;
         private BridgeWebSocketClient webSocket;
         private volatile bool LastConnectionState = false;
 
@@ -163,7 +163,6 @@ namespace Toolkit_API.Bridge
         {
             try
             {
-                HttpClient client = new HttpClient();
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, $"http://{url}:{port}/{endpoint}");
                 request.Content = new StringContent(content);
 

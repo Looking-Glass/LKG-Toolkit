@@ -1,6 +1,8 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Toolkit_API.Bridge.Params;
 using ToolkitGUI.Media;
 
@@ -8,6 +10,8 @@ namespace ToolkitGUI
 {
     public partial class PropertiesPaneControl : UserControl
     {
+        Dictionary<int, int> _current_values = new Dictionary<int, int>();
+
         public PropertiesPaneControl()
         {
             InitializeComponent();
@@ -112,14 +116,41 @@ namespace ToolkitGUI
 
         private DateTime lastUpdateTime = DateTime.MinValue;
 
+        public static int Hash(params object[] args)
+        {
+            unchecked // Overflow is fine, just wrap
+            {
+                int hash = 17;
+                foreach (var arg in args)
+                {
+                    hash = hash * 23 + (arg != null ? arg.GetHashCode() : 0);
+                }
+                return hash;
+            }
+        }
+
         private void TryUpdatingParameter(string playlistName, int playlistItem, Parameters parameter, float value)
         {
             TimeSpan timeSinceLastUpdate = DateTime.Now - lastUpdateTime;
 
-            if (!addingNewItem && MainWindow.instance.bridgeConnection != null && timeSinceLastUpdate.TotalSeconds >= 2)
+            int hash = Hash(playlistName, playlistItem, parameter, value);
+
+            if (!addingNewItem && MainWindow.instance.bridgeConnection != null)
             {
                 lastUpdateTime = DateTime.Now;
-                MainWindow.instance.bridgeConnection.TryUpdatingParameter(playlistName, playlistItem, parameter, value);
+
+                bool update = !_current_values.ContainsKey(hash);
+
+                if (!update)
+                {
+                    update |= _current_values[hash] != hash;
+                }
+
+                if (update)
+                {
+                    MainWindow.instance.bridgeConnection.TryUpdatingParameter(playlistName, playlistItem, parameter, value);
+                    _current_values[hash] = hash;
+                }
             }
         }
 
