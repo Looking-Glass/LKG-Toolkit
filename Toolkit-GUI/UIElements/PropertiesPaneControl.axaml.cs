@@ -200,6 +200,28 @@ namespace ToolkitGUI
                 playlist.UpdateItem(item);
             });
 
+            // Add FloatInputs for crop_pos_x, crop_pos_y, depthiness, depth_cutoff, focus, and zoom
+            AddFloatInput("Crop Position X", item.crop_pos_x, -1, 1, (newValue) =>
+            {
+                item.crop_pos_x = newValue;
+                TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.crop_pos_x, item.crop_pos_x);
+                playlist.UpdateItem(item);
+            });
+
+            AddFloatInput("Crop Position Y", item.crop_pos_y, -1, 1, (newValue) =>
+            {
+                item.crop_pos_y = newValue;
+                TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.crop_pos_y, item.crop_pos_y);
+                playlist.UpdateItem(item);
+            });
+
+            AddFloatInput("Zoom", item.zoom, 0, 2, (newValue) =>
+            {
+                item.zoom = newValue;
+                TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.zoom, item.zoom);
+                playlist.UpdateItem(item);
+            });
+
             // this is related to the hack above
             AddBoolInput("RGBD On", "RGBD Off", item.isRGBD == 1, (newValue) =>
             {
@@ -208,6 +230,7 @@ namespace ToolkitGUI
                 PropertiesBelowCollapseStackPanel.IsVisible = newValue;
                 playlist.UpdateItem(item);
             });
+
             currentPanelToWriteTo = PropertiesBelowCollapseStackPanel;
             PropertiesBelowCollapseStackPanel.IsVisible = item.isRGBD == 1;
 
@@ -235,21 +258,6 @@ namespace ToolkitGUI
                 playlist.UpdateItem(item);
             });
 
-            // Add FloatInputs for crop_pos_x, crop_pos_y, depthiness, depth_cutoff, focus, and zoom
-            AddFloatInput("Crop Position X", item.crop_pos_x, -1, 1, (newValue) =>
-            {
-                item.crop_pos_x = newValue;
-                TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.crop_pos_x, item.crop_pos_x);
-                playlist.UpdateItem(item);
-            });
-
-            AddFloatInput("Crop Position Y", item.crop_pos_y, -1, 1, (newValue) =>
-            {
-                item.crop_pos_y = newValue;
-                TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.crop_pos_y, item.crop_pos_y);
-                playlist.UpdateItem(item);
-            });
-
             AddFloatInput("Depthiness", item.depthiness, 0, 1, (newValue) =>
             {
                 item.depthiness = newValue;
@@ -268,13 +276,6 @@ namespace ToolkitGUI
             {
                 item.focus = newValue;
                 TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.focus, item.focus);
-                playlist.UpdateItem(item);
-            });
-
-            AddFloatInput("Zoom", item.zoom, 0, 2, (newValue) =>
-            {
-                item.zoom = newValue;
-                TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.zoom, item.zoom);
                 playlist.UpdateItem(item);
             });
 
