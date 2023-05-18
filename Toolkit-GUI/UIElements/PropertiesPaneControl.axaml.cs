@@ -272,7 +272,7 @@ namespace ToolkitGUI
                 playlist.UpdateItem(item);
             });
 
-            AddFloatInput("Focus", item.focus, -1, 1, (newValue) =>
+            AddFloatInput("Focus", item.focus, -0.1f, 0.1f, (newValue) =>
             {
                 item.focus = newValue;
                 TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.focus, item.focus);
