@@ -347,16 +347,22 @@ namespace Toolkit_API.Bridge
                     }
                 }
 
-
-
                 return true;
             }
 
             return false;
         }
 
+
+        private string current_playlist_name = string.Empty;
         public bool TryPlayPlaylist(Playlist p, int head)
         {
+            if(current_playlist_name == p.name)
+            {
+                string delete_message = p.GetInstanceJson(session);
+                string? delete_resp = TrySendMessage("delete_playlist", delete_message);
+            }
+
             string message = p.GetInstanceJson(session);
             string? resp = TrySendMessage("instance_playlist", message);
             
@@ -368,11 +374,13 @@ namespace Toolkit_API.Bridge
             for(int i = 0; i < playlistItems.Length; i++)
             {
                 string pMessage = playlistItems[i];
-                string pResp = TrySendMessage("insert_playlist_entry", pMessage);
+                string? pResp = TrySendMessage("insert_playlist_entry", pMessage);
 
                 Console.WriteLine(pMessage);
                 Console.WriteLine(pResp);
             }
+
+            current_playlist_name = p.name;
 
             string playMessage = p.GetPlayPlaylistJson(session, head);
             string? playResp = TrySendMessage("play_playlist", playMessage);
