@@ -131,14 +131,10 @@ namespace ToolkitGUI
 
         private void TryUpdatingParameter(string playlistName, int playlistItem, Parameters parameter, float value)
         {
-            TimeSpan timeSinceLastUpdate = DateTime.Now - lastUpdateTime;
-
             int hash = Hash(playlistName, playlistItem, parameter, value);
 
             if (!addingNewItem && MainWindow.instance.bridgeConnection != null)
             {
-                lastUpdateTime = DateTime.Now;
-
                 bool update = !_current_values.ContainsKey(hash);
 
                 if (!update)
@@ -153,6 +149,11 @@ namespace ToolkitGUI
                 }
             }
         }
+
+        //private void TryUpdatingParameter(string playlistName, int playlistItem, Parameters parameter, float value)
+        //{
+        //    MainWindow.instance.bridgeConnection.TryUpdatingParameter(playlistName, playlistItem, parameter, value);
+        //}
 
 
         // This is a hack and it will work but is easy to break
@@ -192,7 +193,6 @@ namespace ToolkitGUI
                 playlist.UpdateItem(item);
             });
 
-            // Add FloatTextInput for aspect
             AddFloatTextInput("Aspect Ratio", item.aspect, (newValue) =>
             {
                 item.aspect = newValue;
@@ -200,7 +200,6 @@ namespace ToolkitGUI
                 playlist.UpdateItem(item);
             });
 
-            // Add FloatInputs for crop_pos_x, crop_pos_y, depthiness, depth_cutoff, focus, and zoom
             AddFloatInput("Crop Position X", item.crop_pos_x, -1, 1, (newValue) =>
             {
                 item.crop_pos_x = newValue;
@@ -219,6 +218,13 @@ namespace ToolkitGUI
             {
                 item.zoom = newValue;
                 TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.zoom, item.zoom);
+                playlist.UpdateItem(item);
+            });
+
+            AddFloatInput("Duration (Sec)", item.durationMS / 1000, 0, 300, (newValue) =>
+            {
+                item.durationMS = (int)(newValue * 1000);
+                //TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.durationMS, item.durationMS);
                 playlist.UpdateItem(item);
             });
 

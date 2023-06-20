@@ -116,11 +116,11 @@ namespace ToolkitGUI.Media
                     bridgePlaylist.AddRGBDItem(Path.GetFullPath(item.path), item.rows, item.cols, item.aspect, 
                         item.depthiness, item.depth_cutoff, item.focus, item.depth_loc, 0, 0, 
                         item.zoom, new System.Numerics.Vector2(item.crop_pos_x, item.crop_pos_y), 
-                        item.depth_inversion == 1, item.chroma_depth == 1);
+                        item.depth_inversion == 1, item.chroma_depth == 1, item.durationMS);
                 }
                 else
                 {
-                    bridgePlaylist.AddQuiltItem(Path.GetFullPath(item.path), item.rows, item.cols, item.aspect, item.viewCount);
+                    bridgePlaylist.AddQuiltItem(Path.GetFullPath(item.path), item.rows, item.cols, item.aspect, item.viewCount, item.durationMS);
                 }
             }
 

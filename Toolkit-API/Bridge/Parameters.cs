@@ -14,6 +14,7 @@ namespace Toolkit_API.Bridge.Params
         cols,
         aspect,
         viewCount,
+        durationMS,
         isRGBD,
         depth_loc,
         depth_inversion,
@@ -39,6 +40,7 @@ namespace Toolkit_API.Bridge.Params
                 case Parameters.depth_loc:
                 case Parameters.depth_inversion:
                 case Parameters.chroma_depth:
+                case Parameters.durationMS:
                     return false;
                 case Parameters.aspect:
                 case Parameters.crop_pos_x:
@@ -85,6 +87,8 @@ namespace Toolkit_API.Bridge.Params
                     return "focus";
                 case Parameters.zoom:
                     return "zoom";
+                case Parameters.durationMS:
+                    return "durationMS";
                 default:
                     throw new ArgumentOutOfRangeException(nameof(param), param, "Invalid parameter");
             }

@@ -21,17 +21,17 @@ namespace Toolkit_API.Bridge
             items = new List<PlaylistItem>();
         }
 
-        public void AddQuiltItem(string URI, int rows, int cols, float aspect, int viewCount)
+        public void AddQuiltItem(string URI, int rows, int cols, float aspect, int viewCount, int durationMS = 20000)
         {
             int id = items.Count;
-            PlaylistItem p = new PlaylistItem(id, URI, rows, cols, aspect, viewCount);
+            PlaylistItem p = new PlaylistItem(id, URI, rows, cols, aspect, viewCount, durationMS);
             items.Add(p);
         }
 
-        public void AddRGBDItem(string URI, int rows, int cols, float aspect, float depthiness, float depth_cutoff, float focus, int depth_loc, float cam_dist, float fov, float zoom = 1, Vector2 crop_pos = new Vector2(), bool doDepthInversion = false, bool chromaDepth = false)
+        public void AddRGBDItem(string URI, int rows, int cols, float aspect, float depthiness, float depth_cutoff, float focus, int depth_loc, float cam_dist, float fov, float zoom = 1, Vector2 crop_pos = new Vector2(), bool doDepthInversion = false, bool chromaDepth = false, int durationMS = 20000)
         {
             int id = items.Count;
-            PlaylistItem p = new PlaylistItem(id, URI, rows, cols, aspect, depthiness, depth_cutoff, focus, depth_loc, cam_dist, fov, zoom, crop_pos, doDepthInversion, chromaDepth);
+            PlaylistItem p = new PlaylistItem(id, URI, rows, cols, aspect, depthiness, depth_cutoff, focus, depth_loc, cam_dist, fov, zoom, crop_pos, doDepthInversion, chromaDepth, durationMS);
             items.Add(p);
         }
 
@@ -109,7 +109,8 @@ namespace Toolkit_API.Bridge
                     "rows": "{{item.rows}}",
                     "cols": "{{item.cols}}",
                     "aspect": "{{item.aspect}}",
-                    "view_count": "{{item.viewCount}}",
+                    "view_count": "{{item.viewCount}}",    
+                    "durationMS": "{{item.durationMS}}",                
                     "isRGBD": "{{item.isRGBD}}",
                     "depth_inversion": "{{item.depth_inversion}}",
                     "chroma_depth": "{{item.chroma_depth}}",
@@ -137,6 +138,7 @@ namespace Toolkit_API.Bridge
         public int cols = 1;
         public float aspect = 1;
         public int viewCount = 1;
+        public int durationMS = 20000;
 
         public int isRGBD = 0;
 
@@ -155,7 +157,7 @@ namespace Toolkit_API.Bridge
         public float focus = 0;
         public float zoom = 0;
 
-        public PlaylistItem(int id, string URI, int rows, int cols, float aspect, int viewCount)
+        public PlaylistItem(int id, string URI, int rows, int cols, float aspect, int viewCount, int durationMS = 20000)
         {
             this.id = id;
             this.URI = URI;
@@ -163,11 +165,12 @@ namespace Toolkit_API.Bridge
             this.cols = cols;
             this.aspect = aspect;
             this.viewCount = viewCount;
+            this.durationMS = durationMS;
         }
         public PlaylistItem(int id, string URI, int rows, int cols, float aspect, 
             float depthiness, float depth_cutoff, float focus, int depth_loc, 
             float cam_dist, float fov, float zoom = 1, Vector2 crop_pos = new Vector2(), 
-            bool doDepthInversion = false, bool chromaDepth = false)
+            bool doDepthInversion = false, bool chromaDepth = false, int durationMS = 20000)
         {
             this.id = id;
             this.URI = URI;
@@ -190,6 +193,7 @@ namespace Toolkit_API.Bridge
             crop_pos_y = crop_pos.Y;
             depth_inversion = doDepthInversion ? 1 : 0;
             chroma_depth = chromaDepth ? 1 : 0;
+            this.durationMS = durationMS;
         }
     }
 }

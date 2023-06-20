@@ -31,6 +31,10 @@ namespace ToolkitGUI.Media
         [JsonInclude]
         public int viewCount = 45;
 
+        // this only affects non-video holograms
+        [JsonInclude]
+        public int durationMS = 20000;
+
         // this is a bool 
         [JsonInclude]
         public int isRGBD = 0;
