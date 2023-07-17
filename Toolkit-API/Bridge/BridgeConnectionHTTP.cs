@@ -41,12 +41,16 @@ namespace Toolkit_API.Bridge
             connectionStateListeners = new HashSet<Action<bool>>();
         }
 
-        public bool Connect()
+        public bool Connect(int timeoutSeconds = 300)
         {
-            client = new HttpClient();
+            client = new HttpClient
+            {
+                Timeout = TimeSpan.FromSeconds(timeoutSeconds)
+            };
             webSocket = new BridgeWebSocketClient(UpdateListeners);
             return UpdateConnectionState(webSocket.TryConnect($"ws://{url}:{webSocketPort}/event_source"));
         }
+
 
         public bool UpdateConnectionState(bool state)
         {
@@ -269,7 +273,6 @@ namespace Toolkit_API.Bridge
 
             if (resp != null)
             {
-                Console.WriteLine(resp);
                 return true;
             }
             else
@@ -294,7 +297,6 @@ namespace Toolkit_API.Bridge
 
             if (resp != null)
             {
-                Console.WriteLine(resp);
                 return true;
             }
             else
@@ -322,8 +324,8 @@ namespace Toolkit_API.Bridge
                 {
                     if (node != null)
                     {
-                        all_displays.Clear();
-                        LKG_Displays.Clear();
+                        Dictionary<int, Display> all_displays = new Dictionary<int, Display>();
+                        Dictionary<int, Display> LKG_Displays = new Dictionary<int, Display>();
 
                         for (int i = 0; i < node.Count; i++)
                         {
@@ -344,6 +346,9 @@ namespace Toolkit_API.Bridge
                                 }
                             }
                         }
+
+                        this.all_displays = all_displays;
+                        this.LKG_Displays = LKG_Displays;
                     }
                 }
 
@@ -366,27 +371,18 @@ namespace Toolkit_API.Bridge
             string message = p.GetInstanceJson(session);
             string? resp = TrySendMessage("instance_playlist", message);
             
-            Console.WriteLine(message);
-            Console.WriteLine(resp);
-
             string[] playlistItems = p.GetPlaylistItemsAsJson(session);
 
             for(int i = 0; i < playlistItems.Length; i++)
             {
                 string pMessage = playlistItems[i];
                 string? pResp = TrySendMessage("insert_playlist_entry", pMessage);
-
-                Console.WriteLine(pMessage);
-                Console.WriteLine(pResp);
             }
 
             current_playlist_name = p.name;
 
             string playMessage = p.GetPlayPlaylistJson(session, head);
             string? playResp = TrySendMessage("play_playlist", playMessage);
-
-            Console.WriteLine(playMessage);
-            Console.WriteLine(playResp);
 
             return true;
         }
@@ -395,7 +391,8 @@ namespace Toolkit_API.Bridge
         {
             if (session != default)
             {
-                TryExitOrchestration();
+                // TODO: enable after fixed in bridge 2.2
+                // TryExitOrchestration();
             }
 
             webSocket.Dispose();

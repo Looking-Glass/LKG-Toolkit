@@ -19,8 +19,6 @@ namespace Toolkit_API.Bridge
 
         public bool TryConnect(string url)
         {
-            Console.WriteLine("Connecting to: " + url);
-
             WS = new WebSocket(url);
 
             WS.OnMessage += (sender, e) =>
