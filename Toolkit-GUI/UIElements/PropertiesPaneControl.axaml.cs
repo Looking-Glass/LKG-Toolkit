@@ -264,7 +264,7 @@ namespace ToolkitGUI
                 playlist.UpdateItem(item);
             });
 
-            AddFloatInput("Depthiness", item.depthiness, 0, 1, (newValue) =>
+            AddFloatInput("Depthiness", item.depthiness, 0, 3, (newValue) =>
             {
                 item.depthiness = newValue;
                 TryUpdatingParameter(playlist.name, playlist.items.IndexOf(item), Parameters.depthiness, item.depthiness);
