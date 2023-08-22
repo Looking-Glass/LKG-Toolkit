@@ -70,6 +70,25 @@ namespace ToolkitGUI.Media
             items.Add(newItem);
         }
 
+        public void RemovePlaylistItem(int id)
+        {
+            if (id < 0 || id >= items.Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(id), "The id must be within the range of items in the playlist.");
+            }
+
+            // Get the path of the file in the dataPath
+            string destinationPath = items[id].path;
+
+            // Delete the file if it exists
+            if (File.Exists(destinationPath))
+            {
+                File.Delete(destinationPath);
+            }
+
+            // Remove the item from the list
+            items.RemoveAt(id);
+        }
 
         public static string SerializePlaylist(Playlist playlist)
         {

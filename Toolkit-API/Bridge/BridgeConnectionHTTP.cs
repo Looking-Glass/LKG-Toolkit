@@ -234,6 +234,106 @@ namespace Toolkit_API.Bridge
             return false;
         }
 
+        public bool TryTransportControlsPlay()
+        {
+            string message =
+                $$"""
+                {
+                    "orchestration": "{{session.token}}"
+                }
+                """;
+
+            string? resp = TrySendMessage("transport_control_play", message);
+
+            if (resp != null)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool TryTransportControlsPause()
+        {
+            string message =
+                $$"""
+                {
+                    "orchestration": "{{session.token}}"
+                }
+                """;
+
+            string? resp = TrySendMessage("transport_control_pause", message);
+
+            if (resp != null)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool TryTransportControlsNext()
+        {
+            string message =
+                $$"""
+                {
+                    "orchestration": "{{session.token}}"
+                }
+                """;
+
+            string? resp = TrySendMessage("transport_control_next", message);
+
+            if (resp != null)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool TryTransportControlsPrevious()
+        {
+            string message =
+            $$"""
+            {
+                "orchestration": "{{session.token}}"
+            }
+            """;
+
+            string? resp = TrySendMessage("transport_control_previous", message);
+
+            if (resp != null)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool TryShowWindow(bool showWindow, int head = -1)
+        {
+            string message =
+            $$"""
+            {
+                "orchestration": "{{session.token}}",
+                "show_window": "{{showWindow}}",
+                "head_index": {{head}}
+            }
+            """;
+
+            string? resp = TrySendMessage("show_window", message);
+
+            if (resp != null)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+
         public bool TrySubscribeToEvents()
         {
             if(session == null)
@@ -357,9 +457,22 @@ namespace Toolkit_API.Bridge
 
             return false;
         }
-
-
         private string current_playlist_name = string.Empty;
+
+        public bool TryDeletePlaylist(Playlist p)
+        {
+            if (current_playlist_name == p.name)
+            {
+                current_playlist_name = string.Empty;
+            }
+
+            string delete_message = p.GetInstanceJson(session);
+            string? delete_resp = TrySendMessage("delete_playlist", delete_message);
+
+            return delete_resp != null;
+        }
+
+
         public bool TryPlayPlaylist(Playlist p, int head)
         {
             if(current_playlist_name == p.name)
@@ -367,6 +480,8 @@ namespace Toolkit_API.Bridge
                 string delete_message = p.GetInstanceJson(session);
                 string? delete_resp = TrySendMessage("delete_playlist", delete_message);
             }
+
+            TryShowWindow(true);
 
             string message = p.GetInstanceJson(session);
             string? resp = TrySendMessage("instance_playlist", message);

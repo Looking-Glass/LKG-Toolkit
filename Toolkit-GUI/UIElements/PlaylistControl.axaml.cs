@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using System;
+using System.Diagnostics;
 using ToolkitGUI.Media;
 
 namespace ToolkitGUI
@@ -10,8 +11,9 @@ namespace ToolkitGUI
     {
         public Playlist current;
         public int SelectedIndex { get; private set; } = -1;
+        public int PlayingIndex { get; private set; } = -1;
         public Action<Playlist, PlaylistItem> onSelectionChanged;
-
+        private bool isPlaying = false;
         public PlaylistControl()
         {
             InitializeComponent();
@@ -36,6 +38,33 @@ namespace ToolkitGUI
 
         private void PlayPlaylistButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
+            if (!isPlaying)
+            {
+                MainWindow.instance.PlayingPlaylist = current;
+                MainWindow.instance.bridgeConnection.AddListener("New Item Playing", (string data) =>
+                {
+                    try
+                    {
+                        var json = System.Text.Json.JsonDocument.Parse(data);
+                        var playlistName = json.RootElement.GetProperty("playlist_name").GetProperty("value").GetString();
+                        var itemIndex = json.RootElement.GetProperty("index").GetProperty("value").GetInt32();
+
+                        if(current.name == playlistName)
+                        {
+                            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                            {
+                                UpdatePlayingItem(itemIndex);
+                            }).Wait();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Trace.WriteLine($"Failed to parse JSON data: {ex.Message}");
+                    }
+                });
+            }
+            isPlaying = true;
+
             MainWindow.instance.bridgeConnection.TryPlayPlaylist(current.GetBridgePlaylist(), -1);
         }
 
@@ -48,6 +77,15 @@ namespace ToolkitGUI
             UpdateSelectedItem(0);
         }
 
+        public void DeleteItem(int index)
+        {
+            if (current != null && index >= 0 && index < current.items.Count)
+            {
+                current.RemovePlaylistItem(index);
+                SetPlaylist(current);
+            }
+        }
+
         public void UpdatePlaylistItems()
         {
             PlaylistItemsPanel.Children.Clear();
@@ -57,7 +95,7 @@ namespace ToolkitGUI
             foreach (var item in current.items)
             {
                 var itemControl = new PlaylistItemControl();
-                itemControl.SetPlaylistItem(item);
+                itemControl.SetPlaylistItem(this, item, index);
                 int currentIndex = index;
                 itemControl.PointerPressed += (s, e) =>
                 {
@@ -68,12 +106,29 @@ namespace ToolkitGUI
             }
         }
 
+        private void UpdatePlayingItem(int index)
+        {
+            if (PlayingIndex >= 0 && PlayingIndex < PlaylistItemsPanel.Children.Count)
+            {
+                var previousSelected = (PlaylistItemControl)PlaylistItemsPanel.Children[PlayingIndex];
+                previousSelected.SetItemPlaying(false);
+            }
+
+            PlayingIndex = index;
+
+            if (PlaylistItemsPanel.Children.Count > PlayingIndex)
+            {
+                var newSelected = (PlaylistItemControl)PlaylistItemsPanel.Children[PlayingIndex];
+                newSelected.SetItemPlaying(true);
+            }
+        }
+
         private void UpdateSelectedItem(int index)
         {
             if (SelectedIndex >= 0 && SelectedIndex < PlaylistItemsPanel.Children.Count)
             {
                 var previousSelected = (PlaylistItemControl)PlaylistItemsPanel.Children[SelectedIndex];
-                previousSelected.IsSelected = false;
+                previousSelected.SetItemSelected(false);
             }
 
             SelectedIndex = index;
@@ -81,7 +136,7 @@ namespace ToolkitGUI
             if(PlaylistItemsPanel.Children.Count > SelectedIndex)
             {
                 var newSelected = (PlaylistItemControl)PlaylistItemsPanel.Children[SelectedIndex];
-                newSelected.IsSelected = true;
+                newSelected.SetItemSelected(true);
             }
 
             if (onSelectionChanged != null)

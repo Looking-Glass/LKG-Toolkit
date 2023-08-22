@@ -17,6 +17,7 @@ namespace ToolkitGUI
     {
         public static MainWindow instance;
 
+        public Playlist PlayingPlaylist;
         PlaylistManager playlistManager;
         
         public Toolkit_API.Bridge.BridgeConnectionHTTP bridgeConnection;
@@ -138,5 +139,47 @@ namespace ToolkitGUI
                 UpdatePlaylistList();
             }
         }
+
+        private void PlayButton_Click(object? sender, RoutedEventArgs e)
+        {
+            if(bridgeConnection != null)
+            {
+                bridgeConnection.TryTransportControlsPlay();
+            }
+        }
+
+        private void PauseButton_Click(object? sender, RoutedEventArgs e)
+        {
+            if (bridgeConnection != null)
+            {
+                bridgeConnection.TryTransportControlsPause();
+            }
+        }
+
+        private void StopButton_Click(object? sender, RoutedEventArgs e)
+        {
+            if (bridgeConnection != null && PlayingPlaylist != null)
+            {
+                bridgeConnection.TryDeletePlaylist(PlayingPlaylist.GetBridgePlaylist());
+                bridgeConnection.TryShowWindow(false);
+            }
+        }
+
+        private void PreviousButton_Click(object? sender, RoutedEventArgs e)
+        {
+            if (bridgeConnection != null)
+            {
+                bridgeConnection.TryTransportControlsPrevious();
+            }
+        }
+
+        private void NextButton_Click(object? sender, RoutedEventArgs e)
+        {
+            if (bridgeConnection != null)
+            {
+                bridgeConnection.TryTransportControlsNext();
+            }
+        }
+
     }
 }
