@@ -1,8 +1,10 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using Toolkit_API.Bridge.Params;
 using ToolkitGUI.Media;
 
@@ -11,6 +13,7 @@ namespace ToolkitGUI
     public partial class PropertiesPaneControl : UserControl
     {
         Dictionary<int, int> _current_values = new Dictionary<int, int>();
+        int font_size = 14;
 
         public PropertiesPaneControl()
         {
@@ -27,17 +30,31 @@ namespace ToolkitGUI
 
         private void AddIntegerInput(string label, int initialValue, Action<int> onUpdate)
         {
-            var labelControl = new TextBlock { Text = label };
+            var labelControl = new TextBlock 
+            { 
+                Text = label,
+                FontSize = font_size,
+                Margin = new Thickness(3)
+            };
             currentPanelToWriteTo.Children.Add(labelControl);
 
             var inputControl = new NumericUpDown { Value = initialValue };
+            inputControl.FontSize = font_size;
             inputControl.ValueChanged += (sender, e) => onUpdate((int)e.NewValue);
             currentPanelToWriteTo.Children.Add(inputControl);
         }
 
         private void AddBoolInput(string trueLabel, string falseLabel, bool initialValue, Action<bool> onUpdate)
         {
-            var checkBoxControl = new CheckBox { Content = initialValue ? trueLabel : falseLabel, IsChecked = initialValue };
+            var checkBoxControl = new CheckBox 
+            { 
+                Content = initialValue ? trueLabel : falseLabel, 
+                IsChecked = initialValue,
+                FontSize = font_size,
+                Margin = new Thickness(3)
+            };
+            checkBoxControl.FontSize = font_size;
+
             checkBoxControl.Checked += (sender, e) =>
             {
                 checkBoxControl.Content = trueLabel;
@@ -54,7 +71,11 @@ namespace ToolkitGUI
 
         private void AddComboBoxInput(string[] items, int initialValue, Action<int> onItemSelected)
         {
-            var comboBoxControl = new ComboBox();
+            var comboBoxControl = new ComboBox
+            {
+                FontSize = font_size,
+                Margin = new Thickness(3)
+            };
             comboBoxControl.Items = items;
 
             comboBoxControl.SelectionChanged += (sender, args) =>
@@ -70,26 +91,48 @@ namespace ToolkitGUI
 
         private void AddFloatInput(string label, float initialValue, float minValue, float maxValue, Action<float> onUpdate)
         {
-            var labelControl = new TextBlock { Text = $"{label}: {initialValue:0.00}" };
+            var labelControl = new TextBlock 
+            { 
+                Text = $"{label}: {initialValue:0.00}",
+                FontSize = font_size,
+                Margin = new Thickness(3)
+            };
             currentPanelToWriteTo.Children.Add(labelControl);
 
-            var sliderControl = new Slider { Minimum = minValue, Maximum = maxValue, Value = initialValue };
-            sliderControl.PropertyChanged += (sender, e) =>
+            var progressBarControl = new ProgressBar
             {
-                if (e.Property == Slider.ValueProperty)
+                Minimum = minValue,
+                Maximum = maxValue,
+                Value = initialValue,
+                Height = 5,
+                Margin = new Thickness(3)
+            };
+            progressBarControl.PointerPressed += (sender, e) =>
+            {
+                var progressBar = sender as ProgressBar;
+                if (progressBar != null)
                 {
-                    float newValue = (float)sliderControl.Value;
+                    var point = e.GetCurrentPoint(progressBar);
+                    var ratio = point.Position.X / progressBar.Bounds.Width;
+                    float newValue = (float)(minValue + ratio * (maxValue - minValue));
+                    progressBar.Value = newValue;
                     labelControl.Text = $"{label}: {newValue:0.00}";
                     onUpdate(newValue);
                 }
             };
-            currentPanelToWriteTo.Children.Add(sliderControl);
+            currentPanelToWriteTo.Children.Add(progressBarControl);
         }
+
 
         private void AddFloatTextInput(string label, float initialValue, Action<float> onTextChanged)
         {
             // Add the label control above the float text input control
-            var labelControl = new TextBlock { Text = $"{label}: {initialValue:0.00}" };
+            var labelControl = new TextBlock
+            {
+                Text = $"{label}: {initialValue:0.00}",
+                FontSize = font_size,
+                Margin = new Thickness(3)
+            };
             currentPanelToWriteTo.Children.Add(labelControl);
 
             var floatTextInputControl = new TextBox

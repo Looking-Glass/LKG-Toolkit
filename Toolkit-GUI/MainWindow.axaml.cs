@@ -43,7 +43,7 @@ namespace ToolkitGUI
             PlaylistsListBox = this.FindControl<StackPanel>("PlaylistsListBox");
             CreatePlaylistButton = this.FindControl<Button>("CreatePlaylistButton");
             PropertiesPane = this.FindControl <PropertiesPaneControl>("PropertiesPane");
-            SeekBar = this.FindControl<Slider>("SeekBar");
+            SeekBar = this.FindControl<ProgressBar>("SeekBar");
 
             CreatePlaylistButton.Click += CreatePlaylistButton_Click;
 
@@ -172,7 +172,7 @@ namespace ToolkitGUI
             // Load the playlists into the PlaylistsListBox
             foreach (Playlist item in playlistManager.loadedPlaylists)
             {
-                var playlistItemControl = new PlaylistItemNameControl(item, SelectPlaylist);
+                var playlistItemControl = new PlaylistItemNameControl(item, SelectPlaylist, null);
                 PlaylistsListBox.Children.Add(playlistItemControl);
             }
         }

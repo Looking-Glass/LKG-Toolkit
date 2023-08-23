@@ -44,6 +44,7 @@ namespace ToolkitGUI
             MediaTypeTextBlock = this.FindControl<TextBlock>("MediaTypeTextBlock");
             SelectionBorder = this.FindControl<Border>("SelectionBorder");
             DeleteButton = this.FindControl<Button>("DeleteButton");
+            PreviewImage = this.FindControl<Image>("PreviewImage");
 
             DeleteButton.IsVisible = false;
         }
@@ -56,6 +57,10 @@ namespace ToolkitGUI
 
             FileNameTextBlock.Text = Path.GetFileName(item.path);
             MediaTypeTextBlock.Text = item.mtype.ToString();
+            //if(item.PreviewBitmap != null )
+            //{
+            //    PreviewImage.Source = item.PreviewBitmap;
+            //}
 
             IsSelected = false;
             SetItemPlaying(false);

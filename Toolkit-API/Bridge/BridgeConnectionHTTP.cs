@@ -216,6 +216,11 @@ namespace Toolkit_API.Bridge
 
         public bool TryExitOrchestration()
         {
+            if (session == null)
+            {
+                return false;
+            }
+
             string message =
                 $$"""
                 {
@@ -236,6 +241,11 @@ namespace Toolkit_API.Bridge
 
         public bool TryTransportControlsPlay()
         {
+            if (session == null)
+            {
+                return false;
+            }
+
             string message =
                 $$"""
                 {
@@ -255,6 +265,11 @@ namespace Toolkit_API.Bridge
 
         public bool TryTransportControlsPause()
         {
+            if (session == null)
+            {
+                return false;
+            }
+
             string message =
                 $$"""
                 {
@@ -274,6 +289,11 @@ namespace Toolkit_API.Bridge
 
         public bool TryTransportControlsNext()
         {
+            if (session == null)
+            {
+                return false;
+            }
+
             string message =
                 $$"""
                 {
@@ -293,6 +313,11 @@ namespace Toolkit_API.Bridge
 
         public bool TryTransportControlsPrevious()
         {
+            if (session == null)
+            {
+                return false;
+            }
+
             string message =
             $$"""
             {
@@ -312,6 +337,11 @@ namespace Toolkit_API.Bridge
 
         public bool TryShowWindow(bool showWindow, int head = -1)
         {
+            if(session == null)
+            {
+                return false;
+            }
+
             string message =
             $$"""
             {
@@ -358,6 +388,11 @@ namespace Toolkit_API.Bridge
 
         public bool TryUpdatingParameter(string playlistName, int playlistItem, Parameters param, float newValue)
         {
+            if (session == null)
+            {
+                return false;
+            }
+
             string message =
                 $$"""
                 {
@@ -383,6 +418,11 @@ namespace Toolkit_API.Bridge
 
         public bool TryUpdatingParameter(string playlistName, Parameters param, float newValue)
         {
+            if (session == null)
+            {
+                return false;
+            }
+
             string message =
                 $$"""
                 {
@@ -406,6 +446,11 @@ namespace Toolkit_API.Bridge
 
         public bool TryUpdateDevices()
         {
+            if (session == null)
+            {
+                return false;
+            }
+
             string message =
                 $$"""
                 {
@@ -460,6 +505,11 @@ namespace Toolkit_API.Bridge
 
         public bool TryDeletePlaylist(Playlist p)
         {
+            if (session == null)
+            {
+                return false;
+            }
+
             if (current_playlist_name == p.name)
             {
                 current_playlist_name = string.Empty;
@@ -473,6 +523,11 @@ namespace Toolkit_API.Bridge
 
         public bool TrySyncPlaylist(int head = -1)
         {
+            if (session == null)
+            {
+                return false;
+            }
+
             if (current_playlist_name != "")
             {
                 string message =
@@ -507,6 +562,11 @@ namespace Toolkit_API.Bridge
 
         public bool TryPlayPlaylist(Playlist p, int head = -1)
         {
+            if(session ==  null)
+            {
+                return false;
+            }
+
             if(current_playlist_name == p.name)
             {
                 string delete_message = p.GetInstanceJson(session);

@@ -53,6 +53,7 @@ namespace ToolkitGUI
             if (!isPlaying)
             {
                 MainWindow.instance.PlayingPlaylist = current;
+
                 MainWindow.instance.bridgeConnection.AddListener("New Item Playing", (string data) =>
                 {
                     try
@@ -61,7 +62,7 @@ namespace ToolkitGUI
                         var playlistName = json.RootElement.GetProperty("playlist_name").GetProperty("value").GetString();
                         var itemIndex = json.RootElement.GetProperty("index").GetProperty("value").GetInt32();
 
-                        if(current.name == playlistName)
+                        if (current.name == playlistName)
                         {
                             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                             {
