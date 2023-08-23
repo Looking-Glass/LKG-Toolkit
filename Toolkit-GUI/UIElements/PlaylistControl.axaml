@@ -11,12 +11,23 @@
 		</Grid.RowDefinitions>
 
 		<Border Grid.Row="0" Background="LightGray" Padding="5">
-			<StackPanel Orientation="Horizontal">
-				<TextBlock Name="PlaylistHeader" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
-				<Button Name="AddFileButton" Content="Add File" Margin="10,0,0,0"/>
-				<Button Name="AddRGBDFileButton" Content="Add RGBD File" Margin="10,0,0,0"/>
-				<Button Name="PlayPlaylistButton" Content="Play Playlist" Margin="10,0,0,0"/>
-			</StackPanel>
+			<Grid>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="*" />
+				</Grid.ColumnDefinitions>
+
+				<Button Name="PlayPlaylistButton" Content="Play Playlist" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0" />
+
+				<StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+					<Button Name="AddFileButton" Content="Add File" Margin="10,0,0,0" />
+					<TextBlock Name="PlaylistHeader" FontWeight="Bold" FontSize="24" Padding="10" VerticalAlignment="Center"/>
+					<Button Name="AddRGBDFileButton" Content="Add RGBD File" Margin="10,0,0,0" />
+				</StackPanel>
+
+				<Button Grid.Column="2" Name="SyncPlaylistButton" Content="Sync Playlist" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" />
+			</Grid>
 		</Border>
 
 		<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">

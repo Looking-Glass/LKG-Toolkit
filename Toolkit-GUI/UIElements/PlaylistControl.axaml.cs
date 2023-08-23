@@ -34,6 +34,18 @@ namespace ToolkitGUI
 
             PlayPlaylistButton = this.FindControl<Button>("PlayPlaylistButton");
             PlayPlaylistButton.Click += PlayPlaylistButton_Click;
+
+            SyncPlaylistButton = this.FindControl<Button>("SyncPlaylistButton");
+            SyncPlaylistButton.Click += SyncPlaylistButton_Click;
+        }
+
+        private void SyncPlaylistButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        {
+            if(!MainWindow.instance.Syncing && MainWindow.instance.bridgeConnection != null)
+            {
+                MainWindow.instance.Syncing = true;
+                //MainWindow.instance.bridgeConnection.TrySyncPlaylist();
+            }
         }
 
         private void PlayPlaylistButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -65,7 +77,7 @@ namespace ToolkitGUI
             }
             isPlaying = true;
 
-            MainWindow.instance.bridgeConnection.TryPlayPlaylist(current.GetBridgePlaylist(), -1);
+            MainWindow.instance.bridgeConnection.TryPlayPlaylist(current.GetBridgePlaylist());
         }
 
         public void SetPlaylist(Playlist playlist)

@@ -333,7 +333,6 @@ namespace Toolkit_API.Bridge
             }
         }
 
-
         public bool TrySubscribeToEvents()
         {
             if(session == null)
@@ -472,8 +471,41 @@ namespace Toolkit_API.Bridge
             return delete_resp != null;
         }
 
+        public bool TrySyncPlaylist(int head = -1)
+        {
+            if (current_playlist_name != "")
+            {
+                string message =
+                $$"""
+                {
+                    "orchestration": "{{session.token}}",
+                    "name": "{{current_playlist_name}}",
+                    "head_index": {{head}},
+                    "crf": 20,
+                    "pixel_format": "yuv420p",
+                    "encoder": "h265"
+                }
+                """;
 
-        public bool TryPlayPlaylist(Playlist p, int head)
+                string? resp = TrySendMessage("sync_overwrite_playlist", message);
+
+                if (resp != null)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+
+        public bool TryPlayPlaylist(Playlist p, int head = -1)
         {
             if(current_playlist_name == p.name)
             {
@@ -481,7 +513,7 @@ namespace Toolkit_API.Bridge
                 string? delete_resp = TrySendMessage("delete_playlist", delete_message);
             }
 
-            TryShowWindow(true);
+            TryShowWindow(true, head);
 
             string message = p.GetInstanceJson(session);
             string? resp = TrySendMessage("instance_playlist", message);
@@ -506,8 +538,7 @@ namespace Toolkit_API.Bridge
         {
             if (session != default)
             {
-                // TODO: enable after fixed in bridge 2.2
-                // TryExitOrchestration();
+                TryExitOrchestration();
             }
 
             webSocket.Dispose();

@@ -10,6 +10,7 @@ using Toolkit_API.Device;
 using ToolkitGUI.Media;
 using System.Diagnostics;
 using Avalonia.Threading;
+using System.Reactive.Joins;
 
 namespace ToolkitGUI
 {
@@ -18,6 +19,8 @@ namespace ToolkitGUI
         public static MainWindow instance;
 
         public Playlist PlayingPlaylist;
+        public bool Syncing = false;
+
         PlaylistManager playlistManager;
         
         public Toolkit_API.Bridge.BridgeConnectionHTTP bridgeConnection;
@@ -40,11 +43,29 @@ namespace ToolkitGUI
             PlaylistsListBox = this.FindControl<StackPanel>("PlaylistsListBox");
             CreatePlaylistButton = this.FindControl<Button>("CreatePlaylistButton");
             PropertiesPane = this.FindControl <PropertiesPaneControl>("PropertiesPane");
+            SeekBar = this.FindControl<Slider>("SeekBar");
+
             CreatePlaylistButton.Click += CreatePlaylistButton_Click;
 
             PlaylistElement.onSelectionChanged = PropertiesPane.OnItemUpdated;
 
             Opened += MainWindow_Opened;
+            Closing += MainWindow_Closed;
+            
+        }
+
+        private void MainWindow_Closed(object? sender, EventArgs e)
+        {
+            if(bridgeConnection != null && PlayingPlaylist != null)
+            {
+                bridgeConnection.TryDeletePlaylist(PlayingPlaylist.GetBridgePlaylist());
+                bridgeConnection.TryShowWindow(false);
+            }
+
+            if(bridgeConnection != null)
+            {
+                bridgeConnection.Dispose();
+            }
         }
 
         private void MainWindow_Opened(object? sender, System.EventArgs e)
@@ -108,6 +129,40 @@ namespace ToolkitGUI
                 return;
             }
 
+            bridgeConnection.AddListener("Sync/Play Playlist", (data) =>
+            {
+                Trace.WriteLine($"data: \n{data}");
+            });
+
+            bridgeConnection.AddListener("Sync/Play Playlist Complete", (data) =>
+            {
+                Trace.WriteLine($"data: \n{data}");
+            });
+
+            bridgeConnection.AddListener("Sync/Play Playlist Cancelled", (data) =>
+            {
+                Trace.WriteLine($"data: \n{data}");
+            });
+
+            bridgeConnection.AddListener("Progress Update", (string data) =>
+            {
+                try
+                {
+                    var json = System.Text.Json.JsonDocument.Parse(data);
+                    var progressValue = json.RootElement.GetProperty("progress").GetProperty("value").GetSingle();
+
+                    // Call the update method on the UI thread
+                    Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        UpdateProgressSlider(progressValue);
+                    }).Wait();
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"Failed to parse JSON data: {ex.Message}");
+                }
+            });
+
         }
 
         private void UpdatePlaylistList()
@@ -127,6 +182,10 @@ namespace ToolkitGUI
             PlaylistElement.SetPlaylist(selectedPlaylist);
         }
 
+        void UpdateProgressSlider(float progress)
+        {
+            SeekBar.Value = progress;
+        }
 
         private async void CreatePlaylistButton_Click(object? sender, RoutedEventArgs e)
         {

@@ -34,7 +34,6 @@
 				<RowDefinition Height="*"/>
 			</Grid.RowDefinitions>
 
-			<TextBlock Name="SelectedPlaylistName" Grid.Row="0" Text="Selected Playlist" FontWeight="Bold" FontSize="16" />
 			<ToolkitGUI:PlaylistControl Grid.Row="1" Name="PlaylistElement"/>
 		</Grid>
 		<ToolkitGUI:PropertiesPaneControl Grid.Column="2" Margin="10" Name="PropertiesPane"/>
