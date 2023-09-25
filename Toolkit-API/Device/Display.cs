@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Nodes;
-using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace Toolkit_API.Device
 {
@@ -47,24 +43,23 @@ namespace Toolkit_API.Device
             }
         }
 
-        public static Display? ParseJson(int id, JsonNode node)
+        public static Display? ParseJson(int id, JObject obj)
         {
-
             try
             {
                 Display disp = new Display();
 
-                if (Calibration.TryParse(node.AsObject()["calibration"]?["value"].ToString(), out Calibration c))
+                if (Calibration.TryParse(obj["calibration"]?["value"].ToString(), out Calibration c))
                 {
                     disp.calibration = c;
                 }
 
-                if (DefaultQuilt.TryParse(node.AsObject()["defaultQuilt"]?["value"].ToString(), out DefaultQuilt d))
+                if (DefaultQuilt.TryParse(obj["defaultQuilt"]?["value"].ToString(), out DefaultQuilt d))
                 {
                     disp.defautQuilt = d;
                 }
 
-                if(DisplayInfo.TryParse(node, out DisplayInfo i))
+                if(DisplayInfo.TryParse(obj, out DisplayInfo i))
                 {
                     disp.hardwareInfo = i;
                 }

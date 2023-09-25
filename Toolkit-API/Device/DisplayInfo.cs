@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Nodes;
+﻿using System;
+using Newtonsoft.Json.Linq;
 
 namespace Toolkit_API.Device
 {
@@ -10,10 +11,8 @@ namespace Toolkit_API.Device
         public string state;
         public int[] windowCoords;
 
-        private DisplayInfo(JsonNode node)
+        private DisplayInfo(JObject obj)
         {
-            JsonObject obj = node as JsonObject;
-
             hardwareVersion = obj["hardwareVersion"]!["value"]!.ToString();
             hwid = obj["hwid"]!["value"]!.ToString();
             index = int.Parse(obj["index"]!["value"]!.ToString());
@@ -23,7 +22,7 @@ namespace Toolkit_API.Device
             windowCoords[1] = int.Parse(obj["windowCoords"]!["value"]!["y"]!.ToString());
         }
 
-        public static bool TryParse(JsonNode? obj, out DisplayInfo value)
+        public static bool TryParse(JObject obj, out DisplayInfo value)
         {
             if (obj == null)
             {

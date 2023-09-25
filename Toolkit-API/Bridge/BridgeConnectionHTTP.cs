@@ -1,4 +1,7 @@
-﻿using System.Text.Json.Nodes;
+﻿using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using Newtonsoft.Json.Linq;
 using Toolkit_API.Bridge.EventListeners;
 using Toolkit_API.Bridge.Params;
 using Toolkit_API.Device;
@@ -113,7 +116,7 @@ namespace Toolkit_API.Bridge
 
         private void UpdateListeners(string message)
         {
-            JsonNode? json = JsonNode.Parse(message)["payload"]?["value"];
+            JToken? json = JObject.Parse(message)["payload"]?["value"];
 
             if (json != null)
             {
@@ -170,7 +173,7 @@ namespace Toolkit_API.Bridge
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, $"http://{url}:{port}/{endpoint}");
                 request.Content = new StringContent(content);
 
-                var resp = client.Send(request);
+                HttpResponseMessage resp = client.SendAsync(request).Result; //TODO: Async support?
                 string toReturn = resp.Content.ReadAsStringAsync().Result;
 
                 UpdateConnectionState(true);
@@ -194,11 +197,11 @@ namespace Toolkit_API.Bridge
         public bool TryEnterOrchestration(string name = "default")
         {
             string message =
-                $$"""
-                {
-                    "name": "{{name}}"
-                }
-                """;
+                $@"
+                {{
+                    ""name"": ""{name}""
+                }}
+                ";
 
             string? resp = TrySendMessage("enter_orchestration", message);
             
@@ -222,11 +225,11 @@ namespace Toolkit_API.Bridge
             }
 
             string message =
-                $$"""
-                {
-                    "orchestration": "{{session.token}}"
-                }
-                """;
+                $@"
+                {{
+                    ""orchestration"": ""{session.token}""
+                }}
+                ";
 
             string? resp = TrySendMessage("exit_orchestration", message);
 
@@ -247,11 +250,11 @@ namespace Toolkit_API.Bridge
             }
 
             string message =
-                $$"""
-                {
-                    "orchestration": "{{session.token}}"
-                }
-                """;
+                $@"
+                {{
+                    ""orchestration"": ""{session.token}""
+                }}
+                ";
 
             string? resp = TrySendMessage("transport_control_play", message);
 
@@ -271,11 +274,11 @@ namespace Toolkit_API.Bridge
             }
 
             string message =
-                $$"""
-                {
-                    "orchestration": "{{session.token}}"
-                }
-                """;
+                $@"
+                {{
+                    ""orchestration"": ""{session.token}""
+                }}
+                ";
 
             string? resp = TrySendMessage("transport_control_pause", message);
 
@@ -295,11 +298,11 @@ namespace Toolkit_API.Bridge
             }
 
             string message =
-                $$"""
-                {
-                    "orchestration": "{{session.token}}"
-                }
-                """;
+                $@"
+                {{
+                    ""orchestration"": ""{session.token}""
+                }}
+                ";
 
             string? resp = TrySendMessage("transport_control_next", message);
 
@@ -319,11 +322,11 @@ namespace Toolkit_API.Bridge
             }
 
             string message =
-            $$"""
-            {
-                "orchestration": "{{session.token}}"
-            }
-            """;
+            $@"
+            {{
+                ""orchestration"": ""{session.token}""
+            }}
+            ";
 
             string? resp = TrySendMessage("transport_control_previous", message);
 
@@ -343,13 +346,13 @@ namespace Toolkit_API.Bridge
             }
 
             string message =
-            $$"""
-            {
-                "orchestration": "{{session.token}}",
-                "show_window": "{{showWindow}}",
-                "head_index": {{head}}
-            }
-            """;
+            $@"
+            {{
+                ""orchestration"": ""{session.token}"",
+                ""show_window"": ""{showWindow}"",
+                ""head_index"": {head}
+            }}
+            ";
 
             string? resp = TrySendMessage("show_window", message);
 
@@ -376,11 +379,11 @@ namespace Toolkit_API.Bridge
             }
 
             string message =
-                $$"""
-                {
-                    "subscribe_orchestration_events": "{{session.token}}"
-                }
-                """;
+                $@"
+                {{
+                    ""subscribe_orchestration_events"": ""{session.token}""
+                }}
+                ";
 
             return webSocket.TrySendMessage(message);
         }
@@ -394,14 +397,14 @@ namespace Toolkit_API.Bridge
             }
 
             string message =
-                $$"""
-                {
-                    "orchestration": "{{session.token}}",
-                    "name": "{{playlistName}}",
-                    "index": "{{playlistItem}}",
-                    "{{ParameterUtils.GetParamName(param)}}": "{{(ParameterUtils.IsFloatParam(param) ? newValue : (int)newValue)}}",
-                }
-                """;
+                $@"
+                {{
+                    ""orchestration"": ""{session.token}"",
+                    ""name"": ""{playlistName}"",
+                    ""index"": ""{playlistItem}"",
+                    ""{ParameterUtils.GetParamName(param)}"": ""{(ParameterUtils.IsFloatParam(param) ? newValue : (int)newValue)}"",
+                }}
+                ";
 
             string? resp = TrySendMessage("update_playlist_entry", message);
 
@@ -424,13 +427,13 @@ namespace Toolkit_API.Bridge
             }
 
             string message =
-                $$"""
-                {
-                    "orchestration": "{{session.token}}",
-                    "name": "{{playlistName}}",
-                    "{{ParameterUtils.GetParamName(param)}}": "{{(ParameterUtils.IsFloatParam(param) ? newValue : (int) newValue)}}",
-                }
-                """;
+                $@"
+                {{
+                    ""orchestration"": ""{session.token}"",
+                    ""name"": ""{playlistName}"",
+                    ""{ParameterUtils.GetParamName(param)}"": ""{(ParameterUtils.IsFloatParam(param) ? newValue : (int) newValue)}"",
+                }}
+                ";
 
             string? resp = TrySendMessage("update_current_entry", message);
 
@@ -452,17 +455,17 @@ namespace Toolkit_API.Bridge
             }
 
             string message =
-                $$"""
-                {
-                    "orchestration": "{{session.token}}"
-                }
-                """;
+                $@"
+                {{
+                    ""orchestration"": ""{session.token}""
+                }}
+                ";
 
             string? resp = TrySendMessage("available_output_devices", message);
 
             if (resp != null)
             {
-                JsonObject node = JsonNode.Parse(resp)?["payload"]?["value"]?.AsObject();
+                JObject node = JObject.Parse(resp)?["payload"]?["value"]?.Value<JObject>();
 
                 lock(this)
                 {
@@ -473,7 +476,7 @@ namespace Toolkit_API.Bridge
 
                         for (int i = 0; i < node.Count; i++)
                         {
-                            Display? d = Display.ParseJson(i, node[i.ToString()]!["value"]!);
+                            Display? d = Display.ParseJson(i, node[i.ToString()]!["value"]!.Value<JObject>());
                             if (d != null)
                             {
                                 if (!all_displays.ContainsKey(d.hardwareInfo.index))
@@ -531,16 +534,16 @@ namespace Toolkit_API.Bridge
             if (current_playlist_name != "")
             {
                 string message =
-                $$"""
-                {
-                    "orchestration": "{{session.token}}",
-                    "name": "{{current_playlist_name}}",
-                    "head_index": {{head}},
-                    "crf": 20,
-                    "pixel_format": "yuv420p",
-                    "encoder": "h265"
-                }
-                """;
+                $@"
+                {{
+                    ""orchestration"": ""{session.token}"",
+                    ""name"": ""{current_playlist_name}"",
+                    ""head_index"": {head},
+                    ""crf"": 20,
+                    ""pixel_format"": ""yuv420p"",
+                    ""encoder"": ""h265""
+                }}
+                ";
 
                 string? resp = TrySendMessage("sync_overwrite_playlist", message);
 

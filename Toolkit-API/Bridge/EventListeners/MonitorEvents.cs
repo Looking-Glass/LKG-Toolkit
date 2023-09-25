@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Nodes;
+﻿using Newtonsoft.Json.Linq;
 
 namespace Toolkit_API.Bridge.EventListeners
 {
@@ -22,11 +22,11 @@ namespace Toolkit_API.Bridge.EventListeners
 
         public void Disconnect(string payload)
         {
-            JsonNode? node = JsonNode.Parse(payload);
+            JObject root = JObject.Parse(payload);
 
-            if (node != null)
+            if (root != null)
             {
-                int head_index = int.Parse(node["head_index"]?["value"]?.ToString());
+                int head_index = int.Parse(root["head_index"]?["value"]?.ToString());
 
                 if (bridge.all_displays.ContainsKey(head_index))
                 {
@@ -42,11 +42,11 @@ namespace Toolkit_API.Bridge.EventListeners
 
         public void Connect(string payload)
         {
-            JsonNode? node = JsonNode.Parse(payload);
+            JObject root = JObject.Parse(payload);
 
-            if(node != null)
+            if(root != null)
             {
-                int head_index = int.Parse(node["head_index"]?["value"]?.ToString());
+                int head_index = int.Parse(root["head_index"]?["value"]?.ToString());
 
                 if (!bridge.all_displays.ContainsKey(head_index))
                 {

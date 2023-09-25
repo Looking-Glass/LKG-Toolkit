@@ -48,13 +48,13 @@ namespace Toolkit_API.Bridge
         public string GetPlayPlaylistJson(Orchestration session, int head)
         {
             string content =
-                $$"""
-                {
-                    "orchestration": "{{session.token}}",
-                    "name": "{{name}}",
-                    "head_index": "{{head}}"
-                }
-                """;
+                $@"
+                {{
+                    ""orchestration"": ""{session.token}"",
+                    ""name"": ""{name}"",
+                    ""head_index"": ""{head}""
+                }}
+                ";
 
             return content;
         }
@@ -62,13 +62,13 @@ namespace Toolkit_API.Bridge
         public string GetInstanceJson(Orchestration session)
         {
             string content =
-                $$"""
-                {
-                    "orchestration": "{{session.token}}",
-                    "name": "{{name}}",
-                    "loop": "{{(loop ? "true" : "false")}}"
-                }
-                """;
+                $@"
+                {{
+                    ""orchestration"": ""{session.token}"",
+                    ""name"": ""{name}"",
+                    ""loop"": ""{(loop ? "true" : "false")}""
+                }}
+                ";
 
             return content;
         }
@@ -100,31 +100,31 @@ namespace Toolkit_API.Bridge
             }
 
             string content =
-                $$"""
-                {   
-                    "orchestration": "{{session.token}}",
-                    "name": "{{name}}",
-                    "index": "{{id}}",
-                    "uri": "{{URI}}",
-                    "rows": "{{item.rows}}",
-                    "cols": "{{item.cols}}",
-                    "aspect": "{{item.aspect}}",
-                    "view_count": "{{item.viewCount}}",    
-                    "durationMS": "{{item.durationMS}}",                
-                    "isRGBD": "{{item.isRGBD}}",
-                    "depth_inversion": "{{item.depth_inversion}}",
-                    "chroma_depth": "{{item.chroma_depth}}",
-                    "crop_pos_x": "{{item.crop_pos_x}}",
-                    "crop_pos_y": "{{item.crop_pos_y}}",
-                    "depthiness": "{{item.depthiness}}",
-                    "depth_cutoff": "{{item.depth_cutoff}}",
-                    "depth_loc": "{{item.depth_loc}}",
-                    "focus": "{{item.focus}}",
-                    "cam_dist": "{{item.cam_dist}}",
-                    "fov": "{{item.fov}}",
-                    "zoom": "{{item.zoom}}"
-                }
-                """;
+                $@"
+                {{
+                    ""orchestration"": ""{session.token}"",
+                    ""name"": ""{name}"",
+                    ""index"": ""{id}"",
+                    ""uri"": ""{URI}"",
+                    ""rows"": ""{item.rows}"",
+                    ""cols"": ""{item.cols}"",
+                    ""aspect"": ""{item.aspect}"",
+                    ""view_count"": ""{item.viewCount}"",
+                    ""durationMS"": ""{item.durationMS}"",
+                    ""isRGBD"": ""{item.isRGBD}"",
+                    ""depth_inversion"": ""{item.depth_inversion}"",
+                    ""chroma_depth"": ""{item.chroma_depth}"",
+                    ""crop_pos_x"": ""{item.crop_pos_x}"",
+                    ""crop_pos_y"": ""{item.crop_pos_y}"",
+                    ""depthiness"": ""{item.depthiness}"",
+                    ""depth_cutoff"": ""{item.depth_cutoff}"",
+                    ""depth_loc"": ""{item.depth_loc}"",
+                    ""focus"": ""{item.focus}"",
+                    ""cam_dist"": ""{item.cam_dist}"",
+                    ""fov"": ""{item.fov}"",
+                    ""zoom"": ""{item.zoom}""
+                }}
+                ";
 
             return content;
         }

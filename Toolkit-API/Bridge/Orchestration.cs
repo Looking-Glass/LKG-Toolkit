@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Nodes;
-using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace Toolkit_API.Bridge
 {
@@ -22,13 +18,13 @@ namespace Toolkit_API.Bridge
         {
             try
             {
-                JsonNode json = JsonNode.Parse(jsonString);
+                JObject json = JObject.Parse(jsonString);
                 string name = json["orchestration"]?["value"]?.ToString();
                 string token = json["payload"]?["value"]?.ToString();
                 orch = new Orchestration(name, token);
                 return true;
             }
-            catch (Exception ex)
+            catch
             {
                 orch = null;
                 return false;
