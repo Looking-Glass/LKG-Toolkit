@@ -1,7 +1,7 @@
 ﻿using System;
 using WebSocketSharp;
 
-namespace Toolkit_API.Bridge
+namespace ToolkitAPI.Bridge
 {
     internal class BridgeWebSocketClient : IDisposable
     {

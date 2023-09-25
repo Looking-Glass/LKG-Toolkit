@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 
-namespace Toolkit_API.Bridge.EventListeners
+namespace ToolkitAPI.Bridge.EventListeners
 {
     public class DisplayEvents
     {

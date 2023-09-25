@@ -1,7 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json.Linq;
 
-namespace Toolkit_API.Bridge
+namespace ToolkitAPI.Bridge
 {
     public class Orchestration
     {

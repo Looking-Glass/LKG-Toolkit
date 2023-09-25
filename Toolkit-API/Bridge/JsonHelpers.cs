@@ -2,7 +2,7 @@
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 
-namespace Toolkit_API {
+namespace ToolkitAPI {
     internal static class JsonHelpers {
         public static bool TryParse<T>(string json, Func<JObject, T> callback, out T value)
         {

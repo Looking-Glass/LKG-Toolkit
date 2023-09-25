@@ -1,7 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json.Linq;
 
-namespace Toolkit_API.Device
+namespace ToolkitAPI.Device
 {
     public struct DefaultQuilt
     {

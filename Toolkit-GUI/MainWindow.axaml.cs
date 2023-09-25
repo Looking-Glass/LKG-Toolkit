@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using System.Xml.Linq;
-using Toolkit_API.Device;
+using ToolkitAPI.Device;
 using ToolkitGUI.Media;
 using System.Diagnostics;
 using Avalonia.Threading;
@@ -23,7 +23,7 @@ namespace ToolkitGUI
 
         PlaylistManager playlistManager;
         
-        public Toolkit_API.Bridge.BridgeConnectionHTTP bridgeConnection;
+        public ToolkitAPI.Bridge.BridgeConnectionHTTP bridgeConnection;
         public volatile bool connectionStatus = false;
 
         public MainWindow()
@@ -86,7 +86,7 @@ namespace ToolkitGUI
 
         private void InitializeBridge()
         {
-            bridgeConnection = new Toolkit_API.Bridge.BridgeConnectionHTTP();
+            bridgeConnection = new ToolkitAPI.Bridge.BridgeConnectionHTTP();
             bridgeConnection.AddConnectionStateListener((connectionStatusChange) =>
             {
                 this.connectionStatus = connectionStatusChange;

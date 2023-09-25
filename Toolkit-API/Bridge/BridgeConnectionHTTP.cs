@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using Newtonsoft.Json.Linq;
-using Toolkit_API.Bridge.EventListeners;
-using Toolkit_API.Bridge.Params;
-using Toolkit_API.Device;
+using ToolkitAPI.Bridge.EventListeners;
+using ToolkitAPI.Bridge.Params;
+using ToolkitAPI.Device;
 
-namespace Toolkit_API.Bridge
+namespace ToolkitAPI.Bridge
 {
     public class BridgeConnectionHTTP : IDisposable
     {

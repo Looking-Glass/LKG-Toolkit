@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Toolkit_API.Bridge;
-using Toolkit_API.Device;
+using ToolkitAPI.Bridge;
+using ToolkitAPI.Device;
 
-namespace ToolKit_CLI.Samples
+namespace ToolKitCLI.Samples
 {
     internal class ListDevices
     {

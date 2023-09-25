@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Toolkit_API.Bridge.Params
+namespace ToolkitAPI.Bridge.Params
 {
     public enum Parameters
     {
