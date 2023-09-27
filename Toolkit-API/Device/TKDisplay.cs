@@ -7,14 +7,14 @@ namespace ToolkitAPI.Device
     {
         public int id;
         public Calibration calibration;
-        public DefaultQuilt defautQuilt;
+        public DefaultQuilt defaultQuilt;
         public DisplayInfo hardwareInfo;
 
         public TKDisplay() 
         {
             id = -1;
             calibration = new Calibration();
-            defautQuilt = new DefaultQuilt();
+            defaultQuilt = new DefaultQuilt();
             hardwareInfo = new DisplayInfo();
         }
 
@@ -27,7 +27,7 @@ namespace ToolkitAPI.Device
         {
             this.id = id;
             this.calibration = calibration;
-            this.defautQuilt = defautQuilt;
+            this.defaultQuilt = defautQuilt;
             this.hardwareInfo = hardwareInfo;
         }
 
@@ -56,7 +56,7 @@ namespace ToolkitAPI.Device
 
                 if (DefaultQuilt.TryParse(obj["defaultQuilt"]?["value"].ToString(), out DefaultQuilt d))
                 {
-                    disp.defautQuilt = d;
+                    disp.defaultQuilt = d;
                 }
 
                 if(DisplayInfo.TryParse(obj, out DisplayInfo i))
