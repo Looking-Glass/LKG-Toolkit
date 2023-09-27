@@ -20,8 +20,8 @@ namespace ToolkitAPI.Bridge
 
         private Orchestration session;
 
-        public Dictionary<int, Display> all_displays { get; private set; }
-        public Dictionary<int, Display> LKG_Displays { get; private set; }
+        public Dictionary<int, TKDisplay> all_displays { get; private set; }
+        public Dictionary<int, TKDisplay> LKG_Displays { get; private set; }
 
         private Dictionary<string, List<Action<string>>> eventListeners;
         private DisplayEvents monitorEvents;
@@ -34,8 +34,8 @@ namespace ToolkitAPI.Bridge
             this.port = port;
             this.webSocketPort = webSocketPort;
 
-            all_displays = new Dictionary<int, Display>();
-            LKG_Displays = new Dictionary<int, Display>();
+            all_displays = new Dictionary<int, TKDisplay>();
+            LKG_Displays = new Dictionary<int, TKDisplay>();
 
             eventListeners = new Dictionary<string, List<Action<string>>>();
 
@@ -142,9 +142,9 @@ namespace ToolkitAPI.Bridge
             }
         }
 
-        public List<Display> GetAllDisplays()
+        public List<TKDisplay> GetAllDisplays()
         {
-            List<Display> displays = new List<Display>();
+            List<TKDisplay> displays = new List<TKDisplay>();
 
             foreach(var kvp in all_displays)
             {
@@ -154,9 +154,9 @@ namespace ToolkitAPI.Bridge
             return displays;
         }
 
-        public List<Display> GetLKGDisplays()
+        public List<TKDisplay> GetLKGDisplays()
         {
-            List<Display> displays = new List<Display>();
+            List<TKDisplay> displays = new List<TKDisplay>();
 
             foreach (var kvp in LKG_Displays)
             {
@@ -471,12 +471,12 @@ namespace ToolkitAPI.Bridge
                 {
                     if (node != null)
                     {
-                        Dictionary<int, Display> all_displays = new Dictionary<int, Display>();
-                        Dictionary<int, Display> LKG_Displays = new Dictionary<int, Display>();
+                        Dictionary<int, TKDisplay> all_displays = new Dictionary<int, TKDisplay>();
+                        Dictionary<int, TKDisplay> LKG_Displays = new Dictionary<int, TKDisplay>();
 
                         for (int i = 0; i < node.Count; i++)
                         {
-                            Display? d = Display.ParseJson(i, node[i.ToString()]!["value"]!.Value<JObject>());
+                            TKDisplay? d = TKDisplay.ParseJson(i, node[i.ToString()]!["value"]!.Value<JObject>());
                             if (d != null)
                             {
                                 if (!all_displays.ContainsKey(d.hardwareInfo.index))

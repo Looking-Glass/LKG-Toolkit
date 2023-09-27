@@ -40,10 +40,10 @@ namespace ToolKitCLI.Samples
 
                 if (b.TryUpdateDevices())
                 {
-                    List<Display> displays = b.GetLKGDisplays();
-                    foreach (Display display in displays)
+                    List<TKDisplay> displays = b.GetLKGDisplays();
+                    foreach (TKDisplay display in displays)
                     {
-                        Console.WriteLine(display.getInfoString());
+                        Console.WriteLine(display.GetInfoString());
                     }
                 }
                 else

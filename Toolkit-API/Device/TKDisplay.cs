@@ -3,14 +3,14 @@ using Newtonsoft.Json.Linq;
 
 namespace ToolkitAPI.Device
 {
-    public class Display
+    public class TKDisplay
     {
         public int id;
         public Calibration calibration;
         public DefaultQuilt defautQuilt;
         public DisplayInfo hardwareInfo;
 
-        public Display() 
+        public TKDisplay() 
         {
             id = -1;
             calibration = new Calibration();
@@ -18,12 +18,12 @@ namespace ToolkitAPI.Device
             hardwareInfo = new DisplayInfo();
         }
 
-        private Display(int id)
+        private TKDisplay(int id)
         {
             this.id = id;
         }
 
-        private Display(int id, Calibration calibration, DefaultQuilt defautQuilt, DisplayInfo hardwareInfo)
+        private TKDisplay(int id, Calibration calibration, DefaultQuilt defautQuilt, DisplayInfo hardwareInfo)
         {
             this.id = id;
             this.calibration = calibration;
@@ -43,11 +43,11 @@ namespace ToolkitAPI.Device
             }
         }
 
-        public static Display? ParseJson(int id, JObject obj)
+        public static TKDisplay? ParseJson(int id, JObject obj)
         {
             try
             {
-                Display disp = new Display();
+                TKDisplay disp = new TKDisplay();
 
                 if (Calibration.TryParse(obj["calibration"]?["value"].ToString(), out Calibration c))
                 {
@@ -73,7 +73,7 @@ namespace ToolkitAPI.Device
             }
         }
 
-        public string getInfoString()
+        public string GetInfoString()
         {
             return
                 "Display Type: " + hardwareInfo.hardwareVersion + "\n" +
