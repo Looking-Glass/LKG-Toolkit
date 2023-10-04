@@ -93,7 +93,7 @@ namespace ToolkitGUI
                 Dispatcher.UIThread.Post(() =>
                 {
                     ConnectionStatus.Text = this.connectionStatus ? "Bridge Connected" : "Bridge Disconnected";
-                    if(this.connectionStatus && bridgeConnection.LKG_Displays.Count > 0)
+                    if(this.connectionStatus && bridgeConnection.LKGDisplays.Count > 0)
                     {
                         ConnectedDisplay.Text = bridgeConnection.GetLKGDisplays().First().hardwareInfo.hardwareVersion;
                     }

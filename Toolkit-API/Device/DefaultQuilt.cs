@@ -3,6 +3,10 @@ using Newtonsoft.Json.Linq;
 
 namespace ToolkitAPI.Device
 {
+    /// <summary>
+    /// The recommended default quilt settings for a given LKG display.
+    /// </summary>
+    [Serializable]
     public struct DefaultQuilt
     {
         public float quiltAspect;
@@ -11,20 +15,26 @@ namespace ToolkitAPI.Device
         public int tileX;
         public int tileY;
 
-        private DefaultQuilt(JObject obj)
+        private static DefaultQuilt ParseJson(JObject obj)
         {
-            //REVIEW: Why didn't this just take a JObject?
-            //if(node.AsArray().Count > 0)
-            //{
-                quiltAspect = float.Parse(obj["quiltAspect"]!.ToString());
-                quiltY = int.Parse(obj["quiltY"]!.ToString());
-                quiltX = int.Parse(obj["quiltX"]!.ToString());
-                tileX = int.Parse(obj["tileX"]!.ToString());
-                tileY = int.Parse(obj["tileY"]!.ToString());
-            //}
+            try
+            {
+                DefaultQuilt result = new DefaultQuilt();
+                result.quiltAspect = obj["quiltAspect"].Value<float>();
+                result.quiltY = obj["quiltY"].Value<int>();
+                result.quiltX = obj["quiltX"].Value<int>();
+                result.tileX = obj["tileX"].Value<int>();
+                result.tileY = obj["tileY"].Value<int>();
+                return result;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error parsing display json:\n" + e.ToString());
+                return default;
+            }
         }
 
         public static bool TryParse(string json, out DefaultQuilt value) =>
-            JsonHelpers.TryParse(json, j => new DefaultQuilt(j), out value);
+            Utils.TryParse(json, j => ParseJson(j), out value);
     }
 }

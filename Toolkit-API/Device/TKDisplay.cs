@@ -3,19 +3,47 @@ using Newtonsoft.Json.Linq;
 
 namespace ToolkitAPI.Device
 {
+    /// <summary>
+    /// This represents a connected display, which may or may not be a LKG display or a regular 2D monitor.
+    /// </summary>
+    [Serializable]
     public class TKDisplay
     {
         public int id;
+
+        /// <summary>
+        /// <para>
+        /// The LKG display-specific calibration values, required for accurate holographic rendering to the LKG display.<br />
+        /// This will only be set properly if this display is a LKG display.
+        /// </para>
+        /// See also: <seealso cref="IsLKG"/>
+        /// </summary>
         public Calibration calibration;
+
+        /// <summary>
+        /// <para>
+        /// The default, recommended quilt settings for this LKG display.<br />
+        /// This will only be set properly if this display is a LKG display.
+        /// </para>
+        /// See also: <seealso cref="IsLKG"/>
+        /// </summary>
         public DefaultQuilt defaultQuilt;
-        public DisplayInfo hardwareInfo;
+
+        public TKDisplayInfo hardwareInfo;
+
+        public bool IsLKG {
+            get {
+                return hardwareInfo.hwid != null && hardwareInfo.hwid.Contains("LKG")
+                    && calibration.SeemsGood();
+            }
+        }
 
         public TKDisplay() 
         {
             id = -1;
             calibration = new Calibration();
             defaultQuilt = new DefaultQuilt();
-            hardwareInfo = new DisplayInfo();
+            hardwareInfo = new TKDisplayInfo();
         }
 
         private TKDisplay(int id)
@@ -23,7 +51,7 @@ namespace ToolkitAPI.Device
             this.id = id;
         }
 
-        private TKDisplay(int id, Calibration calibration, DefaultQuilt defautQuilt, DisplayInfo hardwareInfo)
+        private TKDisplay(int id, Calibration calibration, DefaultQuilt defautQuilt, TKDisplayInfo hardwareInfo)
         {
             this.id = id;
             this.calibration = calibration;
@@ -31,45 +59,28 @@ namespace ToolkitAPI.Device
             this.hardwareInfo = hardwareInfo;
         }
 
-        public bool SeemsGood()
-        {
-            if(calibration.screenW != 0 && calibration.screenH != 0)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        public static TKDisplay? ParseJson(int id, JObject obj)
+        public static bool TryParse(int id, JObject obj, out TKDisplay display)
         {
             try
             {
-                TKDisplay disp = new TKDisplay();
+                display = new(id);
 
-                if (Calibration.TryParse(obj["calibration"]?["value"].ToString(), out Calibration c))
-                {
-                    disp.calibration = c;
-                }
+                if (Calibration.TryParse(obj["calibration"]?["value"].ToString(), out Calibration cal))
+                    display.calibration = cal;
 
-                if (DefaultQuilt.TryParse(obj["defaultQuilt"]?["value"].ToString(), out DefaultQuilt d))
-                {
-                    disp.defaultQuilt = d;
-                }
+                if (DefaultQuilt.TryParse(obj["defaultQuilt"]?["value"].ToString(), out DefaultQuilt defaultQuilt))
+                    display.defaultQuilt = defaultQuilt;
 
-                if(DisplayInfo.TryParse(obj, out DisplayInfo i))
-                {
-                    disp.hardwareInfo = i;
-                }
+                if(TKDisplayInfo.TryParse(obj, out TKDisplayInfo info))
+                    display.hardwareInfo = info;
 
-                return disp;
+                return true;
             }
             catch (Exception e) 
             {
                 Console.WriteLine("Error parsing display json:\n" + e.ToString());
-                return null;
+                display = null;
+                return false;
             }
         }
 

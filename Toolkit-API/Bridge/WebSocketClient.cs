@@ -3,9 +3,12 @@ using WebSocketSharp;
 
 namespace ToolkitAPI.Bridge
 {
+    /// <summary>
+    /// Handles asynchronous events and responses from Looking Glass Bridge.
+    /// </summary>
     internal class BridgeWebSocketClient : IDisposable
     {
-        private WebSocket? WS;
+        private WebSocket WS;
         private Action<string> messageReceivedCallback;
         public BridgeWebSocketClient(Action<string> messageReceivedCallback)
         {

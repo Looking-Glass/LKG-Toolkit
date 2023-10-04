@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 
 namespace ToolkitAPI {
-    internal static class JsonHelpers {
+    internal static class Utils {
         public static bool TryParse<T>(string json, Func<JObject, T> callback, out T value)
         {
             value = default;

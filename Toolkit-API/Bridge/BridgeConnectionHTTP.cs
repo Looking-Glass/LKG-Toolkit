@@ -20,8 +20,8 @@ namespace ToolkitAPI.Bridge
 
         private Orchestration session;
 
-        public Dictionary<int, TKDisplay> all_displays { get; private set; }
-        public Dictionary<int, TKDisplay> LKG_Displays { get; private set; }
+        public Dictionary<int, TKDisplay> AllDisplays { get; private set; }
+        public Dictionary<int, TKDisplay> LKGDisplays { get; private set; }
 
         private Dictionary<string, List<Action<string>>> eventListeners;
         private DisplayEvents monitorEvents;
@@ -34,8 +34,8 @@ namespace ToolkitAPI.Bridge
             this.port = port;
             this.webSocketPort = webSocketPort;
 
-            all_displays = new Dictionary<int, TKDisplay>();
-            LKG_Displays = new Dictionary<int, TKDisplay>();
+            AllDisplays = new Dictionary<int, TKDisplay>();
+            LKGDisplays = new Dictionary<int, TKDisplay>();
 
             eventListeners = new Dictionary<string, List<Action<string>>>();
 
@@ -146,7 +146,7 @@ namespace ToolkitAPI.Bridge
         {
             List<TKDisplay> displays = new List<TKDisplay>();
 
-            foreach(var kvp in all_displays)
+            foreach(var kvp in AllDisplays)
             {
                 displays.Add(kvp.Value);
             }
@@ -158,7 +158,7 @@ namespace ToolkitAPI.Bridge
         {
             List<TKDisplay> displays = new List<TKDisplay>();
 
-            foreach (var kvp in LKG_Displays)
+            foreach (var kvp in LKGDisplays)
             {
                 displays.Add(kvp.Value);
             }
@@ -166,7 +166,7 @@ namespace ToolkitAPI.Bridge
             return displays;
         }
 
-        public string? TrySendMessage(string endpoint, string content)
+        public string TrySendMessage(string endpoint, string content)
         {
             try
             {
@@ -174,11 +174,11 @@ namespace ToolkitAPI.Bridge
                 request.Content = new StringContent(content);
 
                 HttpResponseMessage resp = client.SendAsync(request).Result; //TODO: Async support?
-                string toReturn = resp.Content.ReadAsStringAsync().Result;
+                string result = resp.Content.ReadAsStringAsync().Result;
 
                 UpdateConnectionState(true);
 
-                return toReturn;
+                return result;
             }
             catch (HttpRequestException ex)
             {
@@ -203,185 +203,134 @@ namespace ToolkitAPI.Bridge
                 }}
                 ";
 
-            string? resp = TrySendMessage("enter_orchestration", message);
-            
-            if(resp != null)
+            string resp = TrySendMessage("enter_orchestration", message);
+            if (resp != null)
             {
-                if(Orchestration.TryParse(resp, out Orchestration newSession))
+                if (Orchestration.TryParse(resp, out Orchestration newSession))
                 {
                     session = newSession;
                     return true;
                 }
             }
-
             return false;
         }
 
         public bool TryExitOrchestration()
         {
             if (session == null)
-            {
                 return false;
-            }
 
             string message =
                 $@"
                 {{
-                    ""orchestration"": ""{session.token}""
+                    ""orchestration"": ""{session.Token}""
                 }}
                 ";
 
-            string? resp = TrySendMessage("exit_orchestration", message);
+            string resp = TrySendMessage("exit_orchestration", message);
 
             if (resp != null)
             {
                 session = default;
                 return true;
             }
-
             return false;
         }
 
         public bool TryTransportControlsPlay()
         {
             if (session == null)
-            {
                 return false;
-            }
 
             string message =
                 $@"
                 {{
-                    ""orchestration"": ""{session.token}""
+                    ""orchestration"": ""{session.Token}""
                 }}
                 ";
 
             string? resp = TrySendMessage("transport_control_play", message);
-
-            if (resp != null)
-            {
-                return true;
-            }
-
-            return false;
+            return resp != null;
         }
 
         public bool TryTransportControlsPause()
         {
             if (session == null)
-            {
                 return false;
-            }
 
             string message =
                 $@"
                 {{
-                    ""orchestration"": ""{session.token}""
+                    ""orchestration"": ""{session.Token}""
                 }}
                 ";
 
-            string? resp = TrySendMessage("transport_control_pause", message);
-
-            if (resp != null)
-            {
-                return true;
-            }
-
-            return false;
+            string resp = TrySendMessage("transport_control_pause", message);
+            return resp != null;
         }
 
         public bool TryTransportControlsNext()
         {
             if (session == null)
-            {
                 return false;
-            }
 
             string message =
                 $@"
                 {{
-                    ""orchestration"": ""{session.token}""
+                    ""orchestration"": ""{session.Token}""
                 }}
                 ";
 
-            string? resp = TrySendMessage("transport_control_next", message);
-
-            if (resp != null)
-            {
-                return true;
-            }
-
-            return false;
+            string resp = TrySendMessage("transport_control_next", message);
+            return resp != null;
         }
 
         public bool TryTransportControlsPrevious()
         {
             if (session == null)
-            {
                 return false;
-            }
 
             string message =
             $@"
             {{
-                ""orchestration"": ""{session.token}""
+                ""orchestration"": ""{session.Token}""
             }}
             ";
 
-            string? resp = TrySendMessage("transport_control_previous", message);
-
-            if (resp != null)
-            {
-                return true;
-            }
-
-            return false;
+            string resp = TrySendMessage("transport_control_previous", message);
+            return resp != null;
         }
 
         public bool TryShowWindow(bool showWindow, int head = -1)
         {
-            if(session == null)
-            {
+            if (session == null)
                 return false;
-            }
 
             string message =
             $@"
             {{
-                ""orchestration"": ""{session.token}"",
+                ""orchestration"": ""{session.Token}"",
                 ""show_window"": ""{showWindow}"",
                 ""head_index"": {head}
             }}
             ";
 
-            string? resp = TrySendMessage("show_window", message);
-
-            if (resp != null)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            string resp = TrySendMessage("show_window", message);
+            return resp != null;
         }
 
         public bool TrySubscribeToEvents()
         {
-            if(session == null)
-            {
+            if (session == null)
                 return false;
-            }
 
-            if(!webSocket.Connected())
-            {
+            if (!webSocket.Connected())
                 return false;
-            }
 
             string message =
                 $@"
                 {{
-                    ""subscribe_orchestration_events"": ""{session.token}""
+                    ""subscribe_orchestration_events"": ""{session.Token}""
                 }}
                 ";
 
@@ -392,30 +341,20 @@ namespace ToolkitAPI.Bridge
         public bool TryUpdatingParameter(string playlistName, int playlistItem, Parameters param, float newValue)
         {
             if (session == null)
-            {
                 return false;
-            }
 
             string message =
                 $@"
                 {{
-                    ""orchestration"": ""{session.token}"",
+                    ""orchestration"": ""{session.Token}"",
                     ""name"": ""{playlistName}"",
                     ""index"": ""{playlistItem}"",
                     ""{ParameterUtils.GetParamName(param)}"": ""{(ParameterUtils.IsFloatParam(param) ? newValue : (int)newValue)}"",
                 }}
                 ";
 
-            string? resp = TrySendMessage("update_playlist_entry", message);
-
-            if (resp != null)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            string resp = TrySendMessage("update_playlist_entry", message);
+            return resp != null;
         }
 
 
@@ -429,73 +368,56 @@ namespace ToolkitAPI.Bridge
             string message =
                 $@"
                 {{
-                    ""orchestration"": ""{session.token}"",
+                    ""orchestration"": ""{session.Token}"",
                     ""name"": ""{playlistName}"",
                     ""{ParameterUtils.GetParamName(param)}"": ""{(ParameterUtils.IsFloatParam(param) ? newValue : (int) newValue)}"",
                 }}
                 ";
 
-            string? resp = TrySendMessage("update_current_entry", message);
-
-            if (resp != null)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            string resp = TrySendMessage("update_current_entry", message);
+            return resp != null;
         }
 
         public bool TryUpdateDevices()
         {
             if (session == null)
-            {
                 return false;
-            }
 
             string message =
                 $@"
                 {{
-                    ""orchestration"": ""{session.token}""
+                    ""orchestration"": ""{session.Token}""
                 }}
                 ";
 
-            string? resp = TrySendMessage("available_output_devices", message);
+            string resp = TrySendMessage("available_output_devices", message);
 
             if (resp != null)
             {
-                JObject node = JObject.Parse(resp)?["payload"]?["value"]?.Value<JObject>();
+                JObject payloadJson = JObject.Parse(resp)?["payload"]?["value"]?.Value<JObject>();
 
                 lock(this)
                 {
-                    if (node != null)
+                    if (payloadJson != null)
                     {
-                        Dictionary<int, TKDisplay> all_displays = new Dictionary<int, TKDisplay>();
-                        Dictionary<int, TKDisplay> LKG_Displays = new Dictionary<int, TKDisplay>();
+                        Dictionary<int, TKDisplay> allDisplays = new Dictionary<int, TKDisplay>();
+                        Dictionary<int, TKDisplay> lkgDisplays = new Dictionary<int, TKDisplay>();
 
-                        for (int i = 0; i < node.Count; i++)
+                        for (int i = 0; i < payloadJson.Count; i++)
                         {
-                            TKDisplay? d = TKDisplay.ParseJson(i, node[i.ToString()]!["value"]!.Value<JObject>());
-                            if (d != null)
+                            JObject displayJson = payloadJson[i.ToString()]!["value"]!.Value<JObject>();
+                            if (TKDisplay.TryParse(i, displayJson, out TKDisplay display))
                             {
-                                if (!all_displays.ContainsKey(d.hardwareInfo.index))
-                                {
-                                    all_displays.Add(d.hardwareInfo.index, d);
-                                }
+                                if (!allDisplays.ContainsKey(display.hardwareInfo.index))
+                                    allDisplays.Add(display.hardwareInfo.index, display);
 
-                                if (d.hardwareInfo.hwid.Contains("LKG") && !LKG_Displays.ContainsKey(d.hardwareInfo.index))
-                                {
-                                    if (!LKG_Displays.ContainsKey(d.hardwareInfo.index))
-                                    {
-                                        LKG_Displays.Add(d.hardwareInfo.index, d);
-                                    }
-                                }
+                                if (display.IsLKG && !lkgDisplays.ContainsKey(display.hardwareInfo.index))
+                                    lkgDisplays.Add(display.hardwareInfo.index, display);
                             }
                         }
 
-                        this.all_displays = all_displays;
-                        this.LKG_Displays = LKG_Displays;
+                        AllDisplays = allDisplays;
+                        LKGDisplays = lkgDisplays;
                     }
                 }
 
@@ -504,40 +426,34 @@ namespace ToolkitAPI.Bridge
 
             return false;
         }
-        private string current_playlist_name = string.Empty;
 
+        private string currentPlaylistName = "";
         public bool TryDeletePlaylist(Playlist p)
         {
             if (session == null)
-            {
                 return false;
-            }
 
-            if (current_playlist_name == p.name)
-            {
-                current_playlist_name = string.Empty;
-            }
+            if (currentPlaylistName == p.name)
+                currentPlaylistName = "";
 
-            string delete_message = p.GetInstanceJson(session);
-            string? delete_resp = TrySendMessage("delete_playlist", delete_message);
+            string deleteMessage = p.GetInstanceJson(session);
+            string response = TrySendMessage("delete_playlist", deleteMessage);
 
-            return delete_resp != null;
+            return response != null;
         }
 
         public bool TrySyncPlaylist(int head = -1)
         {
             if (session == null)
-            {
                 return false;
-            }
 
-            if (current_playlist_name != "")
+            if (currentPlaylistName != "")
             {
                 string message =
                 $@"
                 {{
-                    ""orchestration"": ""{session.token}"",
-                    ""name"": ""{current_playlist_name}"",
+                    ""orchestration"": ""{session.Token}"",
+                    ""name"": ""{currentPlaylistName}"",
                     ""head_index"": {head},
                     ""crf"": 20,
                     ""pixel_format"": ""yuv420p"",
@@ -545,64 +461,61 @@ namespace ToolkitAPI.Bridge
                 }}
                 ";
 
-                string? resp = TrySendMessage("sync_overwrite_playlist", message);
-
-                if (resp != null)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                string response = TrySendMessage("sync_overwrite_playlist", message);
+                return response != null;
             }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
-
+        /// <summary>
+        /// Attempts to show media (image or video) on a LKG display.
+        /// </summary>
+        /// <param name="p">The playlist to play. This may contain one or more images or videos to playback on the LKG display.</param>
+        /// <param name="head">
+        /// <para>
+        /// Determines which LKG display to target. This is the LKG display index from <see cref="TKDisplayInfo.index"/>.
+        /// </para>
+        /// <remarks>
+        /// Note that using a display index of -1 will use the first available LKG display.
+        /// </remarks>
+        /// </param>
+        /// <returns></returns>
         public bool TryPlayPlaylist(Playlist p, int head = -1)
         {
-            if(session ==  null)
-            {
+            if (session ==  null)
                 return false;
-            }
 
-            if(current_playlist_name == p.name)
+            if (currentPlaylistName == p.name)
             {
                 string delete_message = p.GetInstanceJson(session);
-                string? delete_resp = TrySendMessage("delete_playlist", delete_message);
+                string delete_resp = TrySendMessage("delete_playlist", delete_message);
             }
 
             TryShowWindow(true, head);
 
             string message = p.GetInstanceJson(session);
-            string? resp = TrySendMessage("instance_playlist", message);
+            string resp = TrySendMessage("instance_playlist", message);
             
             string[] playlistItems = p.GetPlaylistItemsAsJson(session);
 
-            for(int i = 0; i < playlistItems.Length; i++)
+            for (int i = 0; i < playlistItems.Length; i++)
             {
                 string pMessage = playlistItems[i];
-                string? pResp = TrySendMessage("insert_playlist_entry", pMessage);
+                string pResp = TrySendMessage("insert_playlist_entry", pMessage);
             }
 
-            current_playlist_name = p.name;
+            currentPlaylistName = p.name;
 
             string playMessage = p.GetPlayPlaylistJson(session, head);
-            string? playResp = TrySendMessage("play_playlist", playMessage);
+            string playResp = TrySendMessage("play_playlist", playMessage);
 
             return true;
         }
 
         public void Dispose()
         {
-            if (session != default)
-            {
+            if (session != null)
                 TryExitOrchestration();
-            }
 
             webSocket.Dispose();
             client.Dispose();

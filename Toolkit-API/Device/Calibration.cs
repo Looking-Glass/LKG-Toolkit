@@ -4,57 +4,101 @@ using Newtonsoft.Json.Linq;
 
 namespace ToolkitAPI.Device
 {
+    /// <summary>
+    /// Contains data that is intrinsic to a specific LKG device. This data is used in rendering properly to the LKG display.
+    /// </summary>
+    [Serializable]
     public struct Calibration
     {
+        /// <summary>
+        /// The JSON text contained within the LKG device's visual.json (Calibration) file.
+        /// </summary>
         public string rawJson;
-        public int DPI;
-        public float center;
+
         public string configVersion;
-        public float flipImageX;
-        public float flipImageY;
-        public float flipSubp;
-        public int fringe;
-        public int invView;
-        public float pitch;
-        public int screenH;
-        public int screenW;
+
+        /// <summary>
+        /// The unique serial identifier for the particular LKG device.
+        /// </summary>
         public string serial;
+
+        public float pitch;
         public float slope;
-        public float verticalAngle;
+        public float center;
+        public int fringe;
+
         public int viewCone;
+        public int invView;
+        public float verticalAngle;
 
-        private Calibration(JObject obj)
+        /// <summary>
+        /// The LKG display's dots per inch (DPI).
+        /// </summary>
+        public int DPI;
+
+        /// <summary>
+        /// The native screen width of the LKG display, in pixels.
+        /// </summary>
+        public int screenW;
+
+        /// <summary>
+        /// The native screen height of the LKG display, in pixels.
+        /// </summary>
+        public int screenH;
+
+        /// <summary>
+        /// Determines whether or not to flip the screen horizontally. A value of 1 causes the screen to flip horizontally. The default value is 0.
+        /// </summary>
+        public float flipImageX;
+
+        /// <summary>
+        /// Determines whether or not to flip the screen vertically. A value of 1 causes the screen to flip vertically. The default value is 0.
+        /// </summary>
+        public float flipImageY;
+
+        public float flipSubp;
+
+        private static Calibration Parse(JObject obj)
         {
-            rawJson = obj.ToString(Formatting.Indented);
+            Calibration cal = new();
+            cal.rawJson = obj.ToString(Formatting.Indented);
 
-            configVersion = obj["configVersion"]!.ToString();
-            serial = obj["serial"]!.ToString();
+            cal.configVersion = obj["configVersion"]!.ToString();
+            cal.serial = obj["serial"]!.ToString();
 
-            DPI = (int)float.Parse(obj["DPI"]!["value"]!.ToString());
-            center = float.Parse(obj["center"]!["value"]!.ToString());
-            flipImageX = float.Parse(obj["flipImageX"]!["value"]!.ToString());
-            flipImageY = float.Parse(obj["flipImageY"]!["value"]!.ToString());
-            flipSubp = float.Parse(obj["flipSubp"]!["value"]!.ToString());
-            
+            cal.pitch = float.Parse(obj["pitch"]!["value"]!.ToString());
+            cal.slope = float.Parse(obj["slope"]!["value"]!.ToString());
+            cal.center = float.Parse(obj["center"]!["value"]!.ToString());
             try
             {
-                fringe = (int)float.Parse(obj["fringe"]!["value"]!.ToString());
+                cal.fringe = (int)float.Parse(obj["fringe"]!["value"]!.ToString());
             }
             catch
             {
-                fringe = 0;
+                cal.fringe = 0;
             }
 
-            invView = (int)float.Parse(obj["invView"]!["value"]!.ToString());
-            pitch = float.Parse(obj["pitch"]!["value"]!.ToString());
-            screenH = (int)float.Parse(obj["screenH"]!["value"]!.ToString());
-            screenW = (int)float.Parse(obj["screenW"]!["value"]!.ToString());
-            slope = float.Parse(obj["slope"]!["value"]!.ToString());
-            verticalAngle = float.Parse(obj["verticalAngle"]!["value"]!.ToString());
-            viewCone = (int)float.Parse(obj["viewCone"]!["value"]!.ToString());
+            cal.viewCone = (int)float.Parse(obj["viewCone"]!["value"]!.ToString());
+            cal.invView = (int)float.Parse(obj["invView"]!["value"]!.ToString());
+            cal.verticalAngle = float.Parse(obj["verticalAngle"]!["value"]!.ToString());
+            cal.DPI = (int)float.Parse(obj["DPI"]!["value"]!.ToString());
+
+            cal.screenW = (int)float.Parse(obj["screenW"]!["value"]!.ToString());
+            cal.screenH = (int)float.Parse(obj["screenH"]!["value"]!.ToString());
+
+            cal.flipImageX = float.Parse(obj["flipImageX"]!["value"]!.ToString());
+            cal.flipImageY = float.Parse(obj["flipImageY"]!["value"]!.ToString());
+            cal.flipSubp = float.Parse(obj["flipSubp"]!["value"]!.ToString());
+            return cal;
         }
 
-        public static bool TryParse(string obj, out Calibration value) =>
-            JsonHelpers.TryParse(obj, j => new Calibration(j), out value);
+        public static bool TryParse(string json, out Calibration value) =>
+            Utils.TryParse(json, j => Parse(j), out value);
+
+        public bool SeemsGood() {
+            if (screenW != 0 && screenH != 0)
+                return true;
+            return false;
+        }
     }
 }
