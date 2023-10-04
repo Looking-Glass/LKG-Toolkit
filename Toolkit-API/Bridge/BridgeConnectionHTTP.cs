@@ -325,6 +325,7 @@ namespace ToolkitAPI.Bridge
                 }}
                 ";
 
+            // the last parameter is an onCompletion function, that is called with the string response from the api
             TrySendMessageAsync("enter_orchestration", message, (resp) =>
             {
                 if (resp != null)
