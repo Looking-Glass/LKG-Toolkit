@@ -315,6 +315,7 @@ namespace ToolkitAPI.Bridge
 
         public Task<bool> TryEnterOrchestrationAsync(string name = "default")
         {
+            // this is effectively just a promise. when we set the value in the onCompletion 
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
 
             string message =
