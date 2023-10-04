@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Net;
 using System.Net.Http;
+using System.Reflection.Metadata;
 using Newtonsoft.Json.Linq;
 using ToolkitAPI.Bridge.EventListeners;
 using ToolkitAPI.Bridge.Params;
@@ -46,6 +50,9 @@ namespace ToolkitAPI.Bridge
 
         public bool Connect(int timeoutSeconds = 300)
         {
+            EndAsync();
+            BeginAsync();
+
             client = new HttpClient
             {
                 Timeout = TimeSpan.FromSeconds(timeoutSeconds)
@@ -173,7 +180,7 @@ namespace ToolkitAPI.Bridge
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, $"http://{url}:{port}/{endpoint}");
                 request.Content = new StringContent(content);
 
-                HttpResponseMessage resp = client.SendAsync(request).Result; //TODO: Async support?
+                HttpResponseMessage resp = client.SendAsync(request).Result;
                 string result = resp.Content.ReadAsStringAsync().Result;
 
                 UpdateConnectionState(true);
@@ -194,8 +201,122 @@ namespace ToolkitAPI.Bridge
             return null;
         }
 
-        public bool TryEnterOrchestration(string name = "default")
+        volatile bool stopAsyncThread = false;
+        Thread asyncSendThread;
+        ConcurrentQueue<AsyncMessageRecord> toSend;
+
+        public class AsyncMessageRecord
         {
+            public string endpoint;
+            public string content;
+            public Action<string> onCompletion;
+
+            public AsyncMessageRecord(string endpoint, string content, Action<string> onCompletion)
+            {
+                this.endpoint = endpoint;
+                this.content = content;
+                this.onCompletion = onCompletion;
+            }
+        }
+
+        public void BeginAsync()
+        {
+            toSend = new ConcurrentQueue<AsyncMessageRecord>();
+            stopAsyncThread = false;
+
+            asyncSendThread = new Thread(() =>
+            {
+                while (!stopAsyncThread)
+                {
+                    if(toSend.TryDequeue(out AsyncMessageRecord message))
+                    {
+                        try
+                        {
+                            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, $"http://{url}:{port}/{message.endpoint}");
+                            request.Content = new StringContent(message.content);
+
+                            HttpResponseMessage resp = client.SendAsync(request).Result;
+                            string result = resp.Content.ReadAsStringAsync().Result;
+
+                            UpdateConnectionState(true);
+                            message.onCompletion(result);
+                            continue;
+                        }
+                        catch (HttpRequestException ex)
+                        {
+                            Console.WriteLine(ex.ToString());
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.ToString());
+                        }
+
+                        UpdateConnectionState(false);
+
+                        message.onCompletion("");
+                    }
+
+                    Thread.Sleep(1);
+                }
+            });
+
+            // this ensures the thread closes no matter what, even if we crash
+            asyncSendThread.IsBackground = true;
+            asyncSendThread.Start();
+        }
+
+        public void EndAsync()
+        {
+            stopAsyncThread = true;
+            asyncSendThread?.Join();
+        }
+
+        public void TrySendMessageAsync(string endpoint, string content, Action<string> onCompletion)
+        {
+            if(toSend != null)
+            {
+                toSend.Enqueue(new AsyncMessageRecord(endpoint, content, onCompletion));
+            }
+            else
+            {
+                try
+                {
+                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, $"http://{url}:{port}/{endpoint}");
+                    request.Content = new StringContent(content);
+
+                    HttpResponseMessage resp = client.SendAsync(request).Result;
+                    string result = resp.Content.ReadAsStringAsync().Result;
+
+                    UpdateConnectionState(true);
+                    onCompletion(result);
+                    return;
+                }
+                catch (HttpRequestException ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
+
+                UpdateConnectionState(false);
+
+                onCompletion("");
+            }
+        }
+
+
+        Stopwatch timer = new Stopwatch();
+        private static void PrintTime(string name, TimeSpan time)
+        {
+            Console.WriteLine($"Endpoint: {name} completed in : {time.TotalMilliseconds}");
+        }
+
+        public Task<bool> TryEnterOrchestrationAsync(string name = "default")
+        {
+            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+
             string message =
                 $@"
                 {{
@@ -203,20 +324,62 @@ namespace ToolkitAPI.Bridge
                 }}
                 ";
 
+            TrySendMessageAsync("enter_orchestration", message, (resp) =>
+            {
+                if (resp != null)
+                {
+                    if (Orchestration.TryParse(resp, out Orchestration newSession))
+                    {
+                        session = newSession;
+                        tcs.SetResult(true);
+                        return;
+                    }
+                }
+
+                tcs.SetResult(false);
+            });
+
+            return tcs.Task;
+        }
+
+
+        public bool TryEnterOrchestration(string name = "default")
+        {
+            timer.Restart();
+
+            string message =
+                $@"
+                {{
+                    ""name"": ""{name}""
+                }}
+                ";
+
+            PrintTime("enter_orchestration sending messsage", timer.Elapsed);
+
             string resp = TrySendMessage("enter_orchestration", message);
+
+            PrintTime("enter_orchestration message received", timer.Elapsed);
+
+
             if (resp != null)
             {
                 if (Orchestration.TryParse(resp, out Orchestration newSession))
                 {
                     session = newSession;
+                    PrintTime("enter_orchestration message parsed", timer.Elapsed);
                     return true;
                 }
             }
+
+            PrintTime("enter_orchestration", timer.Elapsed);
+
             return false;
         }
 
         public bool TryExitOrchestration()
         {
+            timer.Restart();
+
             if (session == null)
                 return false;
 
@@ -232,13 +395,18 @@ namespace ToolkitAPI.Bridge
             if (resp != null)
             {
                 session = default;
+                PrintTime("exit_orchestration", timer.Elapsed);
                 return true;
             }
+
+            PrintTime("exit_orchestration", timer.Elapsed);
             return false;
         }
 
         public bool TryTransportControlsPlay()
         {
+            timer.Restart();
+
             if (session == null)
                 return false;
 
@@ -250,11 +418,16 @@ namespace ToolkitAPI.Bridge
                 ";
 
             string? resp = TrySendMessage("transport_control_play", message);
+
+            PrintTime("transport_control_play", timer.Elapsed);
+
             return resp != null;
         }
 
         public bool TryTransportControlsPause()
         {
+            timer.Restart();
+
             if (session == null)
                 return false;
 
@@ -266,11 +439,16 @@ namespace ToolkitAPI.Bridge
                 ";
 
             string resp = TrySendMessage("transport_control_pause", message);
+
+            PrintTime("transport_control_pause", timer.Elapsed);
+
             return resp != null;
         }
 
         public bool TryTransportControlsNext()
         {
+            timer.Restart();
+
             if (session == null)
                 return false;
 
@@ -282,11 +460,16 @@ namespace ToolkitAPI.Bridge
                 ";
 
             string resp = TrySendMessage("transport_control_next", message);
+
+            PrintTime("transport_control_next", timer.Elapsed);
+
             return resp != null;
         }
 
         public bool TryTransportControlsPrevious()
         {
+            timer.Restart();
+
             if (session == null)
                 return false;
 
@@ -298,11 +481,16 @@ namespace ToolkitAPI.Bridge
             ";
 
             string resp = TrySendMessage("transport_control_previous", message);
+
+            PrintTime("transport_control_previous", timer.Elapsed);
+
             return resp != null;
         }
 
         public bool TryShowWindow(bool showWindow, int head = -1)
         {
+            timer.Restart();
+
             if (session == null)
                 return false;
 
@@ -316,11 +504,16 @@ namespace ToolkitAPI.Bridge
             ";
 
             string resp = TrySendMessage("show_window", message);
+
+            PrintTime("show_window", timer.Elapsed);
+
             return resp != null;
         }
 
         public bool TrySubscribeToEvents()
         {
+            timer.Restart();
+
             if (session == null)
                 return false;
 
@@ -334,12 +527,16 @@ namespace ToolkitAPI.Bridge
                 }}
                 ";
 
+            PrintTime("TrySubscribeToEvents", timer.Elapsed);
+
             return webSocket.TrySendMessage(message);
         }
 
 
         public bool TryUpdatingParameter(string playlistName, int playlistItem, Parameters param, float newValue)
         {
+            timer.Restart();
+
             if (session == null)
                 return false;
 
@@ -354,12 +551,17 @@ namespace ToolkitAPI.Bridge
                 ";
 
             string resp = TrySendMessage("update_playlist_entry", message);
+
+            PrintTime("update_playlist_entry", timer.Elapsed);
+
             return resp != null;
         }
 
 
         public bool TryUpdatingParameter(string playlistName, Parameters param, float newValue)
         {
+            timer.Restart();
+
             if (session == null)
             {
                 return false;
@@ -375,11 +577,16 @@ namespace ToolkitAPI.Bridge
                 ";
 
             string resp = TrySendMessage("update_current_entry", message);
+
+            PrintTime("update_current_entry", timer.Elapsed);
+
             return resp != null;
         }
 
         public bool TryUpdateDevices()
         {
+            timer.Restart();
+
             if (session == null)
                 return false;
 
@@ -420,16 +627,20 @@ namespace ToolkitAPI.Bridge
                         LKGDisplays = lkgDisplays;
                     }
                 }
-
+            
+                PrintTime("available_output_devices", timer.Elapsed);
                 return true;
             }
 
+            PrintTime("available_output_devices", timer.Elapsed);
             return false;
         }
 
         private string currentPlaylistName = "";
         public bool TryDeletePlaylist(Playlist p)
         {
+            timer.Restart();
+
             if (session == null)
                 return false;
 
@@ -439,11 +650,15 @@ namespace ToolkitAPI.Bridge
             string deleteMessage = p.GetInstanceJson(session);
             string response = TrySendMessage("delete_playlist", deleteMessage);
 
+            PrintTime("delete_playlist", timer.Elapsed);
+
             return response != null;
         }
 
         public bool TrySyncPlaylist(int head = -1)
         {
+            timer.Restart();
+
             if (session == null)
                 return false;
 
@@ -462,6 +677,9 @@ namespace ToolkitAPI.Bridge
                 ";
 
                 string response = TrySendMessage("sync_overwrite_playlist", message);
+
+                PrintTime("sync_overwrite_playlist", timer.Elapsed);
+
                 return response != null;
             }
             return false;
@@ -519,6 +737,8 @@ namespace ToolkitAPI.Bridge
 
             webSocket.Dispose();
             client.Dispose();
+
+            EndAsync();
         }
     }
 }
