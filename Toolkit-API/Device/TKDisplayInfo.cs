@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 
 namespace ToolkitAPI.Device
@@ -68,6 +69,17 @@ namespace ToolkitAPI.Device
                 value = default;
                 return false;
             }
+        }
+
+        public override int GetHashCode() => hwid?.GetHashCode() ?? 0;
+        public override bool Equals(object obj) {
+            if (obj == null || !(obj is TKDisplayInfo other))
+                return false;
+            return hardwareVersion == other.hardwareVersion &&
+                hwid == other.hwid &&
+                index == other.index &&
+                state == other.state &&
+                (((windowCoords == null) == (other.windowCoords == null)) || (windowCoords != null && windowCoords.SequenceEqual(other.windowCoords)));
         }
     }
 }

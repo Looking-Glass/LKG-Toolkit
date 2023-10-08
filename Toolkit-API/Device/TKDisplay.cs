@@ -92,5 +92,19 @@ namespace ToolkitAPI.Device
                 "Display Loc: [" + hardwareInfo.windowCoords[0] + ", " + hardwareInfo.windowCoords[1] + "]\n" +
                 "Calibration Version: " + calibration.configVersion + "\n";
         }
+
+        public bool IsSameDevice(TKDisplay other) => other.hardwareInfo.hwid == hardwareInfo.hwid;
+        public override int GetHashCode() => hardwareInfo.hwid?.GetHashCode() ?? 0;
+        public override bool Equals(object obj) {
+            if (obj == null)
+                return false;
+            if (obj is TKDisplay other) {
+                return id == other.id &&
+                    calibration.Equals(other.calibration) &&
+                    defaultQuilt.Equals(other.defaultQuilt) &&
+                    hardwareInfo.Equals(other.hardwareInfo);
+            }
+            return false;
+        }
     }
 }

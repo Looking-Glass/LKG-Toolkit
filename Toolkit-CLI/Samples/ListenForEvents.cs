@@ -26,10 +26,7 @@ namespace ToolKitCLI.Samples
                 // This is similar to a session but multiple
                 // clients can connect to the same instance, receive
                 // the same events and control the same state
-                Task<bool> startSession = b.TryEnterOrchestrationAsync(args.orchestrationName);
-                startSession.Wait();
-
-                if (!startSession.Result)
+                if (!b.TryEnterOrchestration(args.orchestrationName))
                 {
                     Console.WriteLine("Failed to enter orchestration");
                     return;
