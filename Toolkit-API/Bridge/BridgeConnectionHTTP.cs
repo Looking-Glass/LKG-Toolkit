@@ -53,14 +53,14 @@ namespace ToolkitAPI.Bridge
             return logger;
         }
 
-        public static void SetLogger(ILogger logger)
+        public static void SetLogger(ILogger log)
         {
             if (logger != null)
             {
                 logger.Dispose();
             }
 
-            logger = logger;
+            logger = log;
         }
     }
 
