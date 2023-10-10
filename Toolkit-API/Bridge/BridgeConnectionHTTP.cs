@@ -8,6 +8,62 @@ using ToolkitAPI.Device;
 
 namespace ToolkitAPI.Bridge
 {
+    public static class Locator
+    {
+        private static ILogger logger;
+        private static IHttpSender httpSender;
+
+        public static bool HasHttpSender()
+        {
+            return httpSender != null;
+        }
+
+        public static IHttpSender GetHttpSenderOrDefault()
+        {
+            if(httpSender == null)
+            {
+                httpSender = new DefaultHttpSender();
+            }
+
+            return httpSender;
+        }
+
+        public static void SetHttpSender(IHttpSender sender)
+        {
+            if(httpSender != null)
+            {
+                httpSender.Dispose();
+            }
+
+            httpSender = sender;
+        }
+
+        public static bool HasLogger()
+        {
+            return logger != null;
+        }
+
+        public static ILogger GetLoggerOrDefault()
+        {
+            if (logger == null)
+            {
+                logger = new ConsoleLogger();
+            }
+
+            return logger;
+        }
+
+        public static void SetLogger(ILogger logger)
+        {
+            if (logger != null)
+            {
+                logger.Dispose();
+            }
+
+            logger = logger;
+        }
+    }
+
     public class BridgeConnectionHTTP : IDisposable
     {
         public const string DefaultURL = "localhost";
@@ -36,20 +92,15 @@ namespace ToolkitAPI.Bridge
         private DisplayEvents monitorEvents;
         private HashSet<Action<bool>> connectionStateListeners;
 
-        public BridgeConnectionHTTP(string url = DefaultURL, int port = DefaultPort, int webSocketPort = DefaultWebSocketPort) : this(null, null, url, port, webSocketPort) { }
-        public BridgeConnectionHTTP(ILogger logger, IHttpSender httpSender, string url = DefaultURL, int port = DefaultPort, int webSocketPort = DefaultWebSocketPort)
+        public BridgeConnectionHTTP(string url = DefaultURL, int port = DefaultPort, int webSocketPort = DefaultWebSocketPort)
         {
             this.url = url;
             this.port = port;
             this.webSocketPort = webSocketPort;
 
-            //TODO: Use DI instead of putting defaults here:
-            if (logger == null)
-                logger = new ConsoleLogger();
-            if (httpSender == null)
-                httpSender = new DefaultHttpSender();
-            this.logger = logger;
-            this.httpSender = httpSender;
+            this.logger = Locator.GetLoggerOrDefault();
+            this.httpSender = Locator.GetHttpSenderOrDefault();
+
             this.httpSender.ExceptionHandler = HandleHttpException;
 
             AllDisplays = new Dictionary<int, TKDisplay>();
