@@ -42,6 +42,7 @@ namespace ToolKitCLI.Samples
                     Console.WriteLine("Failed to update devices");
                     return;
                 }
+
                 Random rng = new Random();
                 Playlist p = new Playlist("default_" + rng.Next(0, 10000), args.loopPlaylist);
                 p.AddRGBDItem(args.inputFile, args.rows, args.cols, args.aspect,

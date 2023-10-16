@@ -131,7 +131,11 @@ namespace ToolkitAPI.Bridge
             return lastConnectionState;
         }
 
-        private string GetURL(string endpoint) => $"http://{url}:{port}/{endpoint}";
+        private string GetURL(string endpoint)
+        {
+            return $"http://{url}:{port}/{endpoint}";
+        }
+
         private void HandleHttpException(Exception e) {
             this.logger.LogException(e);
             UpdateConnectionState(false);
@@ -452,6 +456,51 @@ namespace ToolkitAPI.Bridge
 
             if (LogTimes)
                 PrintTime("show_window", timer.Elapsed);
+
+            return resp != null;
+        }
+
+        public bool TryGenerateShaderParameters(int head, int render_pos_x, int render_pos_y, int render_height, int render_width, out float shader_pitch, out float shader_slope)
+        {
+            if (session == null)
+            {
+                shader_pitch = -1;
+                shader_slope = -1;
+                return false;
+            }
+
+            if (LogTimes)
+                timer.Restart();
+
+            string message =
+            $@"
+            {{
+                ""orchestration"": ""{session.Token}"",
+                ""head_index"": ""{head}"",
+                ""render_pos_x"": ""{render_pos_x}"",
+                ""render_pos_y"": ""{render_pos_y}"",
+                ""render_width"": ""{render_height}"",
+                ""render_height"": ""{render_width}""
+            }}
+            ";
+
+            string resp = TrySendMessage("generate_shader_parameters", message);
+
+            if(resp != null)
+            {
+                JObject jsonResponse = JObject.Parse(resp);
+
+                shader_pitch = float.Parse(jsonResponse?["payload"]?["value"]?["processed_pitch"]?["value"].ToString());
+                shader_slope = float.Parse(jsonResponse?["payload"]?["value"]?["processed_slope"]?["value"].ToString());
+            }
+            else
+            {
+                shader_pitch = -1;
+                shader_slope = -1;
+            }
+
+            if (LogTimes)
+                PrintTime("GenerateShaderParameters", timer.Elapsed);
 
             return resp != null;
         }
