@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Newtonsoft.Json.Linq;
 using ToolkitAPI.Bridge.EventListeners;
 using ToolkitAPI.Bridge.Params;
 using ToolkitAPI.Device;
+
+#if HAS_NEWTONSOFT_JSON
+using Newtonsoft.Json.Linq;
+#endif
 
 namespace ToolkitAPI.Bridge
 {
@@ -135,6 +138,7 @@ namespace ToolkitAPI.Bridge
 
         private void UpdateListeners(string message)
         {
+#if HAS_NEWTONSOFT_JSON
             JToken? json = JObject.Parse(message)["payload"]?["value"];
 
             if (json != null)
@@ -159,6 +163,7 @@ namespace ToolkitAPI.Bridge
                     }
                 }
             }
+#endif
         }
 
         public List<TKDisplay> GetAllDisplays()
@@ -499,6 +504,7 @@ namespace ToolkitAPI.Bridge
 
             string resp = TrySendMessage("available_output_devices", message);
 
+#if HAS_NEWTONSOFT_JSON
             if (resp != null)
             {
                 JObject payloadJson = JObject.Parse(resp)?["payload"]?["value"]?.Value<JObject>();
@@ -532,6 +538,7 @@ namespace ToolkitAPI.Bridge
                     PrintTime("available_output_devices", timer.Elapsed);
                 return true;
             }
+#endif
 
             if (LogTimes)
                 PrintTime("available_output_devices", timer.Elapsed);

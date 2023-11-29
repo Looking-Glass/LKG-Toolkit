@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
+﻿#if HAS_NEWTONSOFT_JSON
+using Newtonsoft.Json.Linq;
+#endif
 
 namespace ToolkitAPI.Bridge.EventListeners
 {
@@ -22,6 +24,7 @@ namespace ToolkitAPI.Bridge.EventListeners
 
         public void Disconnect(string payload)
         {
+#if HAS_NEWTONSOFT_JSON
             JObject root = JObject.Parse(payload);
 
             if (root != null)
@@ -38,10 +41,12 @@ namespace ToolkitAPI.Bridge.EventListeners
                     bridge.LKGDisplays.Remove(head_index);
                 }
             }
+#endif
         }
 
         public void Connect(string payload)
         {
+#if HAS_NEWTONSOFT_JSON
             JObject root = JObject.Parse(payload);
 
             if(root != null)
@@ -53,6 +58,7 @@ namespace ToolkitAPI.Bridge.EventListeners
                     bridge.TryUpdateDevices();
                 }
             }
+#endif
         }
 
     }

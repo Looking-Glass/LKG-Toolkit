@@ -1,9 +1,13 @@
 ﻿using System;
+
+#if HAS_NEWTONSOFT_JSON
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+#endif
 
 namespace ToolkitAPI {
     internal static class Utils {
+#if HAS_NEWTONSOFT_JSON
         public static bool TryParse<T>(string json, Func<JObject, T> callback, out T value)
         {
             value = default;
@@ -29,5 +33,6 @@ namespace ToolkitAPI {
                 return false;
             }
         }
+#endif
     }
 }

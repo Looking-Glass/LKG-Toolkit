@@ -1,5 +1,8 @@
 ﻿using System;
+
+#if HAS_NEWTONSOFT_JSON
 using Newtonsoft.Json.Linq;
+#endif
 
 namespace ToolkitAPI.Device
 {
@@ -59,6 +62,7 @@ namespace ToolkitAPI.Device
             this.hardwareInfo = hardwareInfo;
         }
 
+#if HAS_NEWTONSOFT_JSON
         public static bool TryParse(int id, JObject obj, out TKDisplay display)
         {
             try
@@ -83,6 +87,7 @@ namespace ToolkitAPI.Device
                 return false;
             }
         }
+#endif
 
         public string GetInfoString()
         {

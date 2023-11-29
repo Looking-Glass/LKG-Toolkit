@@ -1,5 +1,8 @@
 ﻿using System;
+
+#if HAS_NEWTONSOFT_JSON
 using Newtonsoft.Json.Linq;
+#endif
 
 namespace ToolkitAPI.Device
 {
@@ -15,6 +18,7 @@ namespace ToolkitAPI.Device
         public int tileX;
         public int tileY;
 
+#if HAS_NEWTONSOFT_JSON
         private static DefaultQuilt ParseJson(JObject obj)
         {
             try
@@ -33,8 +37,15 @@ namespace ToolkitAPI.Device
                 return default;
             }
         }
+#endif
 
-        public static bool TryParse(string json, out DefaultQuilt value) =>
-            Utils.TryParse(json, j => ParseJson(j), out value);
+        public static bool TryParse(string json, out DefaultQuilt value) {
+#if !HAS_NEWTONSOFT_JSON
+            value = default;
+            return false;
+#else
+            return Utils.TryParse(json, j => ParseJson(j), out value);
+#endif
+        }
     }
 }

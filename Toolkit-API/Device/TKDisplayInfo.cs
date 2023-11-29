@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Linq;
+
+#if HAS_NEWTONSOFT_JSON
 using Newtonsoft.Json.Linq;
+#endif
 
 namespace ToolkitAPI.Device
 {
@@ -40,6 +43,7 @@ namespace ToolkitAPI.Device
         /// </summary>
         public int[] windowCoords;
 
+#if HAS_NEWTONSOFT_JSON
         private TKDisplayInfo(JObject obj)
         {
             hardwareVersion = obj["hardwareVersion"]!["value"]!.ToString();
@@ -70,6 +74,7 @@ namespace ToolkitAPI.Device
                 return false;
             }
         }
+#endif
 
         public override int GetHashCode() => hwid?.GetHashCode() ?? 0;
         public override bool Equals(object obj) {

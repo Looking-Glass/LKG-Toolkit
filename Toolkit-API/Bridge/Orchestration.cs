@@ -1,5 +1,8 @@
 ﻿using System;
+
+#if HAS_NEWTONSOFT_JSON
 using Newtonsoft.Json.Linq;
+#endif
 
 namespace ToolkitAPI.Bridge
 {
@@ -29,11 +32,15 @@ namespace ToolkitAPI.Bridge
         {
             try
             {
+#if !HAS_NEWTONSOFT_JSON
+            throw new NotSupportedException();
+#else
                 JObject json = JObject.Parse(jsonString);
                 string name = json["orchestration"]?["value"]?.ToString();
                 string token = json["payload"]?["value"]?.ToString();
                 orch = new Orchestration(name, token);
                 return true;
+#endif
             }
             catch
             {

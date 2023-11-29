@@ -1,6 +1,9 @@
 ﻿using System;
+
+#if HAS_NEWTONSOFT_JSON
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+#endif
 
 namespace ToolkitAPI.Device
 {
@@ -58,6 +61,7 @@ namespace ToolkitAPI.Device
 
         public float flipSubp;
 
+#if HAS_NEWTONSOFT_JSON
         private static Calibration Parse(JObject obj)
         {
             Calibration cal = new();
@@ -91,9 +95,16 @@ namespace ToolkitAPI.Device
             cal.flipSubp = float.Parse(obj["flipSubp"]!["value"]!.ToString());
             return cal;
         }
+#endif
 
-        public static bool TryParse(string json, out Calibration value) =>
-            Utils.TryParse(json, j => Parse(j), out value);
+        public static bool TryParse(string json, out Calibration value) {
+#if !HAS_NEWTONSOFT_JSON
+            value = default;
+            return false;
+#else
+            return Utils.TryParse(json, j => Parse(j), out value);
+#endif
+        }
 
         public bool SeemsGood() {
             if (screenW != 0 && screenH != 0)
