@@ -387,12 +387,35 @@ namespace Toolkit_API.Bridge
             return true;
         }
 
+        public bool TryReadback(string source, string filename)
+        {
+            string message =
+                $$"""
+                {
+                    "orchestration": "{{session.token}}",
+                    "head_index": "-1",
+                    "source": "{{source}}",
+                    "filename": "{{filename.Replace("\\", "\\\\")}}"
+                }
+                """;
+
+            string? resp = TrySendMessage("source_readback", message);
+
+            if (resp != null)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public void Dispose()
         {
             if (session != default)
             {
-                // TODO: enable after fixed in bridge 2.2
-                // TryExitOrchestration();
+                TryExitOrchestration();
             }
 
             webSocket.Dispose();

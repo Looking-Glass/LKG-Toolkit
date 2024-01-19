@@ -129,30 +129,63 @@ namespace ToolkitGUI
             }
         }
 
+        //private void TryUpdatingParameter(string playlistName, int playlistItem, Parameters parameter, float value)
+        //{
+        //    int hash = Hash(playlistName, playlistItem, parameter, value);
+
+        //    if (!addingNewItem && MainWindow.instance.bridgeConnection != null)
+        //    {
+        //        bool update = !_current_values.ContainsKey(hash);
+
+        //        if (!update)
+        //        {
+        //            update |= _current_values[hash] != hash;
+        //        }
+
+        //        if (update)
+        //        {
+        //            MainWindow.instance.bridgeConnection.TryUpdatingParameter(playlistName, playlistItem, parameter, value);
+        //            _current_values[hash] = hash;
+        //        }
+        //    }
+        //}
+
+        private System.Timers.Timer debounceTimer;
+        private (string playlistName, int playlistItem, Parameters parameter, float value) latestUpdate;
+
         private void TryUpdatingParameter(string playlistName, int playlistItem, Parameters parameter, float value)
         {
-            int hash = Hash(playlistName, playlistItem, parameter, value);
+            if (debounceTimer == null)
+            {
+                debounceTimer = new System.Timers.Timer(250); // 0.1 second delay
+                debounceTimer.Elapsed += (sender, e) => SendLatestUpdate();
+                debounceTimer.AutoReset = false; // Only trigger once
+            }
 
+            // Save the latest values
+            latestUpdate = (playlistName, playlistItem, parameter, value);
+
+            // Restart the timer
+            debounceTimer.Stop();
+            debounceTimer.Start();
+        }
+
+        private void SendLatestUpdate()
+        {
             if (!addingNewItem && MainWindow.instance.bridgeConnection != null)
             {
-                bool update = !_current_values.ContainsKey(hash);
-
-                if (!update)
-                {
-                    update |= _current_values[hash] != hash;
-                }
-
-                if (update)
-                {
-                    MainWindow.instance.bridgeConnection.TryUpdatingParameter(playlistName, playlistItem, parameter, value);
-                    _current_values[hash] = hash;
-                }
+                MainWindow.instance.bridgeConnection.TryUpdatingParameter(latestUpdate.playlistName, latestUpdate.playlistItem, latestUpdate.parameter, latestUpdate.value);
             }
         }
 
+
         //private void TryUpdatingParameter(string playlistName, int playlistItem, Parameters parameter, float value)
         //{
-        //    MainWindow.instance.bridgeConnection.TryUpdatingParameter(playlistName, playlistItem, parameter, value);
+        //    // I want to essentially debounce this, and only send one every 0.1 seconds, but I want to save the parameter and the value and send the most up to date value when it trys to send, this is called by sliders and seems to be breaking
+        //    if(!addingNewItem && MainWindow.instance.bridgeConnection != null)
+        //    {
+        //        MainWindow.instance.bridgeConnection.TryUpdatingParameter(playlistName, playlistItem, parameter, value);
+        //    }
         //}
 
 

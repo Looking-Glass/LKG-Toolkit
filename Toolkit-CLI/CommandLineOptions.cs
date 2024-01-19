@@ -15,6 +15,7 @@ namespace ToolKit_CLI
         play,
         playlist,
         build_playlist,
+        quiltify_RGBD,
     }
 
     public class CommandLineOptions
@@ -30,6 +31,9 @@ namespace ToolKit_CLI
 
         [Option('i', "input", HelpText = "Input URI")]
         public string inputFile { get; set; }
+
+        [Option("out", HelpText = "Output Path")]
+        public string outputFile { get; set; }
 
         [Option('h', "head", Default = -1, HelpText = "Selects LKG display")]
         public int head { get; set; }

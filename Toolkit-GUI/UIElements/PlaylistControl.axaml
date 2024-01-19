@@ -11,12 +11,29 @@
 		</Grid.RowDefinitions>
 
 		<Border Grid.Row="0" Background="LightGray" Padding="5">
-			<StackPanel Orientation="Horizontal">
-				<TextBlock Name="PlaylistHeader" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
-				<Button Name="AddFileButton" Content="Add File" Margin="10,0,0,0"/>
-				<Button Name="AddRGBDFileButton" Content="Add RGBD File" Margin="10,0,0,0"/>
-				<Button Name="PlayPlaylistButton" Content="Play Playlist" Margin="10,0,0,0"/>
-			</StackPanel>
+			<Grid>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto"/>
+					<ColumnDefinition Width="*"/>
+					<ColumnDefinition Width="Auto"/>
+				</Grid.ColumnDefinitions>
+
+				<!-- Left-aligned buttons -->
+				<StackPanel Grid.Column="0" Orientation="Horizontal">
+					<Button Name="AddFileButton" Content="Add File" Margin="10,0,0,0"/>
+					<Button Name="AddRGBDFileButton" Content="Add RGBD File" Margin="10,0,0,0"/>
+					<Button Name="PlayPlaylistButton" Content="Play Playlist" Margin="10,0,0,0"/>
+				</StackPanel>
+
+				<!-- Centered TextBlock -->
+				<TextBlock Grid.Column="1" Name="PlaylistHeader" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+
+				<!-- Right-aligned sync controls -->
+				<StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+					<ComboBox Name="SyncLocationDropDown" Margin="10,0,0,0"/>
+					<Button Name="SyncPlaylistButton" Content="Sync Playlist" Margin="10,0,0,0"/>
+				</StackPanel>
+			</Grid>
 		</Border>
 
 		<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
