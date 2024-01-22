@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Toolkit_API;
+using ToolkitAPI;
 
 namespace ToolkitGUI.Media
 {
@@ -123,9 +123,9 @@ namespace ToolkitGUI.Media
             }
         }
 
-        public Toolkit_API.Bridge.Playlist GetBridgePlaylist()
+        public ToolkitAPI.Bridge.Playlist GetBridgePlaylist()
         {
-            var bridgePlaylist = new Toolkit_API.Bridge.Playlist(name, true);
+            var bridgePlaylist = new ToolkitAPI.Bridge.Playlist(name, true);
 
             for(int i = 0; i < items.Count; i++)
             {

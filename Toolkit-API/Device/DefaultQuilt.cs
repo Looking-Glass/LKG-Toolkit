@@ -1,7 +1,12 @@
-﻿using System.Text.Json.Nodes;
+﻿using System;
+using Newtonsoft.Json.Linq;
 
-namespace Toolkit_API.Device
+namespace ToolkitAPI.Device
 {
+    /// <summary>
+    /// The recommended default quilt settings for a given LKG display.
+    /// </summary>
+    [Serializable]
     public struct DefaultQuilt
     {
         public float quiltAspect;
@@ -10,43 +15,26 @@ namespace Toolkit_API.Device
         public int tileX;
         public int tileY;
 
-        private DefaultQuilt(JsonNode node)
+        private static DefaultQuilt ParseJson(JObject obj)
         {
-            if(node.AsArray().Count > 0)
-            {
-                quiltAspect = float.Parse(node.AsObject()["quiltAspect"]!.ToString());
-                quiltY = int.Parse(node.AsObject()["quiltY"]!.ToString());
-                quiltX = int.Parse(node.AsObject()["quiltX"]!.ToString());
-                tileX = int.Parse(node.AsObject()["tileX"]!.ToString());
-                tileY = int.Parse(node.AsObject()["tileY"]!.ToString());
-            }
-        }
-
-        public static bool TryParse(string obj, out DefaultQuilt value)
-        {
-            if (obj == null || obj.Length == 0)
-            {
-                value = default;
-                return false;
-            }
-
-            JsonNode? json = JsonNode.Parse(obj);
-            if (json == null)
-            {
-                value = default;
-                return false;
-            }
-
             try
             {
-                value = new DefaultQuilt(json);
-                return true;
+                DefaultQuilt result = new DefaultQuilt();
+                result.quiltAspect = obj["quiltAspect"].Value<float>();
+                result.quiltY = obj["quiltY"].Value<int>();
+                result.quiltX = obj["quiltX"].Value<int>();
+                result.tileX = obj["tileX"].Value<int>();
+                result.tileY = obj["tileY"].Value<int>();
+                return result;
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                value = default;
-                return false;
+                Console.WriteLine("Error parsing display json:\n" + e.ToString());
+                return default;
             }
         }
+
+        public static bool TryParse(string json, out DefaultQuilt value) =>
+            Utils.TryParse(json, j => ParseJson(j), out value);
     }
 }

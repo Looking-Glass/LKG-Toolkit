@@ -6,8 +6,12 @@ using System.Text;
 using System.Threading.Tasks;
 using static System.Collections.Specialized.BitVector32;
 
-namespace Toolkit_API.Bridge
+namespace ToolkitAPI.Bridge
 {
+    /// <summary>
+    /// Contains a playable list of <see cref="PlaylistItem"/>s.<br />
+    /// Playlists are used to show images and videos on a given LKG display.
+    /// </summary>
     public class Playlist
     {
         public string name;
@@ -48,13 +52,13 @@ namespace Toolkit_API.Bridge
         public string GetPlayPlaylistJson(Orchestration session, int head)
         {
             string content =
-                $$"""
-                {
-                    "orchestration": "{{session.token}}",
-                    "name": "{{name}}",
-                    "head_index": "{{head}}"
-                }
-                """;
+                $@"
+                {{
+                    ""orchestration"": ""{session.Token}"",
+                    ""name"": ""{name}"",
+                    ""head_index"": ""{head}""
+                }}
+                ";
 
             return content;
         }
@@ -62,13 +66,13 @@ namespace Toolkit_API.Bridge
         public string GetInstanceJson(Orchestration session)
         {
             string content =
-                $$"""
-                {
-                    "orchestration": "{{session.token}}",
-                    "name": "{{name}}",
-                    "loop": "{{(loop ? "true" : "false")}}"
-                }
-                """;
+                $@"
+                {{
+                    ""orchestration"": ""{session.Token}"",
+                    ""name"": ""{name}"",
+                    ""loop"": ""{(loop ? "true" : "false")}""
+                }}
+                ";
 
             return content;
         }
@@ -100,40 +104,64 @@ namespace Toolkit_API.Bridge
             }
 
             string content =
-                $$"""
-                {   
-                    "orchestration": "{{session.token}}",
-                    "name": "{{name}}",
-                    "index": "{{id}}",
-                    "uri": "{{URI}}",
-                    "rows": "{{item.rows}}",
-                    "cols": "{{item.cols}}",
-                    "aspect": "{{item.aspect}}",
-                    "view_count": "{{item.viewCount}}",    
-                    "durationMS": "{{item.durationMS}}",                
-                    "isRGBD": "{{item.isRGBD}}",
-                    "depth_inversion": "{{item.depth_inversion}}",
-                    "chroma_depth": "{{item.chroma_depth}}",
-                    "crop_pos_x": "{{item.crop_pos_x}}",
-                    "crop_pos_y": "{{item.crop_pos_y}}",
-                    "depthiness": "{{item.depthiness}}",
-                    "depth_cutoff": "{{item.depth_cutoff}}",
-                    "depth_loc": "{{item.depth_loc}}",
-                    "focus": "{{item.focus}}",
-                    "cam_dist": "{{item.cam_dist}}",
-                    "fov": "{{item.fov}}",
-                    "zoom": "{{item.zoom}}"
-                }
-                """;
+                $@"
+                {{
+                    ""orchestration"": ""{session.Token}"",
+                    ""name"": ""{name}"",
+                    ""index"": ""{id}"",
+                    ""uri"": ""{URI}"",
+                    ""rows"": ""{item.rows}"",
+                    ""cols"": ""{item.cols}"",
+                    ""aspect"": ""{item.aspect}"",
+                    ""view_count"": ""{item.viewCount}"",
+                    ""durationMS"": ""{item.durationMS}"",
+                    ""isRGBD"": ""{item.isRGBD}"",
+                    ""depth_inversion"": ""{item.depth_inversion}"",
+                    ""chroma_depth"": ""{item.chroma_depth}"",
+                    ""crop_pos_x"": ""{item.crop_pos_x}"",
+                    ""crop_pos_y"": ""{item.crop_pos_y}"",
+                    ""depthiness"": ""{item.depthiness}"",
+                    ""depth_cutoff"": ""{item.depth_cutoff}"",
+                    ""depth_loc"": ""{item.depth_loc}"",
+                    ""focus"": ""{item.focus}"",
+                    ""cam_dist"": ""{item.cam_dist}"",
+                    ""fov"": ""{item.fov}"",
+                    ""zoom"": ""{item.zoom}""
+                }}
+                ";
 
             return content;
         }
     }
 
+    /// <summary>
+    /// <para>
+    /// Represents a single playable image or video for a LKG display.
+    /// This can be used in a <see cref="Playlist"/> to play or stream images or videos, from local or remote sources.
+    /// </para>
+    /// <para>
+    /// Currently, the following are supported as playlist items:
+    /// <list type="bullet">
+    /// <item>Quilt</item>
+    /// <item>RGBD images</item>
+    /// </list>
+    /// </para>
+    /// </summary>
     public class PlaylistItem
     {
+        /// <summary>
+        /// The index of this item in the playlist.
+        /// </summary>
         public int id = -1;
+
+        /// <summary>
+        /// The URI (Universal Resource Identifier) of the source image or video.
+        /// </summary>
+        /// <remarks>
+        /// For example, this may be a local file path, or a URL to a file hosted online.
+        /// </remarks>
         public string URI = "";
+
         public int rows = 1;
         public int cols = 1;
         public float aspect = 1;
@@ -142,8 +170,9 @@ namespace Toolkit_API.Bridge
 
         public int isRGBD = 0;
 
-        public float cam_dist = 0;
-        public float fov = 0;
+        //NOTE: Up next will be configurable view dimming, and some extra stuff added to this class
+        [Obsolete] public float cam_dist = 0;
+        [Obsolete] public float fov = 0;
 
         public int depth_loc = 0;
         public int depth_inversion = 0;
@@ -157,7 +186,7 @@ namespace Toolkit_API.Bridge
         public float focus = 0;
         public float zoom = 0;
 
-        public PlaylistItem(int id, string URI, int rows, int cols, float aspect, int viewCount, int durationMS = 20000)
+        internal PlaylistItem(int id, string URI, int rows, int cols, float aspect, int viewCount, int durationMS = 20000)
         {
             this.id = id;
             this.URI = URI;
@@ -167,7 +196,7 @@ namespace Toolkit_API.Bridge
             this.viewCount = viewCount;
             this.durationMS = durationMS;
         }
-        public PlaylistItem(int id, string URI, int rows, int cols, float aspect, 
+        internal PlaylistItem(int id, string URI, int rows, int cols, float aspect, 
             float depthiness, float depth_cutoff, float focus, int depth_loc, 
             float cam_dist, float fov, float zoom = 1, Vector2 crop_pos = new Vector2(), 
             bool doDepthInversion = false, bool chromaDepth = false, int durationMS = 20000)

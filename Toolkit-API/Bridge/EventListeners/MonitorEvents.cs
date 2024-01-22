@@ -1,6 +1,6 @@
-﻿using System.Text.Json.Nodes;
+﻿using Newtonsoft.Json.Linq;
 
-namespace Toolkit_API.Bridge.EventListeners
+namespace ToolkitAPI.Bridge.EventListeners
 {
     public class DisplayEvents
     {
@@ -22,33 +22,33 @@ namespace Toolkit_API.Bridge.EventListeners
 
         public void Disconnect(string payload)
         {
-            JsonNode? node = JsonNode.Parse(payload);
+            JObject root = JObject.Parse(payload);
 
-            if (node != null)
+            if (root != null)
             {
-                int head_index = int.Parse(node["head_index"]?["value"]?.ToString());
+                int head_index = int.Parse(root["head_index"]?["value"]?.ToString());
 
-                if (bridge.all_displays.ContainsKey(head_index))
+                if (bridge.AllDisplays.ContainsKey(head_index))
                 {
-                    bridge.all_displays.Remove(head_index);
+                    bridge.AllDisplays.Remove(head_index);
                 }
 
-                if(bridge.LKG_Displays.ContainsKey(head_index))
+                if(bridge.LKGDisplays.ContainsKey(head_index))
                 {
-                    bridge.LKG_Displays.Remove(head_index);
+                    bridge.LKGDisplays.Remove(head_index);
                 }
             }
         }
 
         public void Connect(string payload)
         {
-            JsonNode? node = JsonNode.Parse(payload);
+            JObject root = JObject.Parse(payload);
 
-            if(node != null)
+            if(root != null)
             {
-                int head_index = int.Parse(node["head_index"]?["value"]?.ToString());
+                int head_index = int.Parse(root["head_index"]?["value"]?.ToString());
 
-                if (!bridge.all_displays.ContainsKey(head_index))
+                if (!bridge.AllDisplays.ContainsKey(head_index))
                 {
                     bridge.TryUpdateDevices();
                 }

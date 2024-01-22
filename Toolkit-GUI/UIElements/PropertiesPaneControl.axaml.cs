@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
-using Toolkit_API.Bridge.Params;
+using ToolkitAPI.Bridge.Params;
 using ToolkitGUI.Media;
 
 namespace ToolkitGUI

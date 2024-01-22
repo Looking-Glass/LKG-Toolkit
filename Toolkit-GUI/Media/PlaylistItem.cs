@@ -12,7 +12,6 @@ using Avalonia;
 using Avalonia.Controls.Shapes;
 using Avalonia.Controls;
 using HarfBuzzSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.ComponentModel;
 using System.Reflection;

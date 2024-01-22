@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Toolkit_API.Bridge;
-using Toolkit_API.Device;
+using ToolkitAPI.Bridge;
+using ToolkitAPI.Device;
 
-namespace ToolKit_CLI.Samples
+namespace ToolKitCLI.Samples
 {
     internal class ListDevices
     {
@@ -40,10 +40,10 @@ namespace ToolKit_CLI.Samples
 
                 if (b.TryUpdateDevices())
                 {
-                    List<Display> displays = b.GetLKGDisplays();
-                    foreach (Display display in displays)
+                    List<TKDisplay> displays = b.GetLKGDisplays();
+                    foreach (TKDisplay display in displays)
                     {
-                        Console.WriteLine(display.getInfoString());
+                        Console.WriteLine(display.GetInfoString());
                     }
                 }
                 else

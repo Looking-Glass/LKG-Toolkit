@@ -1,16 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using WebSocketSharp;
 
-namespace Toolkit_API.Bridge
+namespace ToolkitAPI.Bridge
 {
+    /// <summary>
+    /// Handles asynchronous events and responses from Looking Glass Bridge.
+    /// </summary>
     internal class BridgeWebSocketClient : IDisposable
     {
-        private WebSocket? WS;
+        private WebSocket WS;
         private Action<string> messageReceivedCallback;
         public BridgeWebSocketClient(Action<string> messageReceivedCallback)
         {
