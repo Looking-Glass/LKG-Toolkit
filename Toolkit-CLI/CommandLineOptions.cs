@@ -53,6 +53,18 @@ namespace ToolKit_CLI
         [Option('l', "loop", Default = false, HelpText = "Controls if the playback loops")]
         public bool loopPlaylist { get; set; }
 
+        [Option('d', "depthiness", Default = 1.0f, HelpText = "Sets the depthiness of RGBD content")]
+        public float Depthiness { get; set; }
+
+        [Option('f', "focus", Default = 0.0f, HelpText = "Sets the focus of RGBD content")]
+        public float Focus { get; set; }
+
+        [Option("depth-loc", Default = 2, HelpText = "Sets the depth location (0 = top, 1 = bottom, 2 = right, 3 = left)")]
+        public int DepthLoc { get; set; }
+
+        [Option('z', "zoom", Default = 1f, HelpText = "Sets the zoom value")]
+        public float Zoom { get; set; }
+
 
         [Usage(ApplicationAlias = "Toolkit-CLI.exe")]
         public static IEnumerable<Example> Examples

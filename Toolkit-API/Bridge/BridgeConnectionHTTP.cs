@@ -2,6 +2,7 @@
 using Toolkit_API.Bridge.EventListeners;
 using Toolkit_API.Bridge.Params;
 using Toolkit_API.Device;
+using WebSocketSharp;
 
 namespace Toolkit_API.Bridge
 {
@@ -387,7 +388,7 @@ namespace Toolkit_API.Bridge
             return true;
         }
 
-        public bool TryReadback(string source, string filename)
+        public bool TrySaveout(string source, string filename)
         {
             string message =
                 $$"""
@@ -399,9 +400,32 @@ namespace Toolkit_API.Bridge
                 }
                 """;
 
+            string? resp = TrySendMessage("source_saveout", message);
+
+            if (!resp.IsNullOrEmpty())
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public bool TryReadback(string source)
+        {
+            string message =
+                $$"""
+                {
+                    "orchestration": "{{session.token}}",
+                    "head_index": "-1",
+                    "source": "{{source}}",
+                }
+                """;
+
             string? resp = TrySendMessage("source_readback", message);
 
-            if (resp != null)
+            if (!resp.IsNullOrEmpty())
             {
                 return true;
             }
