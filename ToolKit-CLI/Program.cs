@@ -20,6 +20,9 @@ namespace ToolKitCLI
                 case CLI_Task.listen:
                     ListenForEvents.Run(args);
                     break;
+                case CLI_Task.hide:
+                    HideWindow.Run(args);
+                    break;
                 case CLI_Task.list:
                     ListDevices.Run(args);
                     break;

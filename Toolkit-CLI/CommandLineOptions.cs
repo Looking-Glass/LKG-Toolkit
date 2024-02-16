@@ -16,6 +16,7 @@ namespace ToolKitCLI
         playlist,
         build_playlist,
         quiltify_RGBD,
+        hide,
     }
 
     public class CommandLineOptions
