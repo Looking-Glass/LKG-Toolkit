@@ -5,6 +5,20 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Avalonia.Media.Imaging;
+using System.IO;
+using System.Drawing;
+using Avalonia;
+using Avalonia.Controls.Shapes;
+using Avalonia.Controls;
+using HarfBuzzSharp;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.ComponentModel;
+using System.Reflection;
+using System.Security.AccessControl;
+using Avalonia.Media;
+using Image = Avalonia.Controls.Image;
+using Size = Avalonia.Size;
 
 namespace ToolkitGUI.Media
 {
@@ -75,6 +89,21 @@ namespace ToolkitGUI.Media
         [JsonInclude]
         public float zoom = 1;
 
+        // Preview Bitmap property
+        [JsonIgnore]
+        public Avalonia.Media.Imaging.Bitmap PreviewBitmap
+        {
+            get
+            {
+                if (_previewBitmap == null)
+                {
+                    LoadPreviewBitmap();
+                }
+
+                return _previewBitmap;
+            }
+        }
+        private Avalonia.Media.Imaging.Bitmap _previewBitmap;
 
         public PlaylistItem()
         {
@@ -94,5 +123,24 @@ namespace ToolkitGUI.Media
             }
         }
 
+        private void LoadPreviewBitmap()
+        {
+            // If it's a video, extract the first frame
+            if (mtype == MediaType.QuiltVideo || mtype == MediaType.RGBDVideo)
+            {
+                // use FFMPEG to extract the first frame
+                //using var video = new VideoFileReader(); // You might need a suitable video library
+                //video.Open(path);
+                //using var firstFrame = video.ReadVideoFrame();
+                //_previewBitmap = ResizeImage(firstFrame, 256, 256);
+                //video.Close();
+            }
+            // If it's an image, just load it
+            else if (mtype == MediaType.QuiltImage || mtype == MediaType.RGBDImage)
+            {
+                using var image = new Avalonia.Media.Imaging.Bitmap(path);
+                _previewBitmap = image;
+            }
+        }
     }
 }

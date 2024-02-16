@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Toolkit_API.Bridge;
+using ToolkitAPI.Bridge;
 
-namespace ToolKit_CLI.Samples
+namespace ToolKitCLI.Samples
 {
     internal class PlayRGBDItem
     {

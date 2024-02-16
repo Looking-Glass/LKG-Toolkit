@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ToolKit_CLI
+namespace ToolKitCLI
 {
     public enum CLI_Task
     {

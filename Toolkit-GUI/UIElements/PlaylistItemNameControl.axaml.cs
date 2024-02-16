@@ -8,6 +8,7 @@ namespace ToolkitGUI
     public partial class PlaylistItemNameControl : UserControl
     {
         public Action<Playlist> onPlaylistSelected;
+        public Action<Playlist> onDeletePlaylist;
         public Playlist item;
 
         public PlaylistItemNameControl()
@@ -15,21 +16,30 @@ namespace ToolkitGUI
             InitializeComponent();
         }
 
-        public PlaylistItemNameControl(Playlist item, Action<Playlist> onPlaylistSelected)
+        public PlaylistItemNameControl(Playlist item, Action<Playlist> onPlaylistSelected, Action<Playlist> onDeletePlaylist)
         {
             InitializeComponent();
 
             this.item = item;
             this.onPlaylistSelected = onPlaylistSelected;
+            this.onDeletePlaylist = onDeletePlaylist;
             PlaylistNameTextBlock.Text = item.name;
-            SelectButton.Click += SelectButton_Click;
+            DeleteButton.Click += DeleteButton_Click;
         }
 
-        private void SelectButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private void Border_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
         {
-            if(onPlaylistSelected != null)
+            if (onPlaylistSelected != null)
             {
                 onPlaylistSelected(item);
+            }
+        }
+
+        private void DeleteButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        {
+            if (onDeletePlaylist != null)
+            {
+                onDeletePlaylist(item);
             }
         }
 
@@ -37,7 +47,7 @@ namespace ToolkitGUI
         {
             AvaloniaXamlLoader.Load(this);
             PlaylistNameTextBlock = this.FindControl<TextBlock>("PlaylistNameTextBlock");
-            SelectButton = this.FindControl<Button>("SelectButton");
+            DeleteButton = this.FindControl<Button>("DeleteButton");
         }
     }
 }

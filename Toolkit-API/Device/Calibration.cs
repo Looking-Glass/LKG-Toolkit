@@ -1,89 +1,104 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Nodes;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
-namespace Toolkit_API.Device
+namespace ToolkitAPI.Device
 {
+    /// <summary>
+    /// Contains data that is intrinsic to a specific LKG device. This data is used in rendering properly to the LKG display.
+    /// </summary>
+    [Serializable]
     public struct Calibration
     {
+        /// <summary>
+        /// The JSON text contained within the LKG device's visual.json (Calibration) file.
+        /// </summary>
         public string rawJson;
-        public int DPI = 1;
-        public float center = 1;
-        public string configVersion = "";
-        public float flipImageX = 1;
-        public float flipImageY = 1;
-        public float flipSubp = 1;
-        public int fringe = 1;
-        public int invView = 1 ;
-        public float pitch = 1;
-        public int screenH = 1;
-        public int screenW = 1;
-        public string serial = "";
-        public float slope = 1;
-        public float verticalAngle = 1;
-        public int viewCone = 1;
 
-        private Calibration(JsonNode node)
+        public string configVersion;
+
+        /// <summary>
+        /// The unique serial identifier for the particular LKG device.
+        /// </summary>
+        public string serial;
+
+        public float pitch;
+        public float slope;
+        public float center;
+        public int fringe;
+
+        public int viewCone;
+        public int invView;
+        public float verticalAngle;
+
+        /// <summary>
+        /// The LKG display's dots per inch (DPI).
+        /// </summary>
+        public int DPI;
+
+        /// <summary>
+        /// The native screen width of the LKG display, in pixels.
+        /// </summary>
+        public int screenW;
+
+        /// <summary>
+        /// The native screen height of the LKG display, in pixels.
+        /// </summary>
+        public int screenH;
+
+        /// <summary>
+        /// Determines whether or not to flip the screen horizontally. A value of 1 causes the screen to flip horizontally. The default value is 0.
+        /// </summary>
+        public float flipImageX;
+
+        /// <summary>
+        /// Determines whether or not to flip the screen vertically. A value of 1 causes the screen to flip vertically. The default value is 0.
+        /// </summary>
+        public float flipImageY;
+
+        public float flipSubp;
+
+        private static Calibration Parse(JObject obj)
         {
-            JsonObject obj = node.AsObject();
-            
-            rawJson = obj.ToJsonString();
+            Calibration cal = new();
+            cal.rawJson = obj.ToString(Formatting.Indented);
 
-            configVersion = obj["configVersion"]!.ToString();
-            serial = obj["serial"]!.ToString();
+            cal.configVersion = obj["configVersion"]!.ToString();
+            cal.serial = obj["serial"]!.ToString();
 
-            DPI = (int)float.Parse(obj["DPI"]!["value"]!.ToString());
-            center = float.Parse(obj["center"]!["value"]!.ToString());
-            flipImageX = float.Parse(obj["flipImageX"]!["value"]!.ToString());
-            flipImageY = float.Parse(obj["flipImageY"]!["value"]!.ToString());
-            flipSubp = float.Parse(obj["flipSubp"]!["value"]!.ToString());
-            
+            cal.pitch = float.Parse(obj["pitch"]!["value"]!.ToString());
+            cal.slope = float.Parse(obj["slope"]!["value"]!.ToString());
+            cal.center = float.Parse(obj["center"]!["value"]!.ToString());
             try
             {
-                fringe = (int)float.Parse(obj["fringe"]!["value"]!.ToString());
+                cal.fringe = (int)float.Parse(obj["fringe"]!["value"]!.ToString());
             }
-            catch  (Exception e) 
+            catch
             {
-                fringe = 0;
+                cal.fringe = 0;
             }
 
-            invView = (int)float.Parse(obj["invView"]!["value"]!.ToString());
-            pitch = float.Parse(obj["pitch"]!["value"]!.ToString());
-            screenH = (int)float.Parse(obj["screenH"]!["value"]!.ToString());
-            screenW = (int)float.Parse(obj["screenW"]!["value"]!.ToString());
-            slope = float.Parse(obj["slope"]!["value"]!.ToString());
-            verticalAngle = float.Parse(obj["verticalAngle"]!["value"]!.ToString());
-            viewCone = (int)float.Parse(obj["viewCone"]!["value"]!.ToString());
+            cal.viewCone = (int)float.Parse(obj["viewCone"]!["value"]!.ToString());
+            cal.invView = (int)float.Parse(obj["invView"]!["value"]!.ToString());
+            cal.verticalAngle = float.Parse(obj["verticalAngle"]!["value"]!.ToString());
+            cal.DPI = (int)float.Parse(obj["DPI"]!["value"]!.ToString());
+
+            cal.screenW = (int)float.Parse(obj["screenW"]!["value"]!.ToString());
+            cal.screenH = (int)float.Parse(obj["screenH"]!["value"]!.ToString());
+
+            cal.flipImageX = float.Parse(obj["flipImageX"]!["value"]!.ToString());
+            cal.flipImageY = float.Parse(obj["flipImageY"]!["value"]!.ToString());
+            cal.flipSubp = float.Parse(obj["flipSubp"]!["value"]!.ToString());
+            return cal;
         }
 
-        public static bool TryParse(string obj, out Calibration value)
-        {
-            if (obj == null || obj.Length == 0)
-            {
-                value = default;
-                return false;
-            }
+        public static bool TryParse(string json, out Calibration value) =>
+            Utils.TryParse(json, j => Parse(j), out value);
 
-            JsonNode? json = JsonNode.Parse(obj);
-            if(json == null)
-            {
-                value = default;
-                return false;
-            }
-
-            try
-            {
-                value = new Calibration(json);
+        public bool SeemsGood() {
+            if (screenW != 0 && screenH != 0)
                 return true;
-            }
-            catch (Exception ex)
-            {
-                value = default;
-                return false;
-            }
+            return false;
         }
     }
 }

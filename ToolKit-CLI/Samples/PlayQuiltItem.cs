@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Toolkit_API.Bridge;
+using ToolkitAPI.Bridge;
 
-namespace ToolKit_CLI.Samples
+namespace ToolKitCLI.Samples
 {
     internal class PlayQuiltItem
     {

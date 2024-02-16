@@ -1,8 +1,8 @@
 ﻿using CommandLine;
-using Toolkit_API.Bridge;
-using ToolKit_CLI.Samples;
+using ToolkitAPI.Bridge;
+using ToolKitCLI.Samples;
 
-namespace ToolKit_CLI
+namespace ToolKitCLI
 {
 
     internal class Program

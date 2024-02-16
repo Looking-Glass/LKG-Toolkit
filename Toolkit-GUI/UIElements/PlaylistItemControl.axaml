@@ -10,11 +10,20 @@
 		</Grid.RowDefinitions>
 
 		<Border Name="SelectionBorder" Background="Transparent" BorderBrush="Blue" BorderThickness="2">
-			<StackPanel Orientation="Horizontal">
-				<TextBlock Name="FileNameTextBlock" FontWeight="Bold" FontSize="16" Margin="5"/>
-				<TextBlock Name="MediaTypeTextBlock" FontWeight="Bold" FontSize="16" Margin="5"/>
-			</StackPanel>
+			<Grid>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto"/>
+					<ColumnDefinition Width="Auto"/>
+					<ColumnDefinition Width="*"/>
+					<ColumnDefinition Width="Auto"/>
+				</Grid.ColumnDefinitions>
+
+				<Image Name="PreviewImage" Width="64" Height="64" Grid.Column="0"/>
+				<TextBlock Name="FileNameTextBlock" VerticalAlignment="Center" FontSize="20" Margin="5" Grid.Column="1"/>
+				<TextBlock Name="MediaTypeTextBlock" VerticalAlignment="Center" FontWeight="Bold" FontSize="16" Margin="5" Grid.Column="2"/>
+				<Button Name="DeleteButton" Content="Delete" HorizontalAlignment="Right" Click="DeleteButton_Click" Margin="5" Grid.Column="3"/>
+			</Grid>
 		</Border>
-		
+
 	</Grid>
 </UserControl>
