@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using ToolkitAPI.Bridge.EventListeners;
 using ToolkitAPI.Bridge.Params;
 using ToolkitAPI.Device;
+using WebSocketSharp;
 
 namespace ToolkitAPI.Bridge
 {
@@ -512,10 +513,59 @@ namespace ToolkitAPI.Bridge
             return true;
         }
 
+        public bool TrySaveout(string source, string filename)
+        {
+            string message =
+                $$"""
+                {
+                    "orchestration": "{{session.Token}}",
+                    "head_index": "-1",
+                    "source": "{{source}}",
+                    "filename": "{{filename.Replace("\\", "\\\\")}}"
+                }
+                """;
+
+            string? resp = TrySendMessage("source_saveout", message);
+
+            if (!resp.IsNullOrEmpty())
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public bool TryReadback(string source)
+        {
+            string message =
+                $$"""
+                {
+                    "orchestration": "{{session.Token}}",
+                    "head_index": "-1",
+                    "source": "{{source}}",
+                }
+                """;
+
+            string? resp = TrySendMessage("source_readback", message);
+
+            if (!resp.IsNullOrEmpty())
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public void Dispose()
         {
-            if (session != null)
+            if (session != default)
+            {
                 TryExitOrchestration();
+            }
 
             webSocket.Dispose();
             client.Dispose();

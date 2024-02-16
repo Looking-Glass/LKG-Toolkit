@@ -29,7 +29,7 @@ namespace ToolkitAPI.Device
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error parsing display json:\n" + e.ToString());
+                //Console.WriteLine("Error parsing display json:\n" + e.ToString());
                 return default;
             }
         }

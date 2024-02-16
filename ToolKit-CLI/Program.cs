@@ -27,6 +27,9 @@ namespace ToolKitCLI
                     PlayRGBDItem.Run(args);
                     //PlayQuiltItem.Run(args);
                     break;
+                case CLI_Task.quiltify_RGBD:
+                    QuiltifyRGBDItem.Run(args);
+                    break;
                 case CLI_Task.playlist:
                     break;
             }
