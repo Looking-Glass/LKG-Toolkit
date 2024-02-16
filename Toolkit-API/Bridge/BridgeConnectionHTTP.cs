@@ -518,7 +518,7 @@ namespace ToolkitAPI.Bridge
             string message =
                 $$"""
                 {
-                    "orchestration": "{{session.token}}",
+                    "orchestration": "{{session.Token}}",
                     "head_index": "-1",
                     "source": "{{source}}",
                     "filename": "{{filename.Replace("\\", "\\\\")}}"
@@ -542,7 +542,7 @@ namespace ToolkitAPI.Bridge
             string message =
                 $$"""
                 {
-                    "orchestration": "{{session.token}}",
+                    "orchestration": "{{session.Token}}",
                     "head_index": "-1",
                     "source": "{{source}}",
                 }

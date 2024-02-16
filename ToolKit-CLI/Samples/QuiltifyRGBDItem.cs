@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Toolkit_API.Bridge;
+using ToolkitAPI.Bridge;
 using WebSocketSharp;
 
-namespace ToolKit_CLI.Samples
+namespace ToolKitCLI.Samples
 {
     internal class QuiltifyRGBDItem
     {
@@ -73,9 +73,6 @@ namespace ToolKit_CLI.Samples
                 Console.WriteLine("Failed to connect to bridge, ensure bridge is running");
                 return;
             }
-
-            Console.WriteLine("Listening for events, press any key to stop.");
-            Console.ReadKey();
         }
     }
 }
