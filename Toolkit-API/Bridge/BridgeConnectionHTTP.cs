@@ -516,14 +516,14 @@ namespace ToolkitAPI.Bridge
         public bool TrySaveout(string source, string filename)
         {
             string message =
-                $$"""
-                {
-                    "orchestration": "{{session.Token}}",
-                    "head_index": "-1",
-                    "source": "{{source}}",
-                    "filename": "{{filename.Replace("\\", "\\\\")}}"
-                }
-                """;
+                $@"
+                {{
+                    ""orchestration"": ""{session.Token}"",
+                    ""head_index"": ""-1"",
+                    ""source"": ""{source}"",
+                    ""filename"": ""{filename.Replace("\\", "\\\\")}""
+                }}
+                ";
 
             string? resp = TrySendMessage("source_saveout", message);
 
@@ -540,13 +540,13 @@ namespace ToolkitAPI.Bridge
         public bool TryReadback(string source)
         {
             string message =
-                $$"""
-                {
-                    "orchestration": "{{session.Token}}",
-                    "head_index": "-1",
-                    "source": "{{source}}",
-                }
-                """;
+                $@"
+                {{
+                    ""orchestration"": ""{session.Token}"",
+                    ""head_index"": ""-1"",
+                    ""source"": ""{source}"",
+                }}
+                ";
 
             string? resp = TrySendMessage("source_readback", message);
 
