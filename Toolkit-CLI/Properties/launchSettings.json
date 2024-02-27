@@ -2,7 +2,7 @@
   "profiles": {
     "Toolkit-CLI": {
       "commandName": "Project",
-      "commandLineArgs": "Toolkit-CLI.exe -t play -i \"C:\\Users\\zinsl\\Downloads\\rgbd-5.png\" -c 9 -r 5 -v 45 --aspect 1.6 --loop"
+      "commandLineArgs": "Toolkit-CLI.exe -t  hide"
     }
   }
 }
