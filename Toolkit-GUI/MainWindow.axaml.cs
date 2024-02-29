@@ -163,6 +163,14 @@ namespace ToolkitGUI
                 }
             });
 
+            bridgeConnection.AddListener("", (data) =>
+            {
+                if(!data.Contains("Progress Update"))
+                {
+                    Trace.WriteLine($"data: \n{data}");
+                }
+            });
+
         }
 
         private void UpdatePlaylistList()
