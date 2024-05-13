@@ -51,6 +51,7 @@ namespace ToolKitCLI.Samples
                     2,       //depth_loc right
                     5f,    //cam_dist
                     30,      //fov
+                    "",
                     1f);   //zoom 
 
                 if (!b.TryPlayPlaylist(p, args.head))

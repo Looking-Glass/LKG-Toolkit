@@ -147,6 +147,8 @@ namespace ToolkitAPI.Bridge
                 string eventName = json["event"]["value"].ToString();
                 string eventData = json.ToString();
 
+                Console.WriteLine(eventName + "\n" + eventData);
+
                 if (eventListeners.ContainsKey(eventName))
                 {
                     foreach (var listener in eventListeners[eventName])
@@ -156,7 +158,7 @@ namespace ToolkitAPI.Bridge
                 }
 
                 // special case for listeners with empty names
-                if(eventListeners.ContainsKey(""))
+                if (eventListeners.ContainsKey(""))
                 {
                     foreach (var listener in eventListeners[""])
                     {
@@ -171,7 +173,7 @@ namespace ToolkitAPI.Bridge
         {
             List<TKDisplay> displays = new List<TKDisplay>();
 
-            foreach(var kvp in AllDisplays)
+            foreach (var kvp in AllDisplays)
             {
                 displays.Add(kvp.Value);
             }
@@ -476,7 +478,7 @@ namespace ToolkitAPI.Bridge
                 {{
                     ""orchestration"": ""{session.Token}"",
                     ""name"": ""{playlistName}"",
-                    ""{ParameterUtils.GetParamName(param)}"": ""{(ParameterUtils.IsFloatParam(param) ? newValue : (int) newValue)}"",
+                    ""{ParameterUtils.GetParamName(param)}"": ""{(ParameterUtils.IsFloatParam(param) ? newValue : (int)newValue)}"",
                 }}
                 ";
 
@@ -510,7 +512,7 @@ namespace ToolkitAPI.Bridge
             {
                 JObject payloadJson = JObject.Parse(resp)?["payload"]?["value"]?.Value<JObject>();
 
-                lock(this)
+                lock (this)
                 {
                     if (payloadJson != null)
                     {
@@ -613,7 +615,7 @@ namespace ToolkitAPI.Bridge
         /// <returns></returns>
         public bool TryPlayPlaylist(Playlist p, int head = -1)
         {
-            if (session ==  null)
+            if (session == null)
                 return false;
 
             if (currentPlaylistName == p.name)
@@ -626,7 +628,7 @@ namespace ToolkitAPI.Bridge
 
             string message = p.GetInstanceJson(session);
             string resp = TrySendMessage("instance_playlist", message);
-            
+
             string[] playlistItems = p.GetPlaylistItemsAsJson(session);
 
             for (int i = 0; i < playlistItems.Length; i++)
@@ -666,6 +668,36 @@ namespace ToolkitAPI.Bridge
                 return false;
             }
         }
+
+        public bool TryGetCameraParams(out float displayViewCone, out float displayViewConeVFOV, out float displayViewConeHFOV)
+        {
+            string message =
+                $@"
+                {{
+                    ""orchestration"": ""{session.Token}"",
+                    ""head_index"": ""-1"",
+                }}
+                ";
+
+            string? resp = TrySendMessage("get_camera_parameters", message);
+
+            if (!string.IsNullOrEmpty(resp))
+            {
+                JObject json = JObject.Parse(resp);
+                displayViewCone     = json["payload"]["value"]["viewCone"]["value"].Value<float>();
+                displayViewConeHFOV = json["payload"]["value"]["hHOV"]["value"].Value<float>();
+                displayViewConeVFOV = json["payload"]["value"]["vFOV"]["value"].Value<float>();
+                return true;
+            }
+            else
+            {
+                displayViewCone = 0;
+                displayViewConeHFOV = 0;
+                displayViewConeVFOV = 0;
+                return false;
+            }
+        }
+
 
         public bool TryReadback(string source)
         {

@@ -10,6 +10,7 @@ namespace ToolkitAPI.Bridge
     {
         private WebSocket WS;
         private Action<string> messageReceivedCallback;
+
         public BridgeWebSocketClient(Action<string> messageReceivedCallback)
         {
             this.messageReceivedCallback = messageReceivedCallback; 

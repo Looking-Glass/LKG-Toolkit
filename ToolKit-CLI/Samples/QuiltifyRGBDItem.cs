@@ -45,7 +45,7 @@ namespace ToolKitCLI.Samples
                 }
                 Random rng = new Random();
                 Playlist p = new Playlist("default_" + rng.Next(0, 10000), args.loopPlaylist);
-                p.AddRGBDItem(args.inputFile, args.rows, args.cols, args.aspect, args.Depthiness, 0.9f, args.Focus, args.DepthLoc, 5f, 30, args.Zoom); 
+                p.AddRGBDItem(args.inputFile, args.rows, args.cols, args.aspect, args.Depthiness, 0.9f, args.Focus, args.DepthLoc, 5f, 30, "", args.Zoom); 
 
                 if (b.TryPlayPlaylist(p, args.head))
                 {
