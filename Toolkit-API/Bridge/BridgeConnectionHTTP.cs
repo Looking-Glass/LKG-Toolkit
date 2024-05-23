@@ -64,9 +64,13 @@ namespace ToolkitAPI.Bridge
             connectionStateListeners = new HashSet<Action<bool>>();
         }
 
-        public bool Connect(int timeoutSeconds = 300)
+        public bool Connect(int timeoutSeconds = 1000)
         {
             httpSender.TimeoutSeconds = timeoutSeconds;
+            if (webSocket != null) {
+                webSocket.Dispose();
+                webSocket = null;
+            }
             webSocket = new BridgeWebSocketClient(UpdateListeners);
             return UpdateConnectionState(webSocket.TryConnect($"ws://{url}:{webSocketPort}/event_source"));
         }
@@ -522,14 +526,12 @@ namespace ToolkitAPI.Bridge
                         for (int i = 0; i < payloadJson.Count; i++)
                         {
                             JObject displayJson = payloadJson[i.ToString()]!["value"]!.Value<JObject>();
-                            if (TKDisplay.TryParse(i, displayJson, out TKDisplay display))
-                            {
-                                if (!allDisplays.ContainsKey(display.hardwareInfo.index))
-                                    allDisplays.Add(display.hardwareInfo.index, display);
+                            TKDisplay display = TKDisplay.Parse(i, displayJson);
+                            if (!allDisplays.ContainsKey(display.hardwareInfo.index))
+                                allDisplays.Add(display.hardwareInfo.index, display);
 
-                                if (display.IsLKG && !lkgDisplays.ContainsKey(display.hardwareInfo.index))
-                                    lkgDisplays.Add(display.hardwareInfo.index, display);
-                            }
+                            if (display.IsLKG && !lkgDisplays.ContainsKey(display.hardwareInfo.index))
+                                lkgDisplays.Add(display.hardwareInfo.index, display);
                         }
 
                         AllDisplays = allDisplays;

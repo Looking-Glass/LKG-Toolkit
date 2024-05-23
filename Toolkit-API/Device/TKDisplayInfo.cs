@@ -5,16 +5,13 @@ using System.Linq;
 using Newtonsoft.Json.Linq;
 #endif
 
-namespace ToolkitAPI.Device
-{
+namespace ToolkitAPI.Device {
     [Serializable]
-    public struct TKDisplayInfo
-    {
+    public struct TKDisplayInfo {
         public string hardwareVersion;
 
         /// <summary>
         /// The LKG device's hardware id.
-        /// REVIEW: ???
         /// </summary>
         /// <remarks>In some contexts, this is also equivalent to the LKG device's "LKG name". Note that this is NOT the same as the LKG device's unique serial identifier.</remarks>
         public string hwid;
@@ -41,38 +38,26 @@ namespace ToolkitAPI.Device
         /// </list>
         /// </para>
         /// </summary>
+        /// <remarks>
+        /// windowCoords[0] is the xpos,<br />
+        /// windowCoords[1] is the ypos
+        /// </remarks>
         public int[] windowCoords;
 
 #if HAS_NEWTONSOFT_JSON
-        private TKDisplayInfo(JObject obj)
-        {
-            hardwareVersion = obj["hardwareVersion"]!["value"]!.ToString();
-            hwid = obj["hwid"]!["value"]!.ToString();
-            index = int.Parse(obj["index"]!["value"]!.ToString());
-            state = obj["state"]!["value"]!.ToString();
-            windowCoords = new int[2];
-            windowCoords[0] = int.Parse(obj["windowCoords"]!["value"]!["x"]!.ToString());
-            windowCoords[1] = int.Parse(obj["windowCoords"]!["value"]!["y"]!.ToString());
-        }
+        public static TKDisplayInfo Parse(JObject obj) {
+            TKDisplayInfo result = new();
+            obj.TryGet<string>("hardwareVersion", "value", out result.hardwareVersion);
+            obj.TryGet<string>("hwid", "value", out result.hwid);
+            obj.TryGet<int>("index", "value", out result.index);
+            obj.TryGet<string>("state", "value", out result.state);
 
-        public static bool TryParse(JObject obj, out TKDisplayInfo value)
-        {
-            if (obj == null)
-            {
-                value = default;
-                return false;
+            if (obj.TryGet("windowCoords", "value", out JObject jWindowCoords)) {
+                result.windowCoords = new int[2];
+                jWindowCoords.TryGet<int>("x", out result.windowCoords[0]);
+                jWindowCoords.TryGet<int>("y", out result.windowCoords[1]);
             }
-
-            try
-            {
-                value = new TKDisplayInfo(obj);
-                return true;
-            }
-            catch
-            {
-                value = default;
-                return false;
-            }
+            return result;
         }
 #endif
 

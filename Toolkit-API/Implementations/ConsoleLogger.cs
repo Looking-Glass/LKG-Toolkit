@@ -6,6 +6,10 @@ namespace ToolkitAPI {
             Console.WriteLine(message);
         }
 
+        public void LogError(string message) {
+            Console.WriteLine("[ERROR] " + message);
+        }
+
         public void LogException(Exception e) {
             Console.WriteLine(e.ToString());
         }

@@ -1,18 +1,40 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 #if HAS_NEWTONSOFT_JSON
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 #endif
 
-namespace ToolkitAPI.Device
-{
+namespace ToolkitAPI.Device {
     /// <summary>
     /// Contains data that is intrinsic to a specific LKG device. This data is used in rendering properly to the LKG display.
     /// </summary>
     [Serializable]
-    public struct Calibration
-    {
+    public struct Calibration {
+        //NOTE: Case insensitivity is started with (?i) and is removed with (?-i)
+        internal static readonly Dictionary<Regex, LKGDeviceType> AutomaticSerialPatterns = new Dictionary<Regex, LKGDeviceType>() {
+            { new Regex("(?i)(LKG-P)"),                         LKGDeviceType.PortraitGen2 },
+            { new Regex("(?i)(LKG-A)"),                         LKGDeviceType._16inGen2 },
+            { new Regex("(?i)(LKG-B)"),                         LKGDeviceType._32inGen2 },
+            { new Regex("(?i)(LKG-D)"),                         LKGDeviceType._65inLandscapeGen2 },
+            { new Regex("(?i)(LKG-2K)"),                        LKGDeviceType._8_9inGen1 },
+            { new Regex("(?i)(LKG-E)"),                         LKGDeviceType.GoPortrait },
+            { new Regex("(?-)(LKG-G)"),                         LKGDeviceType.GoLandscape },
+            { new Regex("(?i)(LKG-H)"),                         LKGDeviceType._16inPortraitGen3 },
+            { new Regex("(?i)(LKG-J)"),                         LKGDeviceType._16inLandscapeGen3 },
+            { new Regex("(?i)(LKG-K)"),                         LKGDeviceType._32inPortraitGen3 },
+            { new Regex("(?i)(LKG-L)"),                         LKGDeviceType._32inLandscapeGen3 },
+            { new Regex("(?i)(LKG-M)"),                         LKGDeviceType._65inPortraitGen3 }
+            //TODO: [CRT-4039] Finish filling this out
+        };
+
+        public static float ProcessPitch(float screenW, float pitch, float dpi, float slope) => pitch * screenW / dpi * MathF.Cos(MathF.Atan(1 / slope));
+        public static float ProcessPitch(float screenW, in Calibration cal) => cal.pitch * screenW / cal.dpi * MathF.Cos(MathF.Atan(1 / cal.slope));
+        public static float ProcessSlope(float screenW, float screenH, float slope, float flipImageX) => screenH / (screenW * slope) * (flipImageX >= 0.5f ? -1 : 1);
+        public static float ProcessSlope(float screenW, float screenH, in Calibration cal) => screenH / (screenW * cal.slope) * (cal.flipImageX >= 0.5f ? -1 : 1);
+
         /// <summary>
         /// The JSON text contained within the LKG device's visual.json (Calibration) file.
         /// </summary>
@@ -37,7 +59,7 @@ namespace ToolkitAPI.Device
         /// <summary>
         /// The LKG display's dots per inch (DPI).
         /// </summary>
-        public int DPI;
+        public int dpi;
 
         /// <summary>
         /// The native screen width of the LKG display, in pixels.
@@ -61,49 +83,48 @@ namespace ToolkitAPI.Device
 
         public float flipSubp;
 
-#if HAS_NEWTONSOFT_JSON
-        private static Calibration Parse(JObject obj)
-        {
-            Calibration cal = new();
-            cal.rawJson = obj.ToString(Formatting.Indented);
+        /// <summary>
+        /// An integer that determines what type of cell pattern is used when lenticularizing for this display.
+        /// </summary>
+        /// <remarks>
+        /// Also known as the cellPatternType for the lenticular shader uniform.<br />
+        /// Valid values are currently 0 (default), 1, 2, 3, or 4.
+        /// A value of 0 is assumed for LKG displays that were made before the 3rd generation.
+        /// </remarks>
+        public int cellPatternMode;
 
-            cal.configVersion = obj["configVersion"]!.ToString();
-            cal.serial = obj["serial"]!.ToString();
+        public SubpixelCell[] subpixelCells;
 
-            cal.pitch = float.Parse(obj["pitch"]!["value"]!.ToString());
-            cal.slope = float.Parse(obj["slope"]!["value"]!.ToString());
-            cal.center = float.Parse(obj["center"]!["value"]!.ToString());
-            try
-            {
-                cal.fringe = (int)float.Parse(obj["fringe"]!["value"]!.ToString());
-            }
-            catch
-            {
-                cal.fringe = 0;
-            }
+        /// <summary>
+        /// The display's native aspect ratio, calculated using <see cref="screenW"/> / <see cref="screenH"/>.<br />
+        /// </summary>
+        public float ScreenAspect => (screenH == 0) ? 0 : (float) screenW / screenH;
+        public float ProcessedPitch => ProcessPitch(screenW, this);
+        public float ProcessedSlope => ProcessSlope(screenW, screenH, this);
+        public bool IsSameDevice(in Calibration other) => other.serial == serial;
 
-            cal.viewCone = (int)float.Parse(obj["viewCone"]!["value"]!.ToString());
-            cal.invView = (int)float.Parse(obj["invView"]!["value"]!.ToString());
-            cal.verticalAngle = float.Parse(obj["verticalAngle"]!["value"]!.ToString());
-            cal.DPI = (int)float.Parse(obj["DPI"]!["value"]!.ToString());
-
-            cal.screenW = (int)float.Parse(obj["screenW"]!["value"]!.ToString());
-            cal.screenH = (int)float.Parse(obj["screenH"]!["value"]!.ToString());
-
-            cal.flipImageX = float.Parse(obj["flipImageX"]!["value"]!.ToString());
-            cal.flipImageY = float.Parse(obj["flipImageY"]!["value"]!.ToString());
-            cal.flipSubp = float.Parse(obj["flipSubp"]!["value"]!.ToString());
-            return cal;
+        public static Calibration CreateDefault() {
+            ILKGDeviceTemplateSystem system = ServiceLocator.Instance.GetSystem<ILKGDeviceTemplateSystem>();
+            if (system == null)
+                return default;
+            LKGDeviceTemplate settings = system.GetDefaultTemplate();
+            if (settings == null)
+                return default;
+            return settings.calibration;
         }
-#endif
 
-        public static bool TryParse(string json, out Calibration value) {
-#if !HAS_NEWTONSOFT_JSON
-            value = default;
-            return false;
-#else
-            return Utils.TryParse(json, j => Parse(j), out value);
-#endif
+        public LKGDeviceType GetDeviceType() {
+            if (string.IsNullOrEmpty(serial))
+                return LKGDeviceTypeExtensions.GetDefault();
+
+            foreach (KeyValuePair<Regex, LKGDeviceType> pair in AutomaticSerialPatterns)
+                if (pair.Key.IsMatch(serial))
+                    return pair.Value;
+
+            ILogger logger = ServiceLocator.Instance.GetSystem<ILogger>();
+            if (logger != null)
+                logger.LogError("Unrecognized type of LKG device by serial field! (serial = \"" + serial + "\")");
+            return LKGDeviceTypeExtensions.GetDefault();
         }
 
         public bool SeemsGood() {
@@ -111,5 +132,54 @@ namespace ToolkitAPI.Device
                 return true;
             return false;
         }
+
+        public Calibration CopyWithCustomResolution(int renderWidth, int renderHeight) {
+            Calibration copy = this;
+            copy.screenW = renderWidth;
+            copy.screenH = renderHeight;
+            return copy;
+        }
+
+#if HAS_NEWTONSOFT_JSON
+        public static Calibration Parse(JObject obj) {
+            Calibration cal = new();
+            cal.rawJson = obj.ToString(Formatting.Indented);
+
+            obj.TryGet<string>("configVersion", out cal.configVersion);
+            obj.TryGet<string>("serial", out cal.serial);
+            obj.TryGet<float>("pitch", "value", out cal.pitch);
+            obj.TryGet<float>("slope", "value", out cal.slope);
+            obj.TryGet<float>("center", "value", out cal.center);
+            obj.TryGet<int>("fringe", "value", out cal.fringe);
+
+            obj.TryGet<int>("viewCone", "value", out cal.viewCone);
+            obj.TryGet<int>("invView", "value", out cal.invView);
+            obj.TryGet<float>("verticalAngle", "value", out cal.verticalAngle);
+            obj.TryGet<int>("DPI", "value", out cal.dpi);
+            obj.TryGet<int>("screenW", "value", out cal.screenW);
+            obj.TryGet<int>("screenH", "value", out cal.screenH);
+
+            obj.TryGet<float>("flipImageX", "value", out cal.flipImageX);
+            obj.TryGet<float>("flipImageY", "value", out cal.flipImageY);
+            obj.TryGet<float>("flipSubp", "value", out cal.flipSubp);
+
+            if (!obj.TryGet<int>("CellPatternMode", "value", out cal.cellPatternMode))
+                obj.TryGet<int>("cellPatternMode", "value", out cal.cellPatternMode); //NOTE: This supports lowercase, in case we ever want to fix the typo! :)
+
+            if (obj.TryGet("subpixelCells", out JArray jSubpixelCells)) {
+                cal.subpixelCells = new SubpixelCell[jSubpixelCells.Count];
+                for (int i = 0; i < cal.subpixelCells.Length; i++) {
+                    jSubpixelCells[i].TryGet<float>("ROffsetX", out cal.subpixelCells[i].ROffsetX);
+                    jSubpixelCells[i].TryGet<float>("ROffsetY", out cal.subpixelCells[i].ROffsetY);
+                    jSubpixelCells[i].TryGet<float>("GOffsetX", out cal.subpixelCells[i].GOffsetX);
+                    jSubpixelCells[i].TryGet<float>("GOffsetY", out cal.subpixelCells[i].GOffsetY);
+                    jSubpixelCells[i].TryGet<float>("BOffsetX", out cal.subpixelCells[i].BOffsetX);
+                    jSubpixelCells[i].TryGet<float>("BOffsetY", out cal.subpixelCells[i].BOffsetY);
+                }
+            }
+
+            return cal;
+        }
+#endif
     }
 }

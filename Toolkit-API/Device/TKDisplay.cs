@@ -4,14 +4,12 @@
 using Newtonsoft.Json.Linq;
 #endif
 
-namespace ToolkitAPI.Device
-{
+namespace ToolkitAPI.Device {
     /// <summary>
     /// This represents a connected display, which may or may not be a LKG display or a regular 2D monitor.
     /// </summary>
     [Serializable]
-    public class TKDisplay
-    {
+    public class TKDisplay {
         public int id;
 
         /// <summary>
@@ -30,7 +28,7 @@ namespace ToolkitAPI.Device
         /// </para>
         /// See also: <seealso cref="IsLKG"/>
         /// </summary>
-        public DefaultQuilt defaultQuilt;
+        public QuiltSettings defaultQuilt;
 
         public TKDisplayInfo hardwareInfo;
 
@@ -41,21 +39,18 @@ namespace ToolkitAPI.Device
             }
         }
 
-        public TKDisplay() 
-        {
+        public TKDisplay() {
             id = -1;
             calibration = new Calibration();
-            defaultQuilt = new DefaultQuilt();
+            defaultQuilt = new QuiltSettings();
             hardwareInfo = new TKDisplayInfo();
         }
 
-        private TKDisplay(int id)
-        {
+        private TKDisplay(int id) {
             this.id = id;
         }
 
-        private TKDisplay(int id, Calibration calibration, DefaultQuilt defautQuilt, TKDisplayInfo hardwareInfo)
-        {
+        private TKDisplay(int id, Calibration calibration, QuiltSettings defautQuilt, TKDisplayInfo hardwareInfo) {
             this.id = id;
             this.calibration = calibration;
             this.defaultQuilt = defautQuilt;
@@ -63,40 +58,25 @@ namespace ToolkitAPI.Device
         }
 
 #if HAS_NEWTONSOFT_JSON
-        public static bool TryParse(int id, JObject obj, out TKDisplay display)
-        {
-            try
-            {
-                display = new(id);
+        public static TKDisplay Parse(int id, JObject obj) {
+            TKDisplay display = new(id);
 
-                if (Calibration.TryParse(obj["calibration"]?["value"].ToString(), out Calibration cal))
-                    display.calibration = cal;
+            //"{ }" or ""
+            if (obj.TryGet("calibration", "value", out JObject jCalibration))
+                display.calibration = Calibration.Parse(jCalibration);
+            if (obj.TryGet("defaultQuilt", "value", out JObject jDefaultQuilt))
+                display.defaultQuilt = QuiltSettings.Parse(jDefaultQuilt);
+            display.hardwareInfo = TKDisplayInfo.Parse(obj);
 
-                if (DefaultQuilt.TryParse(obj["defaultQuilt"]?["value"].ToString(), out DefaultQuilt defaultQuilt))
-                    display.defaultQuilt = defaultQuilt;
-
-                if(TKDisplayInfo.TryParse(obj, out TKDisplayInfo info))
-                    display.hardwareInfo = info;
-
-                return true;
-            }
-            catch (Exception e) 
-            {
-                Console.WriteLine("Error parsing display json:\n" + e.ToString());
-                display = null;
-                return false;
-            }
+            return display;
         }
 #endif
 
-        public string GetInfoString()
-        {
-            return
-                "Display Type: " + hardwareInfo.hardwareVersion + "\n" +
-                "Display Serial: " + hardwareInfo.hwid + "\n" +
-                "Display Loc: [" + hardwareInfo.windowCoords[0] + ", " + hardwareInfo.windowCoords[1] + "]\n" +
-                "Calibration Version: " + calibration.configVersion + "\n";
-        }
+        public string GetInfoString() =>
+            "Display Type: " + hardwareInfo.hardwareVersion + "\n" +
+            "Display Hardware ID: " + hardwareInfo.hwid + "\n" +
+            "Display Coords: [" + hardwareInfo.windowCoords[0] + ", " + hardwareInfo.windowCoords[1] + "]\n" +
+            "Calibration Version: " + calibration.configVersion + "\n";
 
         public bool IsSameDevice(TKDisplay other) => other.hardwareInfo.hwid == hardwareInfo.hwid;
         public override int GetHashCode() => hardwareInfo.hwid?.GetHashCode() ?? 0;
