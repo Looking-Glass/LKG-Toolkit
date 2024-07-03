@@ -3,8 +3,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1600" d:DesignHeight="900"
-        x:Class="ToolkitGUI.MainWindow"
-		xmlns:ToolkitGUI="clr-namespace:ToolkitGUI"
+        x:Class="LookingGlass.Toolkit.GUI.MainWindow"
+		xmlns:ToolkitGUI="clr-namespace:LookingGlass.Toolkit.GUI"
         Title="Toolkit_GUI" Width="1600" Height="900">
 	<Grid>
 		<Grid.ColumnDefinitions>

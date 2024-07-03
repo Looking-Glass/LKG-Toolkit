@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="ToolkitGUI.PlaylistItemNameControl">
+             x:Class="LookingGlass.Toolkit.GUI.PlaylistItemNameControl">
 	<Border BorderBrush="Black" Background="LightGray" BorderThickness="1" Margin="10 5" Padding="10" CornerRadius="2" PointerPressed="Border_PointerPressed">
 		<Grid>
 			<Grid.ColumnDefinitions>

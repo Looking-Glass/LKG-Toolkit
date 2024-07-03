@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using ToolkitGUI.Media;
+using LookingGlass.Toolkit.GUI.Media;
 
-namespace ToolkitGUI
+namespace LookingGlass.Toolkit.GUI
 {
     public partial class PlaylistControl : UserControl
     {
@@ -63,7 +63,7 @@ namespace ToolkitGUI
             }
         }
 
-        private void SyncPlaylistButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private void SyncPlaylistButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
             if(SelectedDrive != "") 
             {
@@ -150,7 +150,7 @@ namespace ToolkitGUI
         }
 
 
-        private void PlayPlaylistButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private void PlayPlaylistButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
             if (!isPlaying)
             {
@@ -263,7 +263,7 @@ namespace ToolkitGUI
             }
         }
 
-        private async void AddFileButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void AddFileButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
             var openFileDialog = new OpenFileDialog
             {
@@ -285,7 +285,7 @@ namespace ToolkitGUI
             UpdatePlaylistItems();
         }
 
-        private async void AddRGBDFileButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void AddRGBDFileButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
             var openFileDialog = new OpenFileDialog
             {

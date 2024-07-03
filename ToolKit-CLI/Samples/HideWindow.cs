@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ToolkitAPI.Bridge;
+using LookingGlass.Toolkit.Bridge;
 
-namespace ToolKitCLI.Samples
+namespace LookingGlass.Toolkit.CLI.Samples
 {
     internal static class HideWindow
     {

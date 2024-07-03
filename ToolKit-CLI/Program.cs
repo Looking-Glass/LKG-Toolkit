@@ -1,8 +1,8 @@
 ﻿using CommandLine;
-using ToolkitAPI.Bridge;
-using ToolKitCLI.Samples;
+using LookingGlass.Toolkit.Bridge;
+using LookingGlass.Toolkit.CLI.Samples;
 
-namespace ToolKitCLI
+namespace LookingGlass.Toolkit.CLI
 {
 
     internal class Program

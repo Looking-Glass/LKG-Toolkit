@@ -20,7 +20,7 @@ using Avalonia.Media;
 using Image = Avalonia.Controls.Image;
 using Size = Avalonia.Size;
 
-namespace ToolkitGUI.Media
+namespace LookingGlass.Toolkit.GUI.Media
 {
     [Serializable]
     public class PlaylistItem

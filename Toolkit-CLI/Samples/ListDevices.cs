@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ToolkitAPI.Bridge;
-using ToolkitAPI.Device;
+using LookingGlass.Toolkit.Bridge;
 
-namespace ToolKitCLI.Samples
+namespace LookingGlass.Toolkit.CLI.Samples
 {
     internal class ListDevices
     {
@@ -41,8 +40,8 @@ namespace ToolKitCLI.Samples
 
                 if (b.TryUpdateDevices())
                 {
-                    List<TKDisplay> displays = b.GetLKGDisplays();
-                    foreach (TKDisplay display in displays)
+                    List<Display> displays = b.GetLKGDisplays();
+                    foreach (Display display in displays)
                     {
                         Console.WriteLine(display.GetInfoString());
                     }

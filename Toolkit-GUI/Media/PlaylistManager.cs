@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ToolkitGUI.Media
+namespace LookingGlass.Toolkit.GUI.Media
 {
     public class PlaylistManager
     {

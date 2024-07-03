@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ToolkitAPI.Bridge;
+using LookingGlass.Toolkit.Bridge;
 using WebSocketSharp;
 
-namespace ToolKitCLI.Samples
+namespace LookingGlass.Toolkit.CLI.Samples
 {
     internal class QuiltifyRGBDItem
     {

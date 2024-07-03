@@ -3,12 +3,13 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
-using ToolkitAPI.Bridge.Params;
-using ToolkitGUI.Media;
+using LookingGlass.Toolkit.GUI.Media;
+using LookingGlass.Toolkit.Bridge;
 
-namespace ToolkitGUI
+using Playlist = LookingGlass.Toolkit.GUI.Media.Playlist;
+using PlaylistItem = LookingGlass.Toolkit.GUI.Media.PlaylistItem;
+
+namespace LookingGlass.Toolkit.GUI
 {
     public partial class PropertiesPaneControl : UserControl
     {

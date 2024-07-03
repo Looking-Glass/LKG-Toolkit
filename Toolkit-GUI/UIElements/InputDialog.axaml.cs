@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 
-namespace ToolkitGUI
+namespace LookingGlass.Toolkit.GUI
 {
     public partial class InputDialog : Window
     {
@@ -23,12 +23,12 @@ namespace ToolkitGUI
             PromptTextBlock.Text = prompt;
         }
 
-        private void OkButton_Click(object? sender, RoutedEventArgs e)
+        private void OkButton_Click(object sender, RoutedEventArgs e)
         {
             Close(InputTextBox.Text);
         }
 
-        private void CancelButton_Click(object? sender, RoutedEventArgs e)
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             Close();
         }

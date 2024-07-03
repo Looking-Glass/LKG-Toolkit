@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using System;
 
-namespace ToolkitGUI
+namespace LookingGlass.Toolkit.GUI
 {
     internal class Program
     {

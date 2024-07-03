@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:local="clr-namespace:ToolkitGUI"
              mc:Ignorable="d" d:DesignWidth="250" d:DesignHeight="450"
-             x:Class="ToolkitGUI.PropertiesPaneControl">
+             x:Class="LookingGlass.Toolkit.GUI.PropertiesPaneControl">
 	<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
 		<StackPanel>
 			<StackPanel x:Name="PropertiesStackPanel" Margin="5"/>
