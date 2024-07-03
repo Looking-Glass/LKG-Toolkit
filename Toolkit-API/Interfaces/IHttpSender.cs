@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ToolkitAPI {
+namespace LookingGlass.Toolkit {
     public interface IHttpSender {
         public int TimeoutSeconds { get; set; }
         Action<Exception> ExceptionHandler { get; set; } //REVIEW: Remove this when using DI, and use ILogger instead? But we'll need BridgeConnectionHTTP class to know about failures, to UpdateConnectionState(false)..

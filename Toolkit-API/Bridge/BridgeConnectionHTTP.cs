@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using ToolkitAPI.Bridge.EventListeners;
-using ToolkitAPI.Bridge.Params;
-using ToolkitAPI.Device;
 using WebSocketSharp;
 
 #if HAS_NEWTONSOFT_JSON
 using Newtonsoft.Json.Linq;
 #endif
 
-namespace ToolkitAPI.Bridge
+namespace LookingGlass.Toolkit.Bridge
 {
     public class BridgeConnectionHTTP : IDisposable
     {
@@ -33,8 +30,8 @@ namespace ToolkitAPI.Bridge
         private string currentPlaylistName = "";
 
         public bool LogTimes { get; set; }
-        public Dictionary<int, TKDisplay> AllDisplays { get; private set; }
-        public Dictionary<int, TKDisplay> LKGDisplays { get; private set; }
+        public Dictionary<int, Display> AllDisplays { get; private set; }
+        public Dictionary<int, Display> LKGDisplays { get; private set; }
 
         private Dictionary<string, List<Action<string>>> eventListeners;
         private DisplayEvents monitorEvents;
@@ -56,8 +53,8 @@ namespace ToolkitAPI.Bridge
             this.httpSender = httpSender;
             this.httpSender.ExceptionHandler = HandleHttpException;
 
-            AllDisplays = new Dictionary<int, TKDisplay>();
-            LKGDisplays = new Dictionary<int, TKDisplay>();
+            AllDisplays = new Dictionary<int, Display>();
+            LKGDisplays = new Dictionary<int, Display>();
 
             eventListeners = new Dictionary<string, List<Action<string>>>();
             monitorEvents = new DisplayEvents(this);
@@ -173,9 +170,9 @@ namespace ToolkitAPI.Bridge
 #endif
         }
 
-        public List<TKDisplay> GetAllDisplays()
+        public List<Display> GetAllDisplays()
         {
-            List<TKDisplay> displays = new List<TKDisplay>();
+            List<Display> displays = new List<Display>();
 
             foreach (var kvp in AllDisplays)
             {
@@ -185,9 +182,9 @@ namespace ToolkitAPI.Bridge
             return displays;
         }
 
-        public List<TKDisplay> GetLKGDisplays()
+        public List<Display> GetLKGDisplays()
         {
-            List<TKDisplay> displays = new List<TKDisplay>();
+            List<Display> displays = new List<Display>();
 
             foreach (var kvp in LKGDisplays)
             {
@@ -520,13 +517,13 @@ namespace ToolkitAPI.Bridge
                 {
                     if (payloadJson != null)
                     {
-                        Dictionary<int, TKDisplay> allDisplays = new Dictionary<int, TKDisplay>();
-                        Dictionary<int, TKDisplay> lkgDisplays = new Dictionary<int, TKDisplay>();
+                        Dictionary<int, Display> allDisplays = new Dictionary<int, Display>();
+                        Dictionary<int, Display> lkgDisplays = new Dictionary<int, Display>();
 
                         for (int i = 0; i < payloadJson.Count; i++)
                         {
                             JObject displayJson = payloadJson[i.ToString()]!["value"]!.Value<JObject>();
-                            TKDisplay display = TKDisplay.Parse(i, displayJson);
+                            Display display = Display.Parse(i, displayJson);
                             if (!allDisplays.ContainsKey(display.hardwareInfo.index))
                                 allDisplays.Add(display.hardwareInfo.index, display);
 
@@ -608,7 +605,7 @@ namespace ToolkitAPI.Bridge
         /// <param name="p">The playlist to play. This may contain one or more images or videos to playback on the LKG display.</param>
         /// <param name="head">
         /// <para>
-        /// Determines which LKG display to target. This is the LKG display index from <see cref="TKDisplayInfo.index"/>.
+        /// Determines which LKG display to target. This is the LKG display index from <see cref="DisplayInfo.index"/>.
         /// </para>
         /// <remarks>
         /// Note that using a display index of -1 will use the first available LKG display.
@@ -671,8 +668,7 @@ namespace ToolkitAPI.Bridge
             }
         }
 
-        public bool TryGetCameraParams(out float displayViewCone, out float displayViewConeVFOV, out float displayViewConeHFOV)
-        {
+        public bool TryGetCameraParams(out float displayViewCone, out float displayViewConeVFOV, out float displayViewConeHFOV) {
             string message =
                 $@"
                 {{
@@ -683,21 +679,22 @@ namespace ToolkitAPI.Bridge
 
             string? resp = TrySendMessage("get_camera_parameters", message);
 
-            if (!string.IsNullOrEmpty(resp))
-            {
+#if HAS_NEWTONSOFT_JSON
+            if (!string.IsNullOrEmpty(resp)) {
                 JObject json = JObject.Parse(resp);
                 displayViewCone     = json["payload"]["value"]["viewCone"]["value"].Value<float>();
                 displayViewConeHFOV = json["payload"]["value"]["hHOV"]["value"].Value<float>();
                 displayViewConeVFOV = json["payload"]["value"]["vFOV"]["value"].Value<float>();
                 return true;
-            }
-            else
-            {
+            } else {
+#endif
                 displayViewCone = 0;
                 displayViewConeHFOV = 0;
                 displayViewConeVFOV = 0;
                 return false;
+#if HAS_NEWTONSOFT_JSON
             }
+#endif
         }
 
 

@@ -2,9 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <RootNamespace>ToolkitAPI</RootNamespace>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <RootNamespace>LookingGlass.Toolkit</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>

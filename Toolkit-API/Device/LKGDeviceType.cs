@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ToolkitAPI.Device {
+namespace LookingGlass.Toolkit {
     /// <summary>
     /// <para>Represents a type of Looking Glass display.</para>
     /// <para>You can <see cref="ILKGDeviceTemplateSystem.GetTemplate(LKGDeviceType)">retrieve device-specific settings</see> based on this device type.</para>
@@ -13,24 +13,19 @@ namespace ToolkitAPI.Device {
     [Serializable]
     public enum LKGDeviceType {
         /// <summary>
-        /// <em>(legacy)</em> An 8.9" Looking Glass (Gen1).
+        /// <em>(legacy)</em> An 8.9" Looking Glass (Gen1), originally called the Standard LookingGlass.
         /// </summary>
-        _8_9inGen1,
+        _8_9inGen1 = 0,
 
         /// <summary>
-        /// <em>(legacy)</em> A 15.6" Looking Glass (Gen1).
+        /// <em>(legacy)</em> A 15.6" Looking Glass (Gen1), originally called the Large LookingGlass.
         /// </summary>
-        _15_6inGen1,
+        _15_6inGen1 = 1,
 
         /// <summary>
-        /// <em>(legacy)</em> A 15.6" Looking Glass (Gen1) with a connected computer.
+        /// <em>(legacy)</em> The first 8K-resolution Looking Glass (Gen1), originally called the 8K LookingGlass.
         /// </summary>
-        ProGen1,
-
-        /// <summary>
-        /// <em>(legacy)</em> The first 8K-resolution Looking Glass (Gen1).
-        /// </summary>
-        _8KGen1,
+        _8KGen1 = 3,
 
         /// <summary>
         /// A Looking Glass Portrait.
@@ -65,17 +60,12 @@ namespace ToolkitAPI.Device {
         /// <summary>
         /// The Looking Glass Go (Gen3, in portrait form).
         /// </summary>
-        GoPortrait,
-
-        /// <summary>
-        /// The Looking Glass Go (Gen3, in landscape form).
-        /// </summary>
-        GoLandscape,
+        GoPortrait = 10,
 
         /// <summary>
         /// The Looking Glass Kiosk.
         /// </summary>
-        Kiosk,
+        Kiosk = 12,
 
         /// <summary>
         /// The 16" Looking Glass Spatial Display (Gen3, in portrait form).
@@ -96,21 +86,17 @@ namespace ToolkitAPI.Device {
         /// The 32" Looking Glass Spatial Display (Gen3, in landscape form).
         /// </summary>
         _32inLandscapeGen3,
-
-        /// <summary>
-        /// The portrait version of the 65" Looking Glass (Gen3).
-        /// </summary>
-        _65inPortraitGen3,
     }
 
     public static class LKGDeviceTypeExtensions {
         public static LKGDeviceType GetDefault() => LKGDeviceType.ThirdParty;
 
+        //NOTE: There are indices that are in LKG Bridge, but unused here:
         private static readonly Dictionary<LKGDeviceType, string> NiceNames = new() {
-            { LKGDeviceType._8_9inGen1,                     "Looking Glass 8.9\"" },
-            { LKGDeviceType._15_6inGen1,                    "Looking Glass 15.6\"" },
-            { LKGDeviceType.ProGen1,                        "Looking Glass Pro" },
-            { LKGDeviceType._8KGen1,                        "Looking Glass 8K" },
+            { LKGDeviceType._8_9inGen1,                     "Looking Glass 8.9\" (Legacy)" },
+            { LKGDeviceType._15_6inGen1,                    "Looking Glass 15.6\" (Legacy)" },
+            //2 (reserved)
+            { LKGDeviceType._8KGen1,                        "Looking Glass 8K (Legacy)" },
             { LKGDeviceType.PortraitGen2,                   "Looking Glass Portrait" },
             { LKGDeviceType._16inGen2,                      "Looking Glass 16\"" },
             { LKGDeviceType._32inGen2,                      "Looking Glass 32\"" },
@@ -118,13 +104,13 @@ namespace ToolkitAPI.Device {
             { LKGDeviceType._65inLandscapeGen2,             "Looking Glass 65\" (Landscape)" },
             { LKGDeviceType.Prototype,                      "Looking Glass Prototype" },
             { LKGDeviceType.GoPortrait,                     "Looking Glass Go (Portrait)" },
-            { LKGDeviceType.GoLandscape,                    "Looking Glass Go (Landscape)" },
+            //11 (reserved)
             { LKGDeviceType.Kiosk,                          "Looking Glass Kiosk" },
             { LKGDeviceType._16inPortraitGen3,              "Looking Glass 16\" Spatial Display (Portrait)" },
             { LKGDeviceType._16inLandscapeGen3,             "Looking Glass 16\" Spatial Display (Landscape)" },
             { LKGDeviceType._32inPortraitGen3,              "Looking Glass 32\" Spatial Display (Portrait)" },
             { LKGDeviceType._32inLandscapeGen3,             "Looking Glass 32\" Spatial Display (Landscape)" },
-            { LKGDeviceType._65inPortraitGen3,              "Looking Glass 65\" (Portrait)" },
+            //17 (reserved)
         };
 
         /// <summary>

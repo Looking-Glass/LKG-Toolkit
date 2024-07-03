@@ -1,6 +1,7 @@
-﻿using Newtonsoft.Json.Linq;
+﻿#if HAS_NEWTONSOFT_JSON
+using Newtonsoft.Json.Linq;
 
-namespace ToolkitAPI {
+namespace LookingGlass.Toolkit {
     public static class JObjectExtensions {
         public static bool TryGet<T>(this JToken @this, string propertyName, out T child) {
             JObject obj = @this.Value<JObject>();
@@ -63,3 +64,4 @@ namespace ToolkitAPI {
         }
     }
 }
+#endif

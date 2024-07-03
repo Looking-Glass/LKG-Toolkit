@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ToolkitAPI {
+namespace LookingGlass.Toolkit {
     public interface ILogger {
         public void Log(object obj) => Log(obj == null ? "null" : obj.ToString());
         public void Log(string message);

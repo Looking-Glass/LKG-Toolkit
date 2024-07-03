@@ -5,9 +5,9 @@ using System.Linq;
 using Newtonsoft.Json.Linq;
 #endif
 
-namespace ToolkitAPI.Device {
+namespace LookingGlass.Toolkit {
     [Serializable]
-    public struct TKDisplayInfo {
+    public struct DisplayInfo {
         public string hardwareVersion;
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace ToolkitAPI.Device {
 
         /// <summary>
         /// <para>
-        /// Contains the xy screen coordinates of the top-left corner of the LKG display.
+        /// Contains the x screen coordinate of the left side of the LKG display.
         /// This corresponds to the currently-running OS's display arrangement coordinates.
         /// </para>
         /// <para>
@@ -38,24 +38,33 @@ namespace ToolkitAPI.Device {
         /// </list>
         /// </para>
         /// </summary>
-        /// <remarks>
-        /// windowCoords[0] is the xpos,<br />
-        /// windowCoords[1] is the ypos
-        /// </remarks>
-        public int[] windowCoords;
+        public int windowCoordX;
+
+        /// <summary>
+        /// <para>
+        /// Contains the y screen coordinate of the top-left corner of the LKG display.
+        /// This corresponds to the currently-running OS's display arrangement coordinates.
+        /// </para>
+        /// <para>
+        /// See also:
+        /// <list type="bullet">
+        /// <item>On Windows: <seealso href="https://learn.microsoft.com/en-us/windows/win32/gdi/the-virtual-screen"/></item>
+        /// </list>
+        /// </para>
+        /// </summary>
+        public int windowCoordY;
 
 #if HAS_NEWTONSOFT_JSON
-        public static TKDisplayInfo Parse(JObject obj) {
-            TKDisplayInfo result = new();
+        public static DisplayInfo Parse(JObject obj) {
+            DisplayInfo result = new();
             obj.TryGet<string>("hardwareVersion", "value", out result.hardwareVersion);
             obj.TryGet<string>("hwid", "value", out result.hwid);
             obj.TryGet<int>("index", "value", out result.index);
             obj.TryGet<string>("state", "value", out result.state);
 
             if (obj.TryGet("windowCoords", "value", out JObject jWindowCoords)) {
-                result.windowCoords = new int[2];
-                jWindowCoords.TryGet<int>("x", out result.windowCoords[0]);
-                jWindowCoords.TryGet<int>("y", out result.windowCoords[1]);
+                jWindowCoords.TryGet<int>("x", out result.windowCoordX);
+                jWindowCoords.TryGet<int>("y", out result.windowCoordY);
             }
             return result;
         }
@@ -63,13 +72,14 @@ namespace ToolkitAPI.Device {
 
         public override int GetHashCode() => hwid?.GetHashCode() ?? 0;
         public override bool Equals(object obj) {
-            if (obj == null || !(obj is TKDisplayInfo other))
+            if (obj == null || !(obj is DisplayInfo other))
                 return false;
             return hardwareVersion == other.hardwareVersion &&
                 hwid == other.hwid &&
                 index == other.index &&
                 state == other.state &&
-                (((windowCoords == null) == (other.windowCoords == null)) || (windowCoords != null && windowCoords.SequenceEqual(other.windowCoords)));
+                windowCoordX == other.windowCoordX &&
+                windowCoordY == other.windowCoordY;
         }
     }
 }

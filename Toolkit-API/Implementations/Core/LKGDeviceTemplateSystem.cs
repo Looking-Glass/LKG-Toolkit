@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using ToolkitAPI.Device;
 
-namespace ToolkitAPI {
+namespace LookingGlass.Toolkit {
     public class LKGDeviceTemplateSystem : ILKGDeviceTemplateSystem {
         //WARNING: For now, this is manually kept in-sync with LKG Bridge manually.
         //  These values are written in Constants.h (Ctrl + P to find it in VS Code when you have the Git repo open locally).
@@ -12,28 +11,68 @@ namespace ToolkitAPI {
             {
                 LKGDeviceType._8_9inGen1,
                 new LKGDeviceTemplate(
-                    default(Calibration),
-                    new QuiltSettings(4096, 4096, 5, 9, 1.6f)
+                    new Calibration {
+                        configVersion = "1.0",
+                        serial = "LKG-2K-00000",
+                        pitch = 49.79978561401367f,
+                        slope = 5.48f,
+                        center = 0,
+                        viewCone = 40,
+                        invView = 1,
+                        verticalAngle = 0,
+                        dpi = 338,
+                        screenW = 2560,
+                        screenH = 1600,
+                        flipImageX = 0,
+                        flipImageY = 0,
+                        flipSubp = 0
+                    },
+                    new QuiltSettings(2048, 2048, 5, 9, 1.6f)
                 )
             },
             {
                 LKGDeviceType._15_6inGen1,
                 new LKGDeviceTemplate(
-                    default(Calibration),
-                    new QuiltSettings(4096, 4096, 5, 9, 1.77778f)
-                )
-            },
-            {
-                LKGDeviceType.ProGen1,
-                new LKGDeviceTemplate(
-                    default(Calibration),
+                    new Calibration {
+                        configVersion = "1.0",
+                        serial = "LKG-4K-00000",
+                        pitch = 50.07143783569336f,
+                        slope = -7.7f,
+                        center = 0,
+                        viewCone = 40,
+                        fringe = 0,
+                        invView = 1,
+                        verticalAngle = 0,
+                        dpi = 283,
+                        screenW = 3840,
+                        screenH = 2160,
+                        flipImageX = 0,
+                        flipImageY = 0,
+                        flipSubp = 0
+                    },
                     new QuiltSettings(4096, 4096, 5, 9, 1.77778f)
                 )
             },
             {
                 LKGDeviceType._8KGen1,
                 new LKGDeviceTemplate(
-                    default(Calibration),
+                    new Calibration {
+                        configVersion = "1.0",
+                        serial = "LKG-8K-00000",
+                        pitch = 38.054588317871097f,
+                        slope = -7.7f,
+                        center = 0,
+                        viewCone = 40,
+                        fringe = 0,
+                        invView = 1,
+                        verticalAngle = 0,
+                        dpi = 280,
+                        screenW = 7680,
+                        screenH = 4320,
+                        flipImageX = 0,
+                        flipImageY = 0,
+                        flipSubp = 0
+                    },
                     new QuiltSettings(8192, 8192, 5, 9, 1.77778f)
                 )
             },
@@ -138,6 +177,29 @@ namespace ToolkitAPI {
                     new QuiltSettings(8192, 8192, 8, 9, 1.77778f)
                 )
             },
+            {
+                LKGDeviceType.Prototype,
+                new LKGDeviceTemplate(
+                    new Calibration {
+                        configVersion = "3.0",
+                        serial = "LKG-Q",
+                        pitch = 42,
+                        slope = -6,
+                        center = 0.3f,
+                        fringe = 0,
+                        viewCone = 40,
+                        invView = 1,
+                        verticalAngle = 0,
+                        dpi = 136.6f,
+                        screenW = 7680,
+                        screenH = 4320,
+                        flipImageX = 0,
+                        flipImageY = 0,
+                        flipSubp = 0
+                    },
+                    new QuiltSettings(4096, 4096, 5, 9, 1.77778f)
+                )
+            },
 
             //Gen3
             {
@@ -164,26 +226,26 @@ namespace ToolkitAPI {
                 )
             },
             {
-                LKGDeviceType.GoLandscape,
+                LKGDeviceType.Kiosk,
                 new LKGDeviceTemplate(
                     new Calibration {
                         configVersion = "3.0",
-                        serial = "LKG-G",
-                        pitch = 75,
-                        slope = -7.2f,
-                        center = 0.2f,
+                        serial = "LKG-F",
+                        pitch = 52,
+                        slope = -7,
+                        center = 0.5f,
                         fringe = 0,
-                        viewCone = 50,
+                        viewCone = 40,
                         invView = 1,
                         verticalAngle = 0,
-                        dpi = 491,
-                        screenW = 2560,
-                        screenH = 1440,
+                        dpi = 324,
+                        screenW = 1536,
+                        screenH = 2048,
                         flipImageX = 0,
                         flipImageY = 0,
                         flipSubp = 0
                     },
-                    new QuiltSettings(4096, 4096, 5, 9, 1.77778f)
+                    new QuiltSettings(4092, 4092, 11, 6, 0.5625f)
                 )
             },
             {
@@ -225,7 +287,7 @@ namespace ToolkitAPI {
                             }
                         }
                     },
-                    new QuiltSettings(4096, 4096, 5, 9, 1.77778f)
+                    new QuiltSettings(5995, 6000, 11, 6, 0.5625f)
                 )
             },
             {
@@ -267,7 +329,7 @@ namespace ToolkitAPI {
                             }
                         }
                     },
-                    new QuiltSettings(4096, 4096, 5, 9, 1.77778f)
+                    new QuiltSettings(5999, 5999, 7, 7, 1.77778f)
                 )
             },
             {
@@ -309,7 +371,7 @@ namespace ToolkitAPI {
                             }
                         }
                     },
-                    new QuiltSettings(4096, 4096, 5, 9, 1.77778f)
+                    new QuiltSettings(8184, 8184, 11, 6, 0.5625f)
                 )
             },
             {
@@ -332,14 +394,7 @@ namespace ToolkitAPI {
                         flipImageY = 0,
                         flipSubp = 0,
                     },
-                    new QuiltSettings(4096, 4096, 5, 9, 1.77778f)
-                )
-            },
-            {
-                LKGDeviceType._65inPortraitGen3,
-                new LKGDeviceTemplate(
-                    default(Calibration),
-                    new QuiltSettings(4096, 4096, 5, 9, 1.77778f)
+                    new QuiltSettings(8190, 8190, 7, 7, 1.77778f)
                 )
             },
         };
@@ -347,7 +402,7 @@ namespace ToolkitAPI {
         public IEnumerable<LKGDeviceTemplate> GetAllTemplates() => Templates.OrderBy(p => p.Key).Select(p => p.Value);
         public LKGDeviceTemplate GetTemplate(LKGDeviceType deviceType) {
             if (Templates.TryGetValue(deviceType, out LKGDeviceTemplate result))
-                return result;
+                return new LKGDeviceTemplate(result);
             return null;
         }
     }

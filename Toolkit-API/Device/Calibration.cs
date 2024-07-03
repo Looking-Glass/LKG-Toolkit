@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 #endif
 
-namespace ToolkitAPI.Device {
+namespace LookingGlass.Toolkit {
     /// <summary>
     /// Contains data that is intrinsic to a specific LKG device. This data is used in rendering properly to the LKG display.
     /// </summary>
@@ -15,20 +15,26 @@ namespace ToolkitAPI.Device {
     public struct Calibration {
         //NOTE: Case insensitivity is started with (?i) and is removed with (?-i)
         internal static readonly Dictionary<Regex, LKGDeviceType> AutomaticSerialPatterns = new Dictionary<Regex, LKGDeviceType>() {
+            { new Regex("(?i)(LKG-2K)"),                        LKGDeviceType._8_9inGen1 },
+            { new Regex("(?i)(LKG-4K)"),                        LKGDeviceType._15_6inGen1 },
+            //2 (reserved)
+            { new Regex("(?i)(LKG-8K)"),                        LKGDeviceType._8KGen1 },
             { new Regex("(?i)(LKG-P)"),                         LKGDeviceType.PortraitGen2 },
             { new Regex("(?i)(LKG-A)"),                         LKGDeviceType._16inGen2 },
             { new Regex("(?i)(LKG-B)"),                         LKGDeviceType._32inGen2 },
+            //7 (LKGDeviceType.ThirdParty)
             { new Regex("(?i)(LKG-D)"),                         LKGDeviceType._65inLandscapeGen2 },
-            { new Regex("(?i)(LKG-2K)"),                        LKGDeviceType._8_9inGen1 },
+            { new Regex("(?i)(LKG-Q)"),                         LKGDeviceType.Prototype },
             { new Regex("(?i)(LKG-E)"),                         LKGDeviceType.GoPortrait },
-            { new Regex("(?-)(LKG-G)"),                         LKGDeviceType.GoLandscape },
+            //11 (reserved)
+            { new Regex("(?i)(LKG-F)"),                         LKGDeviceType.Kiosk },
             { new Regex("(?i)(LKG-H)"),                         LKGDeviceType._16inPortraitGen3 },
             { new Regex("(?i)(LKG-J)"),                         LKGDeviceType._16inLandscapeGen3 },
             { new Regex("(?i)(LKG-K)"),                         LKGDeviceType._32inPortraitGen3 },
             { new Regex("(?i)(LKG-L)"),                         LKGDeviceType._32inLandscapeGen3 },
-            { new Regex("(?i)(LKG-M)"),                         LKGDeviceType._65inPortraitGen3 }
-            //TODO: [CRT-4039] Finish filling this out
         };
+
+        public const int MaxSubpixelPatterns = 10;
 
         public static float ProcessPitch(float screenW, float pitch, float dpi, float slope) => pitch * screenW / dpi * MathF.Cos(MathF.Atan(1 / slope));
         public static float ProcessPitch(float screenW, in Calibration cal) => cal.pitch * screenW / cal.dpi * MathF.Cos(MathF.Atan(1 / cal.slope));
@@ -59,7 +65,7 @@ namespace ToolkitAPI.Device {
         /// <summary>
         /// The LKG display's dots per inch (DPI).
         /// </summary>
-        public int dpi;
+        public float dpi;
 
         /// <summary>
         /// The native screen width of the LKG display, in pixels.
@@ -93,12 +99,26 @@ namespace ToolkitAPI.Device {
         /// </remarks>
         public int cellPatternMode;
 
+        /// <summary>
+        /// Defines the arrangement of the RGB subpixels on the display, measured in pixels on the display.
+        /// </summary>
+        /// <remarks>For example, a value of 0.3333 is about one-third of a full pixel over.</remarks>
         public SubpixelCell[] subpixelCells;
 
         /// <summary>
-        /// The display's native aspect ratio, calculated using <see cref="screenW"/> / <see cref="screenH"/>.<br />
+        /// The display's native aspect ratio, calculated using <see cref="screenW"/> / <see cref="screenH"/>.
         /// </summary>
-        public float ScreenAspect => (screenH == 0) ? 0 : (float) screenW / screenH;
+        /// <remarks>
+        /// <para>
+        /// Because quilts may not always be able to achieve this exact aspect ratio for each of the quilt tiles, <see cref="QuiltSettings"/>
+        /// store this value at the time of capturing the quilt into the <see cref="QuiltSettings.renderAspect"/> variable,
+        /// so that the quilt may be re-rendered later with the correct squishing or stretching to match the display's aspect ratio again when rendering the quilt.
+        /// </para>
+        /// <para>
+        /// This value is always greater than zero. If either the <see cref="screenW"/> or <see cref="screenH"/> are 0, this returns 1.
+        /// </para>
+        /// </remarks>
+        public float ScreenAspect => (screenW == 0 || screenH == 0) ? 1 : (float) screenW / screenH;
         public float ProcessedPitch => ProcessPitch(screenW, this);
         public float ProcessedSlope => ProcessSlope(screenW, screenH, this);
         public bool IsSameDevice(in Calibration other) => other.serial == serial;
@@ -141,6 +161,11 @@ namespace ToolkitAPI.Device {
         }
 
 #if HAS_NEWTONSOFT_JSON
+        public static Calibration Parse(string json) {
+            JObject j = JObject.Parse(json);
+            return Parse(j);
+        }
+
         public static Calibration Parse(JObject obj) {
             Calibration cal = new();
             cal.rawJson = obj.ToString(Formatting.Indented);
@@ -155,7 +180,7 @@ namespace ToolkitAPI.Device {
             obj.TryGet<int>("viewCone", "value", out cal.viewCone);
             obj.TryGet<int>("invView", "value", out cal.invView);
             obj.TryGet<float>("verticalAngle", "value", out cal.verticalAngle);
-            obj.TryGet<int>("DPI", "value", out cal.dpi);
+            obj.TryGet<float>("DPI", "value", out cal.dpi);
             obj.TryGet<int>("screenW", "value", out cal.screenW);
             obj.TryGet<int>("screenH", "value", out cal.screenH);
 

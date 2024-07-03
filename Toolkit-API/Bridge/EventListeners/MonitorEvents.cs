@@ -2,7 +2,7 @@
 using Newtonsoft.Json.Linq;
 #endif
 
-namespace ToolkitAPI.Bridge.EventListeners
+namespace LookingGlass.Toolkit.Bridge
 {
     public class DisplayEvents
     {

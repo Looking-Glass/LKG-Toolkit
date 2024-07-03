@@ -3,9 +3,9 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
-using ToolkitAPI.Bridge;
+using LookingGlass.Toolkit.Bridge;
 
-namespace ToolkitAPI {
+namespace LookingGlass.Toolkit {
     public class DefaultHttpSender : IHttpSender, IDisposable {
         private class AsyncMessageRecord {
             public string url;

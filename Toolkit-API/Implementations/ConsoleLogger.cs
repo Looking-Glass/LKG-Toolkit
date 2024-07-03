@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ToolkitAPI {
+namespace LookingGlass.Toolkit {
     public class ConsoleLogger : ILogger {
         public void Log(string message) {
             Console.WriteLine(message);

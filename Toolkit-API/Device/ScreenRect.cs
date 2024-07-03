@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ToolkitAPI.Device {
+namespace LookingGlass.Toolkit {
     /// <summary>
     /// Defines a rectangular area on a display or window.
     /// </summary>

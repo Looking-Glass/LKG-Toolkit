@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ToolkitAPI.Bridge.Params
+namespace LookingGlass.Toolkit.Bridge
 {
     public enum Parameters
     {

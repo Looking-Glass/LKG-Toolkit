@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using ToolkitAPI.Device;
+using LookingGlass.Toolkit;
 
-namespace ToolkitAPI {
+namespace LookingGlass.Toolkit {
     public interface ILKGDeviceTemplateSystem {
         public LKGDeviceTemplate GetDefaultTemplate() => GetTemplate(LKGDeviceTypeExtensions.GetDefault());
         public LKGDeviceTemplate GetTemplate(LKGDeviceType deviceType);

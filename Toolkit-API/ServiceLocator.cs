@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace ToolkitAPI {
+namespace LookingGlass.Toolkit {
     /// <summary>
     /// Represents a central collection of systems, for use in the entire program.
     /// </summary>

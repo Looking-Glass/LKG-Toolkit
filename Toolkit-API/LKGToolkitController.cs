@@ -1,4 +1,4 @@
-﻿namespace ToolkitAPI {
+﻿namespace LookingGlass.Toolkit {
     /// <summary>
     /// Allows you to easily initialize the major systems in LKG Toolkit.
     /// </summary>

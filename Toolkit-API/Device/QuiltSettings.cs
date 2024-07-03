@@ -4,9 +4,17 @@
 using Newtonsoft.Json.Linq;
 #endif
 
-namespace ToolkitAPI.Device {
+namespace LookingGlass.Toolkit {
     /// <summary>
-    /// The recommended default quilt settings for a given LKG display.
+    /// <para>
+    /// Defines the resolution and layout of tiles in a quilt.
+    /// </para>
+    /// <para>
+    /// See also:
+    /// <list type="bullet">
+    /// <item>https://docs.lookingglassfactory.com/keyconcepts/quilts</item>
+    /// </list>
+    /// </para>
     /// </summary>
     [Serializable]
     public struct QuiltSettings {
@@ -15,7 +23,6 @@ namespace ToolkitAPI.Device {
         public const int MinRowColumnCount = 1;
         public const int MaxRowColumnCount = 32;
 
-        //REVIEW: [CRT-4039]
         /// <summary>
         /// Provides default quilt settings of 3360x3360 at 8x6 tiling, with a 0.75 aspect ratio (which conveniently matches the <see cref="TileAspect"/> of these settings).
         /// </summary>
@@ -30,110 +37,134 @@ namespace ToolkitAPI.Device {
         public static QuiltSettings Blank => new QuiltSettings(MinSize, MinSize, 1, 1, 1);
 
         /// <summary>
+        /// The total width of the quilt texture, in pixels.
+        /// </summary>
+        public int quiltWidth;
+
+        /// <summary>
+        /// The total height of the quilt texture, in pixels.
+        /// </summary>
+        public int quiltHeight;
+
+        /// <summary>
+        /// The number of quilt tiles counted along the x-axis (the number of columns).
+        /// </summary>
+        public int columns;
+
+        /// <summary>
+        /// The number of quilt tiles counted along the y-axis (the number of rows).
+        /// </summary>
+        public int rows;
+
+        /// <summary>
         /// <para>
         /// The aspect ratio of the camera or source (2D/RGBD) image, when this quilt was originally rendered.<br />
         /// If you are rendering new quilts from a 3D scene, full-screen to a LKG display, this should be set to the aspect ratio of your LKG display's native screen resolution (<see cref="Calibration.screenW"/> / <see cref="Calibration.screenH"/>).
         /// </para>
         /// <para>This aspect ratio is NOT necessarily equal to the aspect ratio of each tile's (width / height).</para>
         /// </summary>
-        public float quiltAspect;
+        public float renderAspect;
 
         /// <summary>
-        /// The total width of the quilt texture, in pixels.
+        /// The total number of tiles to render with when lenticularizing this quilt to the Looking Glass display.
+        /// Valid values are in the range <c>[1, columns * rows]</c>.
         /// </summary>
-        public int quiltX;
-
-        /// <summary>
-        /// The total height of the quilt texture, in pixels.
-        /// </summary>
-        public int quiltY;
-
-        /// <summary>
-        /// The number of quilt tiles counted along the x-axis (the number of columns).
-        /// </summary>
-        public int tileX;
-
-        /// <summary>
-        /// The number of quilt tiles counted along the y-axis (the number of rows).
-        /// </summary>
-        public int tileY;
+        public int tileCount;
 
         public bool IsDefaultOrBlank => Equals(default) || Equals(Blank);
 
-        /// <summary>
-        /// The total number of tiles in the quilt, which is given as <c>tileX * tileY</c>.
-        /// </summary>
-        public int TileCount => tileX * tileY;
+        public void ResetTileCount() {
+            tileCount = columns * rows;
+        }
 
         public int TileWidth {
             get {
-                if (tileX <= 0)
-                    return quiltX;
-                return quiltX / tileX;
+                if (columns <= 0)
+                    return quiltWidth;
+                return quiltWidth / columns;
             }
         }
 
         public int TileHeight {
             get {
-                if (tileY <= 0)
-                    return quiltY;
-                return quiltY / tileY;
+                if (rows <= 0)
+                    return quiltHeight;
+                return quiltHeight / rows;
             }
         }
         //NOTE: THIS IS DIFFERENT from what we use pretty much everywhere else.
         //This does NOT necessarily match the quiltAspect (of the native display resolution, if rendering fullscreen)
-        public float TileAspect => (quiltX / tileX) / (quiltY / tileY);
+        public float TileAspect => (quiltWidth / columns) / (quiltHeight / rows);
 
-        public int PaddingHorizontal => quiltX - tileX * TileWidth;
-        public int PaddingVertical => quiltY - tileY * TileHeight;
-        public float ViewPortionHorizontal => ((float) tileX * TileWidth) / quiltX;
-        public float ViewPortionVertical => ((float) tileY * TileHeight) / quiltY;
+        public int PaddingHorizontal => quiltWidth - columns * TileWidth;
+        public int PaddingVertical => quiltHeight - rows * TileHeight;
+        public float ViewPortionHorizontal => ((float) columns * TileWidth) / quiltWidth;
+        public float ViewPortionVertical => ((float) rows * TileHeight) / quiltHeight;
 
         /// <summary>
-        /// Creates new arbitrary quilt settings. Note that the <see cref="quiltAspect"/> is auto-calculated, and kept as a convenience.
+        /// Creates new arbitrary quilt settings.
         /// </summary>
-        /// <param name="quiltX"></param>
-        /// <param name="quiltY"></param>
-        /// <param name="tileX"></param>
-        /// <param name="tileY"></param>
         public QuiltSettings(
-            int quiltX,
-            int quiltY,
-            int tileX,
-            int tileY,
-            float quiltAspect) : this() {
+            int quiltWidth,
+            int quiltHeight,
+            int columns,
+            int rows,
+            float renderAspect) {
 
-            this.quiltX = Math.Clamp(quiltX, MinSize, MaxSize);
-            this.quiltY = Math.Clamp(quiltY, MinSize, MaxSize);
-            this.tileX = Math.Clamp(tileX, MinRowColumnCount, MaxRowColumnCount);
-            this.tileY = Math.Clamp(tileY, MinRowColumnCount, MaxRowColumnCount);
-            this.quiltAspect = quiltAspect;
+            this.quiltWidth = Math.Clamp(quiltWidth, MinSize, MaxSize);
+            this.quiltHeight = Math.Clamp(quiltHeight, MinSize, MaxSize);
+            this.columns = Math.Clamp(columns, MinRowColumnCount, MaxRowColumnCount);
+            this.rows = Math.Clamp(rows, MinRowColumnCount, MaxRowColumnCount);
+            this.renderAspect = renderAspect;
+            tileCount = this.columns * this.rows;
+        }
+
+        /// <inheritdoc cref="QuiltSettings.QuiltSettings(int, int, int, int, float, int)"/>
+        /// <summary>
+        /// Creates new arbitrary quilt settings, with a custom tile count.
+        /// </summary>
+        public QuiltSettings(
+            int quiltWidth,
+            int quiltHeight,
+            int columns,
+            int rows,
+            float renderAspect,
+            int tileCount) {
+
+            this.quiltWidth = Math.Clamp(quiltWidth, MinSize, MaxSize);
+            this.quiltHeight = Math.Clamp(quiltHeight, MinSize, MaxSize);
+            this.columns = Math.Clamp(columns, MinRowColumnCount, MaxRowColumnCount);
+            this.rows = Math.Clamp(rows, MinRowColumnCount, MaxRowColumnCount);
+            this.renderAspect = renderAspect;
+            this.tileCount = Math.Clamp(tileCount, 1, this.columns * this.rows);
         }
 
 #if HAS_NEWTONSOFT_JSON
         public static QuiltSettings Parse(JObject obj) {
             QuiltSettings result = new QuiltSettings();
-            obj.TryGet<float>("quiltAspect", out result.quiltAspect);
-            obj.TryGet<int>("quiltX", out result.quiltX);
-            obj.TryGet<int>("quiltY", out result.quiltY);
-            obj.TryGet<int>("tileX", out result.tileX);
-            obj.TryGet<int>("tileY", out result.tileY);
+            obj.TryGet<int>("quiltWidth", out result.quiltWidth);
+            obj.TryGet<int>("quiltHeight", out result.quiltHeight);
+            obj.TryGet<int>("columns", out result.columns);
+            obj.TryGet<int>("rows", out result.rows);
+            obj.TryGet<float>("renderAspect", out result.renderAspect);
+            if (!obj.TryGet<int>("tileCount", out result.rows))
+                result.ResetTileCount();
             return result;
         }
 #endif
 
         public bool Equals(QuiltSettings other) {
-            if (quiltAspect == other.quiltAspect
-                && quiltX == other.quiltX
-                && quiltY == other.quiltY
-                && tileX == other.tileX
-                && tileY == other.tileY)
+            if (renderAspect == other.renderAspect
+                && quiltWidth == other.quiltWidth
+                && quiltHeight == other.quiltHeight
+                && columns == other.columns
+                && rows == other.rows)
                 return true;
             return false;
         }
 
         public static QuiltSettings GetDefaultFor(LKGDeviceType deviceType) {
-            ILKGDeviceTemplateSystem system = ToolkitAPI.ServiceLocator.Instance.GetSystem<ILKGDeviceTemplateSystem>();
+            ILKGDeviceTemplateSystem system = LookingGlass.Toolkit.ServiceLocator.Instance.GetSystem<ILKGDeviceTemplateSystem>();
             if (system != null) {
                 LKGDeviceTemplate template = system.GetTemplate(deviceType);
                 if (template != null)

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ToolkitAPI {
+namespace LookingGlass.Toolkit {
     [Serializable]
     public enum HttpSenderMethod {
         Get = 0,

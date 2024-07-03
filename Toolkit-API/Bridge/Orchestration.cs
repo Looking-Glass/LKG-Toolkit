@@ -4,7 +4,7 @@
 using Newtonsoft.Json.Linq;
 #endif
 
-namespace ToolkitAPI.Bridge
+namespace LookingGlass.Toolkit.Bridge
 {
     /// <summary>
     /// <para>Describes a shared session connected to Looking Glass Bridge, synchronized via events.</para>
