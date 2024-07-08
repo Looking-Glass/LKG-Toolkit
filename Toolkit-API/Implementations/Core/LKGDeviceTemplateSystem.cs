@@ -27,7 +27,7 @@ namespace LookingGlass.Toolkit {
                         flipImageY = 0,
                         flipSubp = 0
                     },
-                    new QuiltSettings(2048, 2048, 5, 9, 1.6f)
+                    new QuiltSettings(4096, 4096, 5, 9, 1.6f)
                 )
             },
             {
