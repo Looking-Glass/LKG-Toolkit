@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using WebSocketSharp;
+
 
 #if HAS_NEWTONSOFT_JSON
 using Newtonsoft.Json.Linq;
 #endif
 
-namespace LookingGlass.Toolkit.Bridge
-{
-    public class BridgeConnectionHTTP : IDisposable
-    {
+namespace LookingGlass.Toolkit.Bridge {
+    public class BridgeConnectionHTTP : IDisposable {
         public const string DefaultURL = "localhost";
         public const int DefaultPort = 33334;
         public const int DefaultWebSocketPort = 9724;
@@ -38,8 +38,7 @@ namespace LookingGlass.Toolkit.Bridge
         private HashSet<Action<bool>> connectionStateListeners;
 
         public BridgeConnectionHTTP(string url = DefaultURL, int port = DefaultPort, int webSocketPort = DefaultWebSocketPort) : this(null, null, url, port, webSocketPort) { }
-        public BridgeConnectionHTTP(ILogger logger, IHttpSender httpSender, string url = DefaultURL, int port = DefaultPort, int webSocketPort = DefaultWebSocketPort)
-        {
+        public BridgeConnectionHTTP(ILogger logger, IHttpSender httpSender, string url = DefaultURL, int port = DefaultPort, int webSocketPort = DefaultWebSocketPort) {
             this.url = url;
             this.port = port;
             this.webSocketPort = webSocketPort;
@@ -51,7 +50,6 @@ namespace LookingGlass.Toolkit.Bridge
                 httpSender = new DefaultHttpSender();
             this.logger = logger;
             this.httpSender = httpSender;
-            this.httpSender.ExceptionHandler = HandleHttpException;
 
             AllDisplays = new Dictionary<int, Display>();
             LKGDisplays = new Dictionary<int, Display>();
@@ -61,8 +59,7 @@ namespace LookingGlass.Toolkit.Bridge
             connectionStateListeners = new HashSet<Action<bool>>();
         }
 
-        public bool Connect(int timeoutSeconds = 1000)
-        {
+        public bool Connect(int timeoutSeconds = 3000) {
             httpSender.TimeoutSeconds = timeoutSeconds;
             if (webSocket != null) {
                 webSocket.Dispose();
@@ -73,96 +70,68 @@ namespace LookingGlass.Toolkit.Bridge
         }
 
 
-        public bool UpdateConnectionState(bool state)
-        {
+        public bool UpdateConnectionState(bool state) {
             lastConnectionState = state;
-
             foreach (Action<bool> callback in connectionStateListeners)
-            {
                 callback(lastConnectionState);
-            }
-
             return lastConnectionState;
         }
 
         private string GetURL(string endpoint) => $"http://{url}:{port}/{endpoint}";
-        private void HandleHttpException(Exception e) {
-            this.logger.LogException(e);
-            UpdateConnectionState(false);
-        }
 
-        public int AddListener(string name, Action<string> callback)
-        {
-            if (eventListeners.ContainsKey(name))
-            {
+        public int AddListener(string name, Action<string> callback) {
+            if (eventListeners.ContainsKey(name)) {
                 int id = eventListeners[name].Count;
                 eventListeners[name].Add(callback);
                 return id;
-            }
-            else
-            {
-                List<Action<string>> callbacks = new List<Action<string>>();
-                callbacks.Add(callback);
+            } else {
+                List<Action<string>> callbacks = new() { callback };
 
                 eventListeners.Add(name, callbacks);
                 return 0;
             }
         }
 
-        public void RemoveListener(string name, Action<string> callback)
-        {
-            if (eventListeners.ContainsKey(name))
-            {
-                if (eventListeners[name].Contains(callback))
-                {
+        public void RemoveListener(string name, Action<string> callback) {
+            if (eventListeners.ContainsKey(name)) {
+                if (eventListeners[name].Contains(callback)) {
                     eventListeners[name].Remove(callback);
                 }
             }
         }
 
-        public void AddConnectionStateListener(Action<bool> callback)
-        {
-            if (!connectionStateListeners.Contains(callback))
-            {
+        public void AddConnectionStateListener(Action<bool> callback) {
+            if (!connectionStateListeners.Contains(callback)) {
                 connectionStateListeners.Add(callback);
-
                 callback(lastConnectionState);
             }
         }
 
-        public void RemoveConnectionStateListener(Action<bool> callback)
-        {
-            if (connectionStateListeners.Contains(callback))
-            {
+        public void RemoveConnectionStateListener(Action<bool> callback) {
+            if (connectionStateListeners.Contains(callback)) {
                 connectionStateListeners.Remove(callback);
             }
         }
 
-        private void UpdateListeners(string message)
-        {
+        private void UpdateListeners(string message) {
 #if HAS_NEWTONSOFT_JSON
-            JToken? json = JObject.Parse(message)["payload"]?["value"];
+            JToken json = JObject.Parse(message)["payload"]?["value"];
 
-            if (json != null)
-            {
+            if (json != null) {
                 string eventName = json["event"]["value"].ToString();
                 string eventData = json.ToString();
 
                 Console.WriteLine(eventName + "\n" + eventData);
 
-                if (eventListeners.ContainsKey(eventName))
-                {
-                    foreach (var listener in eventListeners[eventName])
-                    {
+                if (eventListeners.ContainsKey(eventName)) {
+                    foreach (Action<string> listener in eventListeners[eventName]) {
                         listener(eventData);
                     }
                 }
 
                 // special case for listeners with empty names
-                if (eventListeners.ContainsKey(""))
-                {
-                    foreach (var listener in eventListeners[""])
-                    {
+                if (eventListeners.ContainsKey("")) {
+                    foreach (var listener in eventListeners[""]) {
                         listener(eventData);
                     }
                 }
@@ -170,67 +139,49 @@ namespace LookingGlass.Toolkit.Bridge
 #endif
         }
 
-        public List<Display> GetAllDisplays()
-        {
-            List<Display> displays = new List<Display>();
-
-            foreach (var kvp in AllDisplays)
-            {
-                displays.Add(kvp.Value);
-            }
-
+        public List<Display> GetAllDisplays() {
+            List<Display> displays = new();
+            foreach (KeyValuePair<int, Display> pair in AllDisplays)
+                displays.Add(pair.Value);
             return displays;
         }
 
-        public List<Display> GetLKGDisplays()
-        {
-            List<Display> displays = new List<Display>();
-
-            foreach (var kvp in LKGDisplays)
-            {
-                displays.Add(kvp.Value);
-            }
-
+        public List<Display> GetLKGDisplays() {
+            List<Display> displays = new();
+            foreach (KeyValuePair<int, Display> pair in LKGDisplays)
+                displays.Add(pair.Value);
             return displays;
         }
 
-        public string TrySendMessage(string endpoint, string content)
-        {
-            try
-            {
+        public string TrySendMessage(string endpoint, string content) {
+            try {
                 string result = httpSender.Send(HttpSenderMethod.Put, GetURL(endpoint), content);
                 UpdateConnectionState(true);
                 return result;
-            }
-            catch (Exception e)
-            {
-                HandleHttpException(e);
+            } catch (Exception e) {
+                logger.LogException(e);
+                UpdateConnectionState(false);
                 return null;
             }
         }
 
-        public void TrySendMessageAsync(string endpoint, string content, Action<string> onCompletion)
-        {
-            try
-            {
-                httpSender.SendAsync(HttpSenderMethod.Put, GetURL(endpoint), content, (string response) => {
-                    UpdateConnectionState(true);
-                    onCompletion(response);
-                });
-            }
-            catch (Exception e)
-            {
-                HandleHttpException(e);
+        public async Task<string> SendMessageAsync(string endpoint, string content) {
+            try {
+                string result = await httpSender.SendAsync(HttpSenderMethod.Put, GetURL(endpoint), content);
+                UpdateConnectionState(true);
+                return result;
+            } catch (Exception e) {
+                logger.LogException(e);
+                UpdateConnectionState(false);
+                throw;
             }
         }
 
-        private void PrintTime(string name, TimeSpan time)
-        {
-            logger.Log($"Endpoint: {name} completed in : {time.TotalMilliseconds}ms");
+        private void PrintTime(string name, TimeSpan time) {
+            logger.Log("Endpoint: " + name + " completed in " + time.TotalMilliseconds.ToString("F0") + "ms");
         }
 
-        public bool TryEnterOrchestration(string name = "default")
-        {
+        public bool TryEnterOrchestration(string name = "default") {
             if (LogTimes)
                 timer.Restart();
 
@@ -250,10 +201,8 @@ namespace LookingGlass.Toolkit.Bridge
                 PrintTime("enter_orchestration message received", timer.Elapsed);
 
 
-            if (resp != null)
-            {
-                if (Orchestration.TryParse(resp, out Orchestration newSession))
-                {
+            if (resp != null) {
+                if (Orchestration.TryParse(resp, out Orchestration newSession)) {
                     session = newSession;
                     if (LogTimes)
                         PrintTime("enter_orchestration message parsed", timer.Elapsed);
@@ -267,8 +216,7 @@ namespace LookingGlass.Toolkit.Bridge
             return false;
         }
 
-        public bool TryExitOrchestration()
-        {
+        public bool TryExitOrchestration() {
             if (session == null)
                 return false;
 
@@ -284,8 +232,7 @@ namespace LookingGlass.Toolkit.Bridge
 
             string resp = TrySendMessage("exit_orchestration", message);
 
-            if (resp != null)
-            {
+            if (resp != null) {
                 session = default;
                 if (LogTimes)
                     PrintTime("exit_orchestration", timer.Elapsed);
@@ -297,8 +244,7 @@ namespace LookingGlass.Toolkit.Bridge
             return false;
         }
 
-        public bool TryTransportControlsPlay()
-        {
+        public bool TryTransportControlsPlay() {
             if (session == null)
                 return false;
 
@@ -320,8 +266,7 @@ namespace LookingGlass.Toolkit.Bridge
             return resp != null;
         }
 
-        public bool TryTransportControlsPause()
-        {
+        public bool TryTransportControlsPause() {
             if (session == null)
                 return false;
 
@@ -343,8 +288,7 @@ namespace LookingGlass.Toolkit.Bridge
             return resp != null;
         }
 
-        public bool TryTransportControlsNext()
-        {
+        public bool TryTransportControlsNext() {
             if (session == null)
                 return false;
 
@@ -366,8 +310,7 @@ namespace LookingGlass.Toolkit.Bridge
             return resp != null;
         }
 
-        public bool TryTransportControlsPrevious()
-        {
+        public bool TryTransportControlsPrevious() {
             if (session == null)
                 return false;
 
@@ -389,8 +332,7 @@ namespace LookingGlass.Toolkit.Bridge
             return resp != null;
         }
 
-        public bool TryShowWindow(bool showWindow, int head = -1)
-        {
+        public bool TryShowWindow(bool showWindow, int head = -1) {
             if (session == null)
                 return false;
 
@@ -414,8 +356,7 @@ namespace LookingGlass.Toolkit.Bridge
             return resp != null;
         }
 
-        public bool TrySubscribeToEvents()
-        {
+        public bool TrySubscribeToEvents() {
             if (session == null)
                 return false;
 
@@ -439,8 +380,7 @@ namespace LookingGlass.Toolkit.Bridge
         }
 
 
-        public bool TryUpdatingParameter(string playlistName, int playlistItem, Parameters param, float newValue)
-        {
+        public bool TryUpdatingParameter(string playlistName, int playlistItem, Parameters param, float newValue) {
             if (session == null)
                 return false;
 
@@ -453,7 +393,7 @@ namespace LookingGlass.Toolkit.Bridge
                     ""orchestration"": ""{session.Token}"",
                     ""name"": ""{playlistName}"",
                     ""index"": ""{playlistItem}"",
-                    ""{ParameterUtils.GetParamName(param)}"": ""{(ParameterUtils.IsFloatParam(param) ? newValue : (int)newValue)}"",
+                    ""{ParameterUtils.GetParamName(param)}"": ""{(ParameterUtils.IsFloatParam(param) ? newValue : (int) newValue)}"",
                 }}
                 ";
 
@@ -466,8 +406,7 @@ namespace LookingGlass.Toolkit.Bridge
         }
 
 
-        public bool TryUpdatingParameter(string playlistName, Parameters param, float newValue)
-        {
+        public bool TryUpdatingParameter(string playlistName, Parameters param, float newValue) {
             if (session == null)
                 return false;
 
@@ -479,7 +418,7 @@ namespace LookingGlass.Toolkit.Bridge
                 {{
                     ""orchestration"": ""{session.Token}"",
                     ""name"": ""{playlistName}"",
-                    ""{ParameterUtils.GetParamName(param)}"": ""{(ParameterUtils.IsFloatParam(param) ? newValue : (int)newValue)}"",
+                    ""{ParameterUtils.GetParamName(param)}"": ""{(ParameterUtils.IsFloatParam(param) ? newValue : (int) newValue)}"",
                 }}
                 ";
 
@@ -491,8 +430,8 @@ namespace LookingGlass.Toolkit.Bridge
             return resp != null;
         }
 
-        public bool TryUpdateDevices()
-        {
+        public bool TryUpdateDevices() => UpdateDevicesAsync().Result;
+        public async Task<bool> UpdateDevicesAsync() {
             if (session == null)
                 return false;
 
@@ -506,49 +445,45 @@ namespace LookingGlass.Toolkit.Bridge
                 }}
                 ";
 
-            string resp = TrySendMessage("available_output_devices", message);
-
-#if HAS_NEWTONSOFT_JSON
-            if (resp != null)
-            {
-                JObject payloadJson = JObject.Parse(resp)?["payload"]?["value"]?.Value<JObject>();
-
-                lock (this)
-                {
-                    if (payloadJson != null)
-                    {
-                        Dictionary<int, Display> allDisplays = new Dictionary<int, Display>();
-                        Dictionary<int, Display> lkgDisplays = new Dictionary<int, Display>();
-
-                        for (int i = 0; i < payloadJson.Count; i++)
-                        {
-                            JObject displayJson = payloadJson[i.ToString()]!["value"]!.Value<JObject>();
-                            Display display = Display.Parse(i, displayJson);
-                            if (!allDisplays.ContainsKey(display.hardwareInfo.index))
-                                allDisplays.Add(display.hardwareInfo.index, display);
-
-                            if (display.IsLKG && !lkgDisplays.ContainsKey(display.hardwareInfo.index))
-                                lkgDisplays.Add(display.hardwareInfo.index, display);
-                        }
-
-                        AllDisplays = allDisplays;
-                        LKGDisplays = lkgDisplays;
-                    }
-                }
-            
+            string response = await SendMessageAsync("available_output_devices", message);
+            try {
+                return UpdateDisplays(response);
+            } finally {
                 if (LogTimes)
                     PrintTime("available_output_devices", timer.Elapsed);
+            }
+        }
+
+        private bool UpdateDisplays(string response) {
+#if HAS_NEWTONSOFT_JSON
+            if (!string.IsNullOrWhiteSpace(response)) {
+                JObject payloadJson = JObject.Parse(response)?["payload"]?["value"]?.Value<JObject>();
+
+                if (payloadJson != null) {
+                    Dictionary<int, Display> allDisplays = new();
+                    Dictionary<int, Display> lkgDisplays = new();
+
+                    for (int i = 0; i < payloadJson.Count; i++) {
+                        JObject displayJson = payloadJson[i.ToString()]!["value"]!.Value<JObject>();
+                        Display display = Display.Parse(i, displayJson);
+                        if (!allDisplays.ContainsKey(display.hardwareInfo.index))
+                            allDisplays.Add(display.hardwareInfo.index, display);
+
+                        if (display.IsLKG && !lkgDisplays.ContainsKey(display.hardwareInfo.index))
+                            lkgDisplays.Add(display.hardwareInfo.index, display);
+                    }
+
+                    AllDisplays = allDisplays;
+                    LKGDisplays = lkgDisplays;
+                }
+
                 return true;
             }
 #endif
-
-            if (LogTimes)
-                PrintTime("available_output_devices", timer.Elapsed);
             return false;
         }
 
-        public bool TryDeletePlaylist(Playlist p)
-        {
+        public bool TryDeletePlaylist(Playlist p) {
             if (session == null)
                 return false;
 
@@ -567,16 +502,14 @@ namespace LookingGlass.Toolkit.Bridge
             return response != null;
         }
 
-        public bool TrySyncPlaylist(int head = -1)
-        {
+        public bool TrySyncPlaylist(int head = -1) {
             if (session == null)
                 return false;
 
             if (LogTimes)
                 timer.Restart();
 
-            if (currentPlaylistName != "")
-            {
+            if (currentPlaylistName != "") {
                 string message =
                 $@"
                 {{
@@ -612,13 +545,11 @@ namespace LookingGlass.Toolkit.Bridge
         /// </remarks>
         /// </param>
         /// <returns></returns>
-        public bool TryPlayPlaylist(Playlist p, int head = -1)
-        {
+        public bool TryPlayPlaylist(Playlist p, int head = -1) {
             if (session == null)
                 return false;
 
-            if (currentPlaylistName == p.name)
-            {
+            if (currentPlaylistName == p.name) {
                 string delete_message = p.GetInstanceJson(session);
                 string delete_resp = TrySendMessage("delete_playlist", delete_message);
             }
@@ -630,8 +561,7 @@ namespace LookingGlass.Toolkit.Bridge
 
             string[] playlistItems = p.GetPlaylistItemsAsJson(session);
 
-            for (int i = 0; i < playlistItems.Length; i++)
-            {
+            for (int i = 0; i < playlistItems.Length; i++) {
                 string pMessage = playlistItems[i];
                 string pResp = TrySendMessage("insert_playlist_entry", pMessage);
             }
@@ -644,8 +574,7 @@ namespace LookingGlass.Toolkit.Bridge
             return true;
         }
 
-        public bool TrySaveout(string source, string filename)
-        {
+        public bool TrySaveout(string source, string filename) {
             string message =
                 $@"
                 {{
@@ -656,16 +585,11 @@ namespace LookingGlass.Toolkit.Bridge
                 }}
                 ";
 
-            string? resp = TrySendMessage("source_saveout", message);
+            string resp = TrySendMessage("source_saveout", message);
 
             if (!resp.IsNullOrEmpty())
-            {
                 return true;
-            }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
         public bool TryGetCameraParams(out float displayViewCone, out float displayViewConeVFOV, out float displayViewConeHFOV) {
@@ -677,12 +601,12 @@ namespace LookingGlass.Toolkit.Bridge
                 }}
                 ";
 
-            string? resp = TrySendMessage("get_camera_parameters", message);
+            string resp = TrySendMessage("get_camera_parameters", message);
 
 #if HAS_NEWTONSOFT_JSON
             if (!string.IsNullOrEmpty(resp)) {
                 JObject json = JObject.Parse(resp);
-                displayViewCone     = json["payload"]["value"]["viewCone"]["value"].Value<float>();
+                displayViewCone = json["payload"]["value"]["viewCone"]["value"].Value<float>();
                 displayViewConeHFOV = json["payload"]["value"]["hHOV"]["value"].Value<float>();
                 displayViewConeVFOV = json["payload"]["value"]["vFOV"]["value"].Value<float>();
                 return true;
@@ -698,8 +622,7 @@ namespace LookingGlass.Toolkit.Bridge
         }
 
 
-        public bool TryReadback(string source)
-        {
+        public bool TryReadback(string source) {
             string message =
                 $@"
                 {{
@@ -709,24 +632,16 @@ namespace LookingGlass.Toolkit.Bridge
                 }}
                 ";
 
-            string? resp = TrySendMessage("source_readback", message);
+            string resp = TrySendMessage("source_readback", message);
 
             if (!resp.IsNullOrEmpty())
-            {
                 return true;
-            }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
-        public void Dispose()
-        {
-            if (session != default)
-            {
+        public void Dispose() {
+            if (session != default) 
                 TryExitOrchestration();
-            }
 
             webSocket.Dispose();
             if (logger is IDisposable l)
