@@ -94,7 +94,7 @@ namespace LookingGlass.Toolkit {
         }
         //NOTE: THIS IS DIFFERENT from what we use pretty much everywhere else.
         //This does NOT necessarily match the quiltAspect (of the native display resolution, if rendering fullscreen)
-        public float TileAspect => (quiltWidth / columns) / (quiltHeight / rows);
+        public float TileAspect => ((float) quiltWidth / columns) / ((float) quiltHeight / rows);
 
         public int PaddingHorizontal => quiltWidth - columns * TileWidth;
         public int PaddingVertical => quiltHeight - rows * TileHeight;
@@ -142,12 +142,22 @@ namespace LookingGlass.Toolkit {
 #if HAS_NEWTONSOFT_JSON
         public static QuiltSettings Parse(JObject obj) {
             QuiltSettings result = new QuiltSettings();
-            obj.TryGet<int>("quiltWidth", out result.quiltWidth);
-            obj.TryGet<int>("quiltHeight", out result.quiltHeight);
-            obj.TryGet<int>("columns", out result.columns);
-            obj.TryGet<int>("rows", out result.rows);
-            obj.TryGet<float>("renderAspect", out result.renderAspect);
-            if (!obj.TryGet<int>("tileCount", out result.rows))
+            if (!obj.TryGet<int>("quiltWidth", out result.quiltWidth))
+                obj.TryGet<int>("quiltX", out result.quiltWidth);               //NOTE: Old naming
+
+            if (!obj.TryGet<int>("quiltHeight", out result.quiltHeight))
+                obj.TryGet<int>("quiltY", out result.quiltHeight);              //NOTE: Old naming
+
+            if (!obj.TryGet<int>("columns", out result.columns))
+                obj.TryGet<int>("tileX", out result.columns);                   //NOTE: Old naming
+
+            if (!obj.TryGet<int>("rows", out result.rows))
+                obj.TryGet<int>("tileY", out result.rows);                      //NOTE: Old naming
+
+            if (!obj.TryGet<float>("renderAspect", out result.renderAspect))
+                obj.TryGet<float>("quiltAspect", out result.renderAspect);      //NOTE: Old naming
+
+            if (!obj.TryGet<int>("tileCount", out result.tileCount))
                 result.ResetTileCount();
             return result;
         }

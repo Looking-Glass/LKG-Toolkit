@@ -29,7 +29,10 @@ namespace LookingGlass.Toolkit.Bridge {
         private Orchestration session;
         private string currentPlaylistName = "";
 
-        public bool LogTimes { get; set; }
+        public int Port => port;
+        public int WebSocketPort => webSocketPort;
+
+        public BridgeLoggingFlags LoggingFlags { get; set; } = BridgeLoggingFlags.None;
         public Dictionary<int, Display> AllDisplays { get; private set; }
         public Dictionary<int, Display> LKGDisplays { get; private set; }
 
@@ -153,11 +156,17 @@ namespace LookingGlass.Toolkit.Bridge {
             return displays;
         }
 
-        public string TrySendMessage(string endpoint, string content) {
+        public string TrySendMessage(string endpoint, string content) => TrySendMessage(endpoint, content, LoggingFlags);
+        public string TrySendMessage(string endpoint, string content, BridgeLoggingFlags loggingFlags) {
             try {
-                string result = httpSender.Send(HttpSenderMethod.Put, GetURL(endpoint), content);
+                if ((loggingFlags & BridgeLoggingFlags.Messages) != 0)
+                    PrintMessage(endpoint, content);
+                string response = httpSender.Send(HttpSenderMethod.Put, GetURL(endpoint), content);
+                if ((loggingFlags & BridgeLoggingFlags.Responses) != 0)
+                    PrintResponse(endpoint, response);
+
                 UpdateConnectionState(true);
-                return result;
+                return response;
             } catch (Exception e) {
                 logger.LogException(e);
                 UpdateConnectionState(false);
@@ -165,11 +174,16 @@ namespace LookingGlass.Toolkit.Bridge {
             }
         }
 
-        public async Task<string> SendMessageAsync(string endpoint, string content) {
+        public Task<string> SendMessageAsync(string endpoint, string content) => SendMessageAsync(endpoint, content, LoggingFlags);
+        public async Task<string> SendMessageAsync(string endpoint, string content, BridgeLoggingFlags loggingFlags) {
             try {
-                string result = await httpSender.SendAsync(HttpSenderMethod.Put, GetURL(endpoint), content);
+                if ((loggingFlags & BridgeLoggingFlags.Messages) != 0)
+                    PrintMessage(endpoint, content);
+                string response = await httpSender.SendAsync(HttpSenderMethod.Put, GetURL(endpoint), content);
+                if ((loggingFlags & BridgeLoggingFlags.Responses) != 0)
+                    PrintResponse(endpoint, response);
                 UpdateConnectionState(true);
-                return result;
+                return response;
             } catch (Exception e) {
                 logger.LogException(e);
                 UpdateConnectionState(false);
@@ -177,12 +191,19 @@ namespace LookingGlass.Toolkit.Bridge {
             }
         }
 
-        private void PrintTime(string name, TimeSpan time) {
-            logger.Log("Endpoint: " + name + " completed in " + time.TotalMilliseconds.ToString("F0") + "ms");
-        }
+        private string GetPrefix() => "[LKG Toolkit]";
+        private string GetPrefix(string endpoint) => "[LKG Toolkit] \"" + endpoint + "\"";
+
+        private string GetMessageLogString(string endpoint, string content) => GetPrefix() + " Sent to \"" + endpoint + "\":\n" + content;
+        private string GetResponseLogString(string endpoint, string response) => GetPrefix(endpoint) + " responded:\n" + response;
+        private string GetTimeLogString(string endpoint, TimeSpan time) => GetPrefix(endpoint) + " completed in " + time.TotalMilliseconds.ToString("F0") + "ms";
+
+        private void PrintMessage(string endpoint, string content) => logger.Log(GetMessageLogString(endpoint, content));
+        private void PrintResponse(string endpoint, string response) => logger.Log(GetResponseLogString(endpoint, response));
+        private void PrintTime(string endpoint, TimeSpan time) => logger.Log(GetTimeLogString(endpoint, time));
 
         public bool TryEnterOrchestration(string name = "default") {
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 timer.Restart();
 
             string message =
@@ -192,25 +213,18 @@ namespace LookingGlass.Toolkit.Bridge {
                 }}
                 ";
 
-            if (LogTimes)
-                PrintTime("enter_orchestration sending messsage", timer.Elapsed);
-
             string resp = TrySendMessage("enter_orchestration", message);
-
-            if (LogTimes)
-                PrintTime("enter_orchestration message received", timer.Elapsed);
-
 
             if (resp != null) {
                 if (Orchestration.TryParse(resp, out Orchestration newSession)) {
                     session = newSession;
-                    if (LogTimes)
+                    if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                         PrintTime("enter_orchestration message parsed", timer.Elapsed);
                     return true;
                 }
             }
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 PrintTime("enter_orchestration", timer.Elapsed);
 
             return false;
@@ -220,7 +234,7 @@ namespace LookingGlass.Toolkit.Bridge {
             if (session == null)
                 return false;
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 timer.Restart();
 
             string message =
@@ -234,12 +248,12 @@ namespace LookingGlass.Toolkit.Bridge {
 
             if (resp != null) {
                 session = default;
-                if (LogTimes)
+                if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                     PrintTime("exit_orchestration", timer.Elapsed);
                 return true;
             }
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 PrintTime("exit_orchestration", timer.Elapsed);
             return false;
         }
@@ -248,7 +262,7 @@ namespace LookingGlass.Toolkit.Bridge {
             if (session == null)
                 return false;
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 timer.Restart();
 
             string message =
@@ -260,7 +274,7 @@ namespace LookingGlass.Toolkit.Bridge {
 
             string resp = TrySendMessage("transport_control_play", message);
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 PrintTime("transport_control_play", timer.Elapsed);
 
             return resp != null;
@@ -270,7 +284,7 @@ namespace LookingGlass.Toolkit.Bridge {
             if (session == null)
                 return false;
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 timer.Restart();
 
             string message =
@@ -282,7 +296,7 @@ namespace LookingGlass.Toolkit.Bridge {
 
             string resp = TrySendMessage("transport_control_pause", message);
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 PrintTime("transport_control_pause", timer.Elapsed);
 
             return resp != null;
@@ -292,7 +306,7 @@ namespace LookingGlass.Toolkit.Bridge {
             if (session == null)
                 return false;
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 timer.Restart();
 
             string message =
@@ -304,7 +318,7 @@ namespace LookingGlass.Toolkit.Bridge {
 
             string resp = TrySendMessage("transport_control_next", message);
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 PrintTime("transport_control_next", timer.Elapsed);
 
             return resp != null;
@@ -314,7 +328,7 @@ namespace LookingGlass.Toolkit.Bridge {
             if (session == null)
                 return false;
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 timer.Restart();
 
             string message =
@@ -326,7 +340,7 @@ namespace LookingGlass.Toolkit.Bridge {
 
             string resp = TrySendMessage("transport_control_previous", message);
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 PrintTime("transport_control_previous", timer.Elapsed);
 
             return resp != null;
@@ -336,7 +350,7 @@ namespace LookingGlass.Toolkit.Bridge {
             if (session == null)
                 return false;
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 timer.Restart();
 
             string message =
@@ -350,7 +364,7 @@ namespace LookingGlass.Toolkit.Bridge {
 
             string resp = TrySendMessage("show_window", message);
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 PrintTime("show_window", timer.Elapsed);
 
             return resp != null;
@@ -360,7 +374,7 @@ namespace LookingGlass.Toolkit.Bridge {
             if (session == null)
                 return false;
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 timer.Restart();
 
             if (!webSocket.Connected())
@@ -373,7 +387,7 @@ namespace LookingGlass.Toolkit.Bridge {
                 }}
                 ";
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 PrintTime("TrySubscribeToEvents", timer.Elapsed);
 
             return webSocket.TrySendMessage(message);
@@ -384,7 +398,7 @@ namespace LookingGlass.Toolkit.Bridge {
             if (session == null)
                 return false;
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 timer.Restart();
 
             string message =
@@ -399,7 +413,7 @@ namespace LookingGlass.Toolkit.Bridge {
 
             string resp = TrySendMessage("update_playlist_entry", message);
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 PrintTime("update_playlist_entry", timer.Elapsed);
 
             return resp != null;
@@ -410,7 +424,7 @@ namespace LookingGlass.Toolkit.Bridge {
             if (session == null)
                 return false;
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 timer.Restart();
 
             string message =
@@ -424,18 +438,21 @@ namespace LookingGlass.Toolkit.Bridge {
 
             string resp = TrySendMessage("update_current_entry", message);
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 PrintTime("update_current_entry", timer.Elapsed);
 
             return resp != null;
         }
 
-        public bool TryUpdateDevices() => UpdateDevicesAsync().Result;
-        public async Task<bool> UpdateDevicesAsync() {
+        public bool TryUpdateDevices() => TryUpdateDevices(LoggingFlags);
+        public bool TryUpdateDevices(BridgeLoggingFlags loggingFlags) => UpdateDevicesAsync(loggingFlags).Result;
+
+        public Task<bool> UpdateDevicesAsync() => UpdateDevicesAsync(LoggingFlags);
+        public async Task<bool> UpdateDevicesAsync(BridgeLoggingFlags loggingFlags) {
             if (session == null)
                 return false;
 
-            if (LogTimes)
+            if ((loggingFlags & BridgeLoggingFlags.Timing) != 0)
                 timer.Restart();
 
             string message =
@@ -445,11 +462,11 @@ namespace LookingGlass.Toolkit.Bridge {
                 }}
                 ";
 
-            string response = await SendMessageAsync("available_output_devices", message);
+            string response = await SendMessageAsync("available_output_devices", message, loggingFlags);
             try {
                 return UpdateDisplays(response);
             } finally {
-                if (LogTimes)
+                if ((loggingFlags & BridgeLoggingFlags.Timing) != 0)
                     PrintTime("available_output_devices", timer.Elapsed);
             }
         }
@@ -487,7 +504,7 @@ namespace LookingGlass.Toolkit.Bridge {
             if (session == null)
                 return false;
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 timer.Restart();
 
             if (currentPlaylistName == p.name)
@@ -496,7 +513,7 @@ namespace LookingGlass.Toolkit.Bridge {
             string deleteMessage = p.GetInstanceJson(session);
             string response = TrySendMessage("delete_playlist", deleteMessage);
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 PrintTime("delete_playlist", timer.Elapsed);
 
             return response != null;
@@ -506,7 +523,7 @@ namespace LookingGlass.Toolkit.Bridge {
             if (session == null)
                 return false;
 
-            if (LogTimes)
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                 timer.Restart();
 
             if (currentPlaylistName != "") {
@@ -524,7 +541,7 @@ namespace LookingGlass.Toolkit.Bridge {
 
                 string response = TrySendMessage("sync_overwrite_playlist", message);
 
-                if (LogTimes)
+                if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
                     PrintTime("sync_overwrite_playlist", timer.Elapsed);
 
                 return response != null;
