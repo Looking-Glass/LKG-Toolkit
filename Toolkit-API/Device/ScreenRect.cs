@@ -16,5 +16,7 @@ namespace LookingGlass.Toolkit {
 
         public int Width => right - left;
         public int Height => bottom - top;
+
+        public override string ToString() => nameof(ScreenRect) + " (position = (" + left + ", " + top + "), size = " + Width + "x" + Height + "))";
     }
 }
