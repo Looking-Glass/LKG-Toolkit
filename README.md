@@ -1,46 +1,44 @@
 # Looking Glass Toolkit
-
-Looking Glass Toolkit is an open source set of tools for interacting with Looking Glass [Bridge](https://docs.lookingglassfactory.com/getting-started/looking-glass-bridge). Bridge facilitates communication between your computer and any connected Looking Glass devices. 
+Looking Glass Toolkit is an open source set of tools for interacting with [Looking Glass Bridge](https://docs.lookingglassfactory.com/getting-started/looking-glass-bridge). Bridge facilitates communication between your computer and any connected Looking Glass devices. 
 
 Toolkit currently consists of three core tools:
 
-* `SDK` - C# Bridge SDK for accessing the Bridge API.
-* `CLI` - CLI wrapper around the Bridge API for Windows, MacOS, and Linux
+* `API` - C# Bridge SDK for accessing the Bridge API.
+* `CLI` - CLI wrapper around the Bridge API for Windows, MacOS, and Linux.
   * Checks display state
   * Monitors display state changes
   * Plays sets of quilts and quilt videos
   * Synchronizes sets of quilts and quilt videos
-* `GUI` - GUI version of the CLI for MacOS and Windows.
+* `GUI` - GUI version of the CLI for Windows and MacOS.
 
-> :warning: **NOTE**: This is ALPHA software and as such should not be used in any critical applications.  If you find any bugs or issues, please open an issue on this github repo. 
+> [!WARNING]
+> This is ALPHA software and as such should not be used in any critical applications.  If you find any bugs or issues, please open an issue on this github repo.
 > 
 > This project is still a WIP some features may not be included currently. LKG-Toolkit may be behind Toolkit CLI, which may not implement all of the Bridge API.
 
 # How to build
-
 Prerequisites:
 1. [Looking Glass Bridge](https://lookingglassfactory.com/software-downloads)
-2. [.Net 7.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
+2. [.NET 7.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
 
-## Windows and Mac
+## Windows and MacOS
+1. Install Visual Studio 2022 for ([Windows](https://visualstudio.microsoft.com/vs/community/) or [MacOS](https://visualstudio.microsoft.com/vs/mac/)).
+2. Make sure to include the .NET Multi-platform App UI development workload.
+3. Clone this repo and open in Visual Studio.
 
-1. Install Visual Studio 2022 ([Windows](https://visualstudio.microsoft.com/vs/community/) or [MacOS](https://visualstudio.microsoft.com/vs/mac/)).
-2. Make sure to include the .Net Multi-platform App UI development workload
-3. Clone this repo and open in Visual Studio
-
-If you would rather use VS code or some other editor follow the linux instructions below.
+If you would rather use VS code or some other editor, follow the Linux instructions below.
 
 ## Linux:
 ```sh
-# download LKG-Toolkit repo
-git clone https://github.com/Looking-Glass/LKG-Toolkit.git
-cd LKG-Toolkit          
+# Download LKG-Toolkit repo
+git clone https://github.com/Looking-Glass/LKG-Toolkit
+cd LKG-Toolkit
 ```
 
 ```sh
-# setup, install project, and build
-dotnet workload restore # Installs necessary .net tools
-dotnet restore          # Installs nuget dependencies
+# Setup, install project, and build
+dotnet workload restore # Installs necessary .NET tools
+dotnet restore          # Installs Nuget dependencies
 dotnet build            # Builds all the projects
 ```
 
@@ -52,7 +50,6 @@ dotnet run
 
 
 # CLI Examples
-
 ## Help
 ```sh
 > Toolkit-CLI.exe --help
@@ -76,7 +73,6 @@ Listen for Bridge events:
 ```
 
 ## Listening for events
-
 ```sh
 > Toolkit-CLI.exe -t listen
 
@@ -86,7 +82,6 @@ Listening for events, press any key to stop.
 ```
 
 ## List connected devices
-
 ```sh
 > Toolkit-CLI.exe -t list
 
@@ -99,7 +94,6 @@ Calibration Version: 3.0
 ```
 
 ## Playback quilt
-
 ```sh
 > Toolkit-CLI.exe -t play -i https://s3.amazonaws.com/lkg-blocks/legacy/715/source.png -c 7 -r 11 -v 77 --loop --aspect 0.75
 
@@ -109,9 +103,7 @@ Listening for events, press any key to stop.
 ```
 
 # API Examples
-
 ## Listening for events
-
 This is the exact code executed by: ```Toolkit-CLI.exe -t listen```
 
 ```csharp
@@ -158,7 +150,6 @@ Console.ReadKey();
 ```
 
 ## List Devices
-
 This is the exact code executed by: ```Toolkit-CLI.exe -t list```
 
 ```csharp
@@ -210,7 +201,6 @@ else
 ```
 
 ## Playback Quilt
-
 This is the exact code executed by: ```Toolkit-CLI.exe -t play -i https://s3.amazonaws.com/lkg-blocks/legacy/715/source.png -c 7 -r 11 -v 77 --loop --aspect 0.75```
 
 ```csharp

@@ -1,7 +1,10 @@
 ﻿using System;
-using Newtonsoft.Json.Linq;
 
-namespace ToolkitAPI.Bridge
+#if HAS_NEWTONSOFT_JSON
+using Newtonsoft.Json.Linq;
+#endif
+
+namespace LookingGlass.Toolkit.Bridge
 {
     /// <summary>
     /// <para>Describes a shared session connected to Looking Glass Bridge, synchronized via events.</para>
@@ -29,11 +32,15 @@ namespace ToolkitAPI.Bridge
         {
             try
             {
+#if !HAS_NEWTONSOFT_JSON
+            throw new NotSupportedException();
+#else
                 JObject json = JObject.Parse(jsonString);
                 string name = json["orchestration"]?["value"]?.ToString();
                 string token = json["payload"]?["value"]?.ToString();
                 orch = new Orchestration(name, token);
                 return true;
+#endif
             }
             catch
             {

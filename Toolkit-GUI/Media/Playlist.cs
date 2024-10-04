@@ -7,9 +7,9 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using ToolkitAPI;
+using LookingGlass.Toolkit;
 
-namespace ToolkitGUI.Media
+namespace LookingGlass.Toolkit.GUI.Media
 {
     [Serializable]
     public class Playlist
@@ -123,9 +123,9 @@ namespace ToolkitGUI.Media
             }
         }
 
-        public ToolkitAPI.Bridge.Playlist GetBridgePlaylist()
+        public LookingGlass.Toolkit.Bridge.Playlist GetBridgePlaylist()
         {
-            var bridgePlaylist = new ToolkitAPI.Bridge.Playlist(name, true);
+            var bridgePlaylist = new LookingGlass.Toolkit.Bridge.Playlist(name, true);
 
             for(int i = 0; i < items.Count; i++)
             {

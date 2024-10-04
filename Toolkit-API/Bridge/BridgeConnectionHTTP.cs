@@ -1,204 +1,211 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using Newtonsoft.Json.Linq;
-using ToolkitAPI.Bridge.EventListeners;
-using ToolkitAPI.Bridge.Params;
-using ToolkitAPI.Device;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using WebSocketSharp;
 
-namespace ToolkitAPI.Bridge
-{
-    public class BridgeConnectionHTTP : IDisposable
-    {
+
+#if HAS_NEWTONSOFT_JSON
+using Newtonsoft.Json.Linq;
+#endif
+
+namespace LookingGlass.Toolkit.Bridge {
+    public class BridgeConnectionHTTP : IDisposable {
+        public const string DefaultURL = "localhost";
+        public const int DefaultPort = 33334;
+        public const int DefaultWebSocketPort = 9724;
+
         private int port;
         private int webSocketPort;
         private string url;
 
-        private HttpClient client = null;
+        private ILogger logger;
+        private IHttpSender httpSender;
         private BridgeWebSocketClient webSocket;
-        private volatile bool LastConnectionState = false;
+        private volatile bool lastConnectionState = false;
+
+        private Stopwatch timer = new Stopwatch();
 
         private Orchestration session;
+        private string currentPlaylistName = "";
 
-        public Dictionary<int, TKDisplay> AllDisplays { get; private set; }
-        public Dictionary<int, TKDisplay> LKGDisplays { get; private set; }
+        public int Port => port;
+        public int WebSocketPort => webSocketPort;
+
+        public BridgeLoggingFlags LoggingFlags { get; set; } = BridgeLoggingFlags.None;
+        public Dictionary<int, Display> AllDisplays { get; private set; }
+        public Dictionary<int, Display> LKGDisplays { get; private set; }
 
         private Dictionary<string, List<Action<string>>> eventListeners;
         private DisplayEvents monitorEvents;
-
         private HashSet<Action<bool>> connectionStateListeners;
 
-        public BridgeConnectionHTTP(string url = "localhost", int port = 33334, int webSocketPort = 9724)
-        {
+        public BridgeConnectionHTTP(string url = DefaultURL, int port = DefaultPort, int webSocketPort = DefaultWebSocketPort) : this(null, null, url, port, webSocketPort) { }
+        public BridgeConnectionHTTP(ILogger logger, IHttpSender httpSender, string url = DefaultURL, int port = DefaultPort, int webSocketPort = DefaultWebSocketPort) {
             this.url = url;
             this.port = port;
             this.webSocketPort = webSocketPort;
 
-            AllDisplays = new Dictionary<int, TKDisplay>();
-            LKGDisplays = new Dictionary<int, TKDisplay>();
+            //TODO: Use DI instead of putting defaults here:
+            if (logger == null)
+                logger = new ConsoleLogger();
+            if (httpSender == null)
+                httpSender = new DefaultHttpSender();
+            this.logger = logger;
+            this.httpSender = httpSender;
+
+            AllDisplays = new Dictionary<int, Display>();
+            LKGDisplays = new Dictionary<int, Display>();
 
             eventListeners = new Dictionary<string, List<Action<string>>>();
-
             monitorEvents = new DisplayEvents(this);
-
             connectionStateListeners = new HashSet<Action<bool>>();
         }
 
-        public bool Connect(int timeoutSeconds = 300)
-        {
-            client = new HttpClient
-            {
-                Timeout = TimeSpan.FromSeconds(timeoutSeconds)
-            };
+        public bool Connect(int timeoutSeconds = 3000) {
+            httpSender.TimeoutSeconds = timeoutSeconds;
+            if (webSocket != null) {
+                webSocket.Dispose();
+                webSocket = null;
+            }
             webSocket = new BridgeWebSocketClient(UpdateListeners);
             return UpdateConnectionState(webSocket.TryConnect($"ws://{url}:{webSocketPort}/event_source"));
         }
 
 
-        public bool UpdateConnectionState(bool state)
-        {
-            LastConnectionState = state;
-
+        public bool UpdateConnectionState(bool state) {
+            lastConnectionState = state;
             foreach (Action<bool> callback in connectionStateListeners)
-            {
-                callback(LastConnectionState);
-            }
-
-            return LastConnectionState;
+                callback(lastConnectionState);
+            return lastConnectionState;
         }
 
-        public int AddListener(string name, Action<string> callback)
-        {
-            if (eventListeners.ContainsKey(name))
-            {
+        private string GetURL(string endpoint) => $"http://{url}:{port}/{endpoint}";
+
+        public int AddListener(string name, Action<string> callback) {
+            if (eventListeners.ContainsKey(name)) {
                 int id = eventListeners[name].Count;
                 eventListeners[name].Add(callback);
                 return id;
-            }
-            else
-            {
-                List<Action<string>> callbacks = new List<Action<string>>();
-                callbacks.Add(callback);
+            } else {
+                List<Action<string>> callbacks = new() { callback };
 
                 eventListeners.Add(name, callbacks);
                 return 0;
             }
         }
 
-        public void RemoveListener(string name, Action<string> callback)
-        {
-            if (eventListeners.ContainsKey(name))
-            {
-                if (eventListeners[name].Contains(callback))
-                {
+        public void RemoveListener(string name, Action<string> callback) {
+            if (eventListeners.ContainsKey(name)) {
+                if (eventListeners[name].Contains(callback)) {
                     eventListeners[name].Remove(callback);
                 }
             }
         }
 
-        public void AddConnectionStateListener(Action<bool> callback)
-        {
-            if (!connectionStateListeners.Contains(callback))
-            {
+        public void AddConnectionStateListener(Action<bool> callback) {
+            if (!connectionStateListeners.Contains(callback)) {
                 connectionStateListeners.Add(callback);
-
-                callback(LastConnectionState);
+                callback(lastConnectionState);
             }
         }
 
-        public void RemoveConnectionStateListener(Action<bool> callback)
-        {
-            if (connectionStateListeners.Contains(callback))
-            {
+        public void RemoveConnectionStateListener(Action<bool> callback) {
+            if (connectionStateListeners.Contains(callback)) {
                 connectionStateListeners.Remove(callback);
             }
         }
 
-        private void UpdateListeners(string message)
-        {
-            JToken? json = JObject.Parse(message)["payload"]?["value"];
+        private void UpdateListeners(string message) {
+#if HAS_NEWTONSOFT_JSON
+            JToken json = JObject.Parse(message)["payload"]?["value"];
 
-            if (json != null)
-            {
+            if (json != null) {
                 string eventName = json["event"]["value"].ToString();
                 string eventData = json.ToString();
 
                 Console.WriteLine(eventName + "\n" + eventData);
 
-                if (eventListeners.ContainsKey(eventName))
-                {
-                    foreach (var listener in eventListeners[eventName])
-                    {
+                if (eventListeners.ContainsKey(eventName)) {
+                    foreach (Action<string> listener in eventListeners[eventName]) {
                         listener(eventData);
                     }
                 }
 
                 // special case for listeners with empty names
-                if (eventListeners.ContainsKey(""))
-                {
-                    foreach (var listener in eventListeners[""])
-                    {
+                if (eventListeners.ContainsKey("")) {
+                    foreach (var listener in eventListeners[""]) {
                         listener(eventData);
                     }
                 }
             }
+#endif
         }
 
-        public List<TKDisplay> GetAllDisplays()
-        {
-            List<TKDisplay> displays = new List<TKDisplay>();
-
-            foreach (var kvp in AllDisplays)
-            {
-                displays.Add(kvp.Value);
-            }
-
+        public List<Display> GetAllDisplays() {
+            List<Display> displays = new();
+            foreach (KeyValuePair<int, Display> pair in AllDisplays)
+                displays.Add(pair.Value);
             return displays;
         }
 
-        public List<TKDisplay> GetLKGDisplays()
-        {
-            List<TKDisplay> displays = new List<TKDisplay>();
-
-            foreach (var kvp in LKGDisplays)
-            {
-                displays.Add(kvp.Value);
-            }
-
+        public List<Display> GetLKGDisplays() {
+            List<Display> displays = new();
+            foreach (KeyValuePair<int, Display> pair in LKGDisplays)
+                displays.Add(pair.Value);
             return displays;
         }
 
-        public string TrySendMessage(string endpoint, string content)
-        {
-            try
-            {
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, $"http://{url}:{port}/{endpoint}");
-                request.Content = new StringContent(content);
-
-                HttpResponseMessage resp = client.SendAsync(request).Result; //TODO: Async support?
-                string result = resp.Content.ReadAsStringAsync().Result;
+        public string TrySendMessage(string endpoint, string content) => TrySendMessage(endpoint, content, LoggingFlags);
+        public string TrySendMessage(string endpoint, string content, BridgeLoggingFlags loggingFlags) {
+            try {
+                if ((loggingFlags & BridgeLoggingFlags.Messages) != 0)
+                    PrintMessage(endpoint, content);
+                string response = httpSender.Send(HttpSenderMethod.Put, GetURL(endpoint), content);
+                if ((loggingFlags & BridgeLoggingFlags.Responses) != 0)
+                    PrintResponse(endpoint, response);
 
                 UpdateConnectionState(true);
-
-                return result;
+                return response;
+            } catch (Exception e) {
+                logger.LogException(e);
+                UpdateConnectionState(false);
+                return null;
             }
-            catch (HttpRequestException ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
-
-            UpdateConnectionState(false);
-
-            return null;
         }
 
-        public bool TryEnterOrchestration(string name = "default")
-        {
+        public Task<string> SendMessageAsync(string endpoint, string content) => SendMessageAsync(endpoint, content, LoggingFlags);
+        public async Task<string> SendMessageAsync(string endpoint, string content, BridgeLoggingFlags loggingFlags) {
+            try {
+                if ((loggingFlags & BridgeLoggingFlags.Messages) != 0)
+                    PrintMessage(endpoint, content);
+                string response = await httpSender.SendAsync(HttpSenderMethod.Put, GetURL(endpoint), content);
+                if ((loggingFlags & BridgeLoggingFlags.Responses) != 0)
+                    PrintResponse(endpoint, response);
+                UpdateConnectionState(true);
+                return response;
+            } catch (Exception e) {
+                logger.LogException(e);
+                UpdateConnectionState(false);
+                throw;
+            }
+        }
+
+        private string GetPrefix() => "[LKG Toolkit]";
+        private string GetPrefix(string endpoint) => "[LKG Toolkit] \"" + endpoint + "\"";
+
+        private string GetMessageLogString(string endpoint, string content) => GetPrefix() + " Sent to \"" + endpoint + "\":\n" + content;
+        private string GetResponseLogString(string endpoint, string response) => GetPrefix(endpoint) + " responded:\n" + response;
+        private string GetTimeLogString(string endpoint, TimeSpan time) => GetPrefix(endpoint) + " completed in " + time.TotalMilliseconds.ToString("F0") + "ms";
+
+        private void PrintMessage(string endpoint, string content) => logger.Log(GetMessageLogString(endpoint, content));
+        private void PrintResponse(string endpoint, string response) => logger.Log(GetResponseLogString(endpoint, response));
+        private void PrintTime(string endpoint, TimeSpan time) => logger.Log(GetTimeLogString(endpoint, time));
+
+        public bool TryEnterOrchestration(string name = "default") {
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                timer.Restart();
+
             string message =
                 $@"
                 {{
@@ -207,21 +214,28 @@ namespace ToolkitAPI.Bridge
                 ";
 
             string resp = TrySendMessage("enter_orchestration", message);
-            if (resp != null)
-            {
-                if (Orchestration.TryParse(resp, out Orchestration newSession))
-                {
+
+            if (resp != null) {
+                if (Orchestration.TryParse(resp, out Orchestration newSession)) {
                     session = newSession;
+                    if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                        PrintTime("enter_orchestration message parsed", timer.Elapsed);
                     return true;
                 }
             }
+
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                PrintTime("enter_orchestration", timer.Elapsed);
+
             return false;
         }
 
-        public bool TryExitOrchestration()
-        {
+        public bool TryExitOrchestration() {
             if (session == null)
                 return false;
+
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                timer.Restart();
 
             string message =
                 $@"
@@ -232,18 +246,24 @@ namespace ToolkitAPI.Bridge
 
             string resp = TrySendMessage("exit_orchestration", message);
 
-            if (resp != null)
-            {
+            if (resp != null) {
                 session = default;
+                if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                    PrintTime("exit_orchestration", timer.Elapsed);
                 return true;
             }
+
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                PrintTime("exit_orchestration", timer.Elapsed);
             return false;
         }
 
-        public bool TryTransportControlsPlay()
-        {
+        public bool TryTransportControlsPlay() {
             if (session == null)
                 return false;
+
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                timer.Restart();
 
             string message =
                 $@"
@@ -252,14 +272,20 @@ namespace ToolkitAPI.Bridge
                 }}
                 ";
 
-            string? resp = TrySendMessage("transport_control_play", message);
+            string resp = TrySendMessage("transport_control_play", message);
+
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                PrintTime("transport_control_play", timer.Elapsed);
+
             return resp != null;
         }
 
-        public bool TryTransportControlsPause()
-        {
+        public bool TryTransportControlsPause() {
             if (session == null)
                 return false;
+
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                timer.Restart();
 
             string message =
                 $@"
@@ -269,13 +295,19 @@ namespace ToolkitAPI.Bridge
                 ";
 
             string resp = TrySendMessage("transport_control_pause", message);
+
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                PrintTime("transport_control_pause", timer.Elapsed);
+
             return resp != null;
         }
 
-        public bool TryTransportControlsNext()
-        {
+        public bool TryTransportControlsNext() {
             if (session == null)
                 return false;
+
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                timer.Restart();
 
             string message =
                 $@"
@@ -285,13 +317,19 @@ namespace ToolkitAPI.Bridge
                 ";
 
             string resp = TrySendMessage("transport_control_next", message);
+
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                PrintTime("transport_control_next", timer.Elapsed);
+
             return resp != null;
         }
 
-        public bool TryTransportControlsPrevious()
-        {
+        public bool TryTransportControlsPrevious() {
             if (session == null)
                 return false;
+
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                timer.Restart();
 
             string message =
             $@"
@@ -301,13 +339,19 @@ namespace ToolkitAPI.Bridge
             ";
 
             string resp = TrySendMessage("transport_control_previous", message);
+
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                PrintTime("transport_control_previous", timer.Elapsed);
+
             return resp != null;
         }
 
-        public bool TryShowWindow(bool showWindow, int head = -1)
-        {
+        public bool TryShowWindow(bool showWindow, int head = -1) {
             if (session == null)
                 return false;
+
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                timer.Restart();
 
             string message =
             $@"
@@ -319,13 +363,19 @@ namespace ToolkitAPI.Bridge
             ";
 
             string resp = TrySendMessage("show_window", message);
+
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                PrintTime("show_window", timer.Elapsed);
+
             return resp != null;
         }
 
-        public bool TrySubscribeToEvents()
-        {
+        public bool TrySubscribeToEvents() {
             if (session == null)
                 return false;
+
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                timer.Restart();
 
             if (!webSocket.Connected())
                 return false;
@@ -337,14 +387,19 @@ namespace ToolkitAPI.Bridge
                 }}
                 ";
 
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                PrintTime("TrySubscribeToEvents", timer.Elapsed);
+
             return webSocket.TrySendMessage(message);
         }
 
 
-        public bool TryUpdatingParameter(string playlistName, int playlistItem, Parameters param, float newValue)
-        {
+        public bool TryUpdatingParameter(string playlistName, int playlistItem, Parameters param, float newValue) {
             if (session == null)
                 return false;
+
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                timer.Restart();
 
             string message =
                 $@"
@@ -352,39 +407,53 @@ namespace ToolkitAPI.Bridge
                     ""orchestration"": ""{session.Token}"",
                     ""name"": ""{playlistName}"",
                     ""index"": ""{playlistItem}"",
-                    ""{ParameterUtils.GetParamName(param)}"": ""{(ParameterUtils.IsFloatParam(param) ? newValue : (int)newValue)}"",
+                    ""{ParameterUtils.GetParamName(param)}"": ""{(ParameterUtils.IsFloatParam(param) ? newValue : (int) newValue)}"",
                 }}
                 ";
 
             string resp = TrySendMessage("update_playlist_entry", message);
+
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                PrintTime("update_playlist_entry", timer.Elapsed);
+
             return resp != null;
         }
 
 
-        public bool TryUpdatingParameter(string playlistName, Parameters param, float newValue)
-        {
+        public bool TryUpdatingParameter(string playlistName, Parameters param, float newValue) {
             if (session == null)
-            {
                 return false;
-            }
+
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                timer.Restart();
 
             string message =
                 $@"
                 {{
                     ""orchestration"": ""{session.Token}"",
                     ""name"": ""{playlistName}"",
-                    ""{ParameterUtils.GetParamName(param)}"": ""{(ParameterUtils.IsFloatParam(param) ? newValue : (int)newValue)}"",
+                    ""{ParameterUtils.GetParamName(param)}"": ""{(ParameterUtils.IsFloatParam(param) ? newValue : (int) newValue)}"",
                 }}
                 ";
 
             string resp = TrySendMessage("update_current_entry", message);
+
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                PrintTime("update_current_entry", timer.Elapsed);
+
             return resp != null;
         }
 
-        public bool TryUpdateDevices()
-        {
+        public bool TryUpdateDevices() => TryUpdateDevices(LoggingFlags);
+        public bool TryUpdateDevices(BridgeLoggingFlags loggingFlags) => UpdateDevicesAsync(loggingFlags).Result;
+
+        public Task<bool> UpdateDevicesAsync() => UpdateDevicesAsync(LoggingFlags);
+        public async Task<bool> UpdateDevicesAsync(BridgeLoggingFlags loggingFlags) {
             if (session == null)
                 return false;
+
+            if ((loggingFlags & BridgeLoggingFlags.Timing) != 0)
+                timer.Restart();
 
             string message =
                 $@"
@@ -393,48 +462,50 @@ namespace ToolkitAPI.Bridge
                 }}
                 ";
 
-            string resp = TrySendMessage("available_output_devices", message);
+            string response = await SendMessageAsync("available_output_devices", message, loggingFlags);
+            try {
+                return UpdateDisplays(response);
+            } finally {
+                if ((loggingFlags & BridgeLoggingFlags.Timing) != 0)
+                    PrintTime("available_output_devices", timer.Elapsed);
+            }
+        }
 
-            if (resp != null)
-            {
-                JObject payloadJson = JObject.Parse(resp)?["payload"]?["value"]?.Value<JObject>();
+        private bool UpdateDisplays(string response) {
+#if HAS_NEWTONSOFT_JSON
+            if (!string.IsNullOrWhiteSpace(response)) {
+                JObject payloadJson = JObject.Parse(response)?["payload"]?["value"]?.Value<JObject>();
 
-                lock (this)
-                {
-                    if (payloadJson != null)
-                    {
-                        Dictionary<int, TKDisplay> allDisplays = new Dictionary<int, TKDisplay>();
-                        Dictionary<int, TKDisplay> lkgDisplays = new Dictionary<int, TKDisplay>();
+                if (payloadJson != null) {
+                    Dictionary<int, Display> allDisplays = new();
+                    Dictionary<int, Display> lkgDisplays = new();
 
-                        for (int i = 0; i < payloadJson.Count; i++)
-                        {
-                            JObject displayJson = payloadJson[i.ToString()]!["value"]!.Value<JObject>();
-                            if (TKDisplay.TryParse(i, displayJson, out TKDisplay display))
-                            {
-                                if (!allDisplays.ContainsKey(display.hardwareInfo.index))
-                                    allDisplays.Add(display.hardwareInfo.index, display);
+                    for (int i = 0; i < payloadJson.Count; i++) {
+                        JObject displayJson = payloadJson[i.ToString()]!["value"]!.Value<JObject>();
+                        Display display = Display.Parse(i, displayJson);
+                        if (!allDisplays.ContainsKey(display.hardwareInfo.index))
+                            allDisplays.Add(display.hardwareInfo.index, display);
 
-                                if (display.IsLKG && !lkgDisplays.ContainsKey(display.hardwareInfo.index))
-                                    lkgDisplays.Add(display.hardwareInfo.index, display);
-                            }
-                        }
-
-                        AllDisplays = allDisplays;
-                        LKGDisplays = lkgDisplays;
+                        if (display.IsLKG && !lkgDisplays.ContainsKey(display.hardwareInfo.index))
+                            lkgDisplays.Add(display.hardwareInfo.index, display);
                     }
+
+                    AllDisplays = allDisplays;
+                    LKGDisplays = lkgDisplays;
                 }
 
                 return true;
             }
-
+#endif
             return false;
         }
 
-        private string currentPlaylistName = "";
-        public bool TryDeletePlaylist(Playlist p)
-        {
+        public bool TryDeletePlaylist(Playlist p) {
             if (session == null)
                 return false;
+
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                timer.Restart();
 
             if (currentPlaylistName == p.name)
                 currentPlaylistName = "";
@@ -442,16 +513,20 @@ namespace ToolkitAPI.Bridge
             string deleteMessage = p.GetInstanceJson(session);
             string response = TrySendMessage("delete_playlist", deleteMessage);
 
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                PrintTime("delete_playlist", timer.Elapsed);
+
             return response != null;
         }
 
-        public bool TrySyncPlaylist(int head = -1)
-        {
+        public bool TrySyncPlaylist(int head = -1) {
             if (session == null)
                 return false;
 
-            if (currentPlaylistName != "")
-            {
+            if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                timer.Restart();
+
+            if (currentPlaylistName != "") {
                 string message =
                 $@"
                 {{
@@ -465,6 +540,10 @@ namespace ToolkitAPI.Bridge
                 ";
 
                 string response = TrySendMessage("sync_overwrite_playlist", message);
+
+                if ((LoggingFlags & BridgeLoggingFlags.Timing) != 0)
+                    PrintTime("sync_overwrite_playlist", timer.Elapsed);
+
                 return response != null;
             }
             return false;
@@ -476,20 +555,18 @@ namespace ToolkitAPI.Bridge
         /// <param name="p">The playlist to play. This may contain one or more images or videos to playback on the LKG display.</param>
         /// <param name="head">
         /// <para>
-        /// Determines which LKG display to target. This is the LKG display index from <see cref="TKDisplayInfo.index"/>.
+        /// Determines which LKG display to target. This is the LKG display index from <see cref="DisplayInfo.index"/>.
         /// </para>
         /// <remarks>
         /// Note that using a display index of -1 will use the first available LKG display.
         /// </remarks>
         /// </param>
         /// <returns></returns>
-        public bool TryPlayPlaylist(Playlist p, int head = -1)
-        {
+        public bool TryPlayPlaylist(Playlist p, int head = -1) {
             if (session == null)
                 return false;
 
-            if (currentPlaylistName == p.name)
-            {
+            if (currentPlaylistName == p.name) {
                 string delete_message = p.GetInstanceJson(session);
                 string delete_resp = TrySendMessage("delete_playlist", delete_message);
             }
@@ -501,8 +578,7 @@ namespace ToolkitAPI.Bridge
 
             string[] playlistItems = p.GetPlaylistItemsAsJson(session);
 
-            for (int i = 0; i < playlistItems.Length; i++)
-            {
+            for (int i = 0; i < playlistItems.Length; i++) {
                 string pMessage = playlistItems[i];
                 string pResp = TrySendMessage("insert_playlist_entry", pMessage);
             }
@@ -515,32 +591,25 @@ namespace ToolkitAPI.Bridge
             return true;
         }
 
-        public bool TrySaveout(string source, string filename)
-        {
+        public bool TrySaveout(string source, string filename) {
             string message =
                 $@"
                 {{
-                    ""orchestration"": ""{ session.Token }"",
+                    ""orchestration"": ""{session.Token}"",
                     ""head_index"": ""-1"",
                     ""source"": ""{source}"",
                     ""filename"": ""{filename.Replace("\\", "\\\\")}""
                 }}
                 ";
 
-            string? resp = TrySendMessage("source_saveout", message);
+            string resp = TrySendMessage("source_saveout", message);
 
             if (!resp.IsNullOrEmpty())
-            {
                 return true;
-            }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
-        public bool TryGetCameraParams(out float displayViewCone, out float displayViewConeVFOV, out float displayViewConeHFOV)
-        {
+        public bool TryGetCameraParams(out float displayViewCone, out float displayViewConeVFOV, out float displayViewConeHFOV) {
             string message =
                 $@"
                 {{
@@ -549,28 +618,28 @@ namespace ToolkitAPI.Bridge
                 }}
                 ";
 
-            string? resp = TrySendMessage("get_camera_parameters", message);
+            string resp = TrySendMessage("get_camera_parameters", message);
 
-            if (!string.IsNullOrEmpty(resp))
-            {
+#if HAS_NEWTONSOFT_JSON
+            if (!string.IsNullOrEmpty(resp)) {
                 JObject json = JObject.Parse(resp);
-                displayViewCone     = json["payload"]["value"]["viewCone"]["value"].Value<float>();
+                displayViewCone = json["payload"]["value"]["viewCone"]["value"].Value<float>();
                 displayViewConeHFOV = json["payload"]["value"]["hHOV"]["value"].Value<float>();
                 displayViewConeVFOV = json["payload"]["value"]["vFOV"]["value"].Value<float>();
                 return true;
-            }
-            else
-            {
+            } else {
+#endif
                 displayViewCone = 0;
                 displayViewConeHFOV = 0;
                 displayViewConeVFOV = 0;
                 return false;
+#if HAS_NEWTONSOFT_JSON
             }
+#endif
         }
 
 
-        public bool TryReadback(string source)
-        {
+        public bool TryReadback(string source) {
             string message =
                 $@"
                 {{
@@ -580,27 +649,22 @@ namespace ToolkitAPI.Bridge
                 }}
                 ";
 
-            string? resp = TrySendMessage("source_readback", message);
+            string resp = TrySendMessage("source_readback", message);
 
             if (!resp.IsNullOrEmpty())
-            {
                 return true;
-            }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
-        public void Dispose()
-        {
-            if (session != default)
-            {
+        public void Dispose() {
+            if (session != default) 
                 TryExitOrchestration();
-            }
 
             webSocket.Dispose();
-            client.Dispose();
+            if (logger is IDisposable l)
+                l.Dispose();
+            if (httpSender is IDisposable h)
+                h.Dispose();
         }
     }
 }

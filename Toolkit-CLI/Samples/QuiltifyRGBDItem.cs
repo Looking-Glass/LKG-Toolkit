@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ToolkitAPI.Bridge;
+using LookingGlass.Toolkit.Bridge;
+using WebSocketSharp;
 
-namespace ToolKitCLI.Samples
+namespace LookingGlass.Toolkit.CLI.Samples
 {
-    internal class PlayRGBDItem
+    internal class QuiltifyRGBDItem
     {
         public static void Run(CommandLineOptions args)
         {
@@ -44,30 +45,34 @@ namespace ToolKitCLI.Samples
                 }
                 Random rng = new Random();
                 Playlist p = new Playlist("default_" + rng.Next(0, 10000), args.loopPlaylist);
-                p.AddRGBDItem(args.inputFile, args.rows, args.cols, args.aspect,
-                    1.0f,    //depthiness
-                    0.9f,   //depth_cutoff
-                    -0.04f,  //focus
-                    2,       //depth_loc right
-                    5f,    //cam_dist
-                    30,      //fov
-                    "",
-                    1f);   //zoom 
+                p.AddRGBDItem(args.inputFile, args.rows, args.cols, args.aspect, args.Depthiness, 0.9f, args.Focus, args.DepthLoc, 5f, 30, "", args.Zoom); 
 
-                if (!b.TryPlayPlaylist(p, args.head))
+                if (b.TryPlayPlaylist(p, args.head))
+                {
+                    Thread.Sleep(2500);
+
+                    string filename = Environment.CurrentDirectory + $"\\output_qs{args.cols}x{args.rows}a{args.aspect}.png";
+
+                    if (!args.outputFile.IsNullOrEmpty())
+                    {
+                        filename = args.outputFile;
+                    }
+
+                    // When an RGBD is on screen we can readback the quilt being displayed on screen to save to disk
+                    b.TrySaveout("QUILT_VIEW", filename);
+                }
+                else
                 {
                     Console.WriteLine("Failed to play playlist");
                     return;
                 }
+
             }
             else
             {
                 Console.WriteLine("Failed to connect to bridge, ensure bridge is running");
                 return;
             }
-
-            Console.WriteLine("Listening for events, press any key to stop.");
-            Console.ReadKey();
         }
     }
 }

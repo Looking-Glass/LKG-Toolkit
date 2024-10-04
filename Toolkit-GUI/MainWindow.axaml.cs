@@ -2,17 +2,13 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
-using System.Collections.Generic;
+using Avalonia.Threading;
 using System;
 using System.Linq;
-using System.Xml.Linq;
-using ToolkitAPI.Device;
-using ToolkitGUI.Media;
+using LookingGlass.Toolkit.GUI.Media;
 using System.Diagnostics;
-using Avalonia.Threading;
-using System.Reactive.Joins;
 
-namespace ToolkitGUI
+namespace LookingGlass.Toolkit.GUI
 {
     public partial class MainWindow : Window
     {
@@ -23,7 +19,7 @@ namespace ToolkitGUI
 
         PlaylistManager playlistManager;
         
-        public ToolkitAPI.Bridge.BridgeConnectionHTTP bridgeConnection;
+        public LookingGlass.Toolkit.Bridge.BridgeConnectionHTTP bridgeConnection;
         public volatile bool connectionStatus = false;
 
         public MainWindow()
@@ -54,7 +50,7 @@ namespace ToolkitGUI
             
         }
 
-        private void MainWindow_Closed(object? sender, EventArgs e)
+        private void MainWindow_Closed(object sender, EventArgs e)
         {
             if(bridgeConnection != null && PlayingPlaylist != null)
             {
@@ -68,7 +64,7 @@ namespace ToolkitGUI
             }
         }
 
-        private void MainWindow_Opened(object? sender, System.EventArgs e)
+        private void MainWindow_Opened(object sender, System.EventArgs e)
         {
             InitializeBridge();
         }
@@ -86,7 +82,7 @@ namespace ToolkitGUI
 
         private void InitializeBridge()
         {
-            bridgeConnection = new ToolkitAPI.Bridge.BridgeConnectionHTTP();
+            bridgeConnection = new LookingGlass.Toolkit.Bridge.BridgeConnectionHTTP();
             bridgeConnection.AddConnectionStateListener((connectionStatusChange) =>
             {
                 this.connectionStatus = connectionStatusChange;
@@ -195,10 +191,10 @@ namespace ToolkitGUI
             SeekBar.Value = progress;
         }
 
-        private async void CreatePlaylistButton_Click(object? sender, RoutedEventArgs e)
+        private async void CreatePlaylistButton_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new InputDialog("Create New Playlist", "Enter the name of the new playlist:");
-            string? name = await dialog.ShowDialog<string?>(this);
+            string name = await dialog.ShowDialog<string>(this);
 
             if (!string.IsNullOrEmpty(name))
             {
@@ -207,7 +203,7 @@ namespace ToolkitGUI
             }
         }
 
-        private void PlayButton_Click(object? sender, RoutedEventArgs e)
+        private void PlayButton_Click(object sender, RoutedEventArgs e)
         {
             if(bridgeConnection != null)
             {
@@ -215,7 +211,7 @@ namespace ToolkitGUI
             }
         }
 
-        private void PauseButton_Click(object? sender, RoutedEventArgs e)
+        private void PauseButton_Click(object sender, RoutedEventArgs e)
         {
             if (bridgeConnection != null)
             {
@@ -223,7 +219,7 @@ namespace ToolkitGUI
             }
         }
 
-        private void StopButton_Click(object? sender, RoutedEventArgs e)
+        private void StopButton_Click(object sender, RoutedEventArgs e)
         {
             if (bridgeConnection != null && PlayingPlaylist != null)
             {
@@ -232,7 +228,7 @@ namespace ToolkitGUI
             }
         }
 
-        private void PreviousButton_Click(object? sender, RoutedEventArgs e)
+        private void PreviousButton_Click(object sender, RoutedEventArgs e)
         {
             if (bridgeConnection != null)
             {
@@ -240,7 +236,7 @@ namespace ToolkitGUI
             }
         }
 
-        private void NextButton_Click(object? sender, RoutedEventArgs e)
+        private void NextButton_Click(object sender, RoutedEventArgs e)
         {
             if (bridgeConnection != null)
             {

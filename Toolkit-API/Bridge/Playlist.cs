@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Collections.Specialized.BitVector32;
 
-namespace ToolkitAPI.Bridge
+namespace LookingGlass.Toolkit.Bridge
 {
     /// <summary>
     /// Contains a playable list of <see cref="PlaylistItem"/>s.<br />

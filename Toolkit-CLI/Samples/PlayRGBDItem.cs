@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using ToolkitAPI.Bridge;
+using LookingGlass.Toolkit.Bridge;
 
-namespace ToolKitCLI.Samples
+namespace LookingGlass.Toolkit.CLI.Samples
 {
-    internal class PlayQuiltItem
+    internal class PlayRGBDItem
     {
         public static void Run(CommandLineOptions args)
         {
@@ -43,9 +42,17 @@ namespace ToolKitCLI.Samples
                     Console.WriteLine("Failed to update devices");
                     return;
                 }
-
-                Playlist p = new Playlist("default", args.loopPlaylist);
-                p.AddQuiltItem(args.inputFile, args.rows, args.cols, args.aspect, args.viewCount);
+                Random rng = new Random();
+                Playlist p = new Playlist("default_" + rng.Next(0, 10000), args.loopPlaylist);
+                p.AddRGBDItem(args.inputFile, args.rows, args.cols, args.aspect,
+                    1.0f,    //depthiness
+                    0.9f,   //depth_cutoff
+                    -0.04f,  //focus
+                    2,       //depth_loc right
+                    5f,    //cam_dist
+                    30,      //fov
+                    "",
+                    1f);   //zoom 
 
                 if (!b.TryPlayPlaylist(p, args.head))
                 {
@@ -62,6 +69,5 @@ namespace ToolKitCLI.Samples
             Console.WriteLine("Listening for events, press any key to stop.");
             Console.ReadKey();
         }
-
     }
 }

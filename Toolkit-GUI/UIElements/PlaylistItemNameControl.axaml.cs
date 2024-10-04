@@ -1,9 +1,9 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using System;
-using ToolkitGUI.Media;
+using LookingGlass.Toolkit.GUI.Media;
 
-namespace ToolkitGUI
+namespace LookingGlass.Toolkit.GUI
 {
     public partial class PlaylistItemNameControl : UserControl
     {
@@ -27,7 +27,7 @@ namespace ToolkitGUI
             DeleteButton.Click += DeleteButton_Click;
         }
 
-        private void Border_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+        private void Border_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e)
         {
             if (onPlaylistSelected != null)
             {
@@ -35,7 +35,7 @@ namespace ToolkitGUI
             }
         }
 
-        private void DeleteButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private void DeleteButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
             if (onDeletePlaylist != null)
             {

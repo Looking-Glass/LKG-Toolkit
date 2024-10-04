@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ToolkitGUI.Media;
+using LookingGlass.Toolkit.GUI.Media;
 
-namespace ToolkitGUI.Utils
+namespace LookingGlass.Toolkit.GUI.Utils
 {
     public static class FileUtils
     {

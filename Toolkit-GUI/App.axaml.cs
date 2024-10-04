@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 
-namespace ToolkitGUI
+namespace LookingGlass.Toolkit.GUI
 {
     public partial class App : Application
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using WebSocketSharp;
 
-namespace ToolkitAPI.Bridge
+namespace LookingGlass.Toolkit.Bridge
 {
     /// <summary>
     /// Handles asynchronous events and responses from Looking Glass Bridge.

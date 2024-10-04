@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ToolkitAPI.Bridge;
+using System.Xml.Linq;
+using LookingGlass.Toolkit.Bridge;
 
-namespace ToolKitCLI.Samples
+namespace LookingGlass.Toolkit.CLI.Samples
 {
-    internal static class HideWindow
+    internal class PlayQuiltItem
     {
         public static void Run(CommandLineOptions args)
         {
@@ -20,7 +21,6 @@ namespace ToolKitCLI.Samples
             if (connectionStatus)
             {
                 Console.WriteLine("Connected to bridge");
-                b.AddListener("", (e) => { Console.WriteLine(e); });
 
                 // Enter the named Orchestration
                 // This is similar to a session but multiple
@@ -43,6 +43,15 @@ namespace ToolKitCLI.Samples
                     Console.WriteLine("Failed to update devices");
                     return;
                 }
+
+                Playlist p = new Playlist("default", args.loopPlaylist);
+                p.AddQuiltItem(args.inputFile, args.rows, args.cols, args.aspect, args.viewCount);
+
+                if (!b.TryPlayPlaylist(p, args.head))
+                {
+                    Console.WriteLine("Failed to play playlist");
+                    return;
+                }
             }
             else
             {
@@ -50,7 +59,9 @@ namespace ToolKitCLI.Samples
                 return;
             }
 
-            b.TryShowWindow(false);
+            Console.WriteLine("Listening for events, press any key to stop.");
+            Console.ReadKey();
         }
+
     }
 }

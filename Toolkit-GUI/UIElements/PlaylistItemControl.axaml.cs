@@ -3,9 +3,9 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Styling;
 using System.IO;
-using ToolkitGUI.Media;
+using LookingGlass.Toolkit.GUI.Media;
 
-namespace ToolkitGUI
+namespace LookingGlass.Toolkit.GUI
 {
     public partial class PlaylistItemControl : UserControl
     {
@@ -96,7 +96,7 @@ namespace ToolkitGUI
         }
 
         // Handler for the Delete button click event
-        private void DeleteButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private void DeleteButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
             parent.DeleteItem(index);
         }
