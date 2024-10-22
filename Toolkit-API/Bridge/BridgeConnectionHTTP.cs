@@ -80,7 +80,10 @@ namespace LookingGlass.Toolkit.Bridge {
             return lastConnectionState;
         }
 
-        private string GetURL(string endpoint) => $"http://{url}:{port}/{endpoint}";
+        private string GetURL(string endpoint)
+        {
+            return $"http://{url}:{port}/{endpoint}";
+        }
 
         public int AddListener(string name, Action<string> callback) {
             if (eventListeners.ContainsKey(name)) {
@@ -161,7 +164,10 @@ namespace LookingGlass.Toolkit.Bridge {
             try {
                 if ((loggingFlags & BridgeLoggingFlags.Messages) != 0)
                     PrintMessage(endpoint, content);
-                string response = httpSender.Send(HttpSenderMethod.Put, GetURL(endpoint), content);
+                
+                string url = GetURL(endpoint);
+
+                string response = httpSender.Send(HttpSenderMethod.Put, url, content);
                 if ((loggingFlags & BridgeLoggingFlags.Responses) != 0)
                     PrintResponse(endpoint, response);
 
