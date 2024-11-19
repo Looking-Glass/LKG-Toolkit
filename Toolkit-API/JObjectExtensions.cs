@@ -1,4 +1,6 @@
 ﻿#if HAS_NEWTONSOFT_JSON
+using System.IO;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace LookingGlass.Toolkit {
@@ -61,6 +63,28 @@ namespace LookingGlass.Toolkit {
                 return false;
             child = result;
             return true;
+        }
+
+        public static void Add(this JObject @this, string propertyName, string innerPropertyName, object value) {
+            @this.Add(
+                new JProperty(propertyName,
+                    new JObject(
+                        new JProperty(innerPropertyName, value)
+                    )
+                )
+            );
+        }
+
+        public static string FormatPrettyJSON(this JObject @this, char indentChar, int indentSize) {
+            using (StringWriter stringWriter = new())
+            using (JsonTextWriter jsonWriter = new(stringWriter) {
+                Formatting = Formatting.Indented,
+                Indentation = indentSize,
+                IndentChar = indentChar
+            }) {
+                @this.WriteTo(jsonWriter);
+                return stringWriter.ToString();
+            }
         }
     }
 }

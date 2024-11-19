@@ -161,6 +161,51 @@ namespace LookingGlass.Toolkit {
         }
 
 #if HAS_NEWTONSOFT_JSON
+        /// <summary>
+        /// Saves this calibration data into a JSON object that matches in structure to a visual.json calibration file.
+        /// </summary>
+        public JObject ToJSON() {
+            JObject j = new();
+            //NOTE: No inner "value" for the following fields:
+            //  - configVersion
+            //  - serial
+            //  - subpixelCells
+
+            j.Add("configVersion", configVersion);
+            j.Add("serial", serial);
+
+            j.Add("pitch", "value", pitch);
+            j.Add("slope", "value", slope);
+            j.Add("center", "value", center);
+            j.Add("fringe", "value", fringe);
+
+            j.Add("viewCone", "value", viewCone);
+            j.Add("invView", "value", invView);
+            j.Add("verticalAngle", "value", verticalAngle);
+            j.Add("DPI", "value", dpi);
+            j.Add("screenW", "value", screenW);
+            j.Add("screenH", "value", screenH);
+
+            j.Add("flipImageX", "value", flipImageX);
+            j.Add("flipImageY", "value", flipImageY);
+            j.Add("flipSubp", "value", flipSubp);
+
+            if (cellPatternMode != 0)
+                j.Add("CellPatternMode", "value", cellPatternMode);
+            if (subpixelCells != null && subpixelCells.Length > 0)
+                j.Add("subpixelCells", JArray.FromObject(subpixelCells));
+            return j;
+        }
+
+        /// <summary>
+        /// <para>Saves this calibration data into JSON the same way as <see cref="ToJSON"/>, but formats the output as a string with pretty-printed spacing with an indent size of 4.</para>
+        /// <para>See also: <seealso cref="JObjectExtensions.FormatPrettyJSON(JObject, char, int)"/></para>
+        /// </summary>
+        public string ToJSONString() {
+            JObject j = ToJSON();
+            return j.FormatPrettyJSON(' ', 4);
+        }
+
         public static Calibration Parse(string json) {
             JObject j = JObject.Parse(json);
             return Parse(j);
