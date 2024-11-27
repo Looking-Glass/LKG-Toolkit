@@ -615,6 +615,18 @@ namespace LookingGlass.Toolkit.Bridge {
             return false;
         }
 
+        public List<HardwareInfo> GetAllLKGDisplays() {
+            string message =
+                $@"
+                {{
+                    ""orchestration"": ""{session.Token}""
+                }}
+                ";
+
+            string resp = TrySendMessage("all_lkg_displays", message);
+            return HardwareInfo.ParseAll(resp);
+        }
+
         public bool TryGetCameraParams(out float displayViewCone, out float displayViewConeVFOV, out float displayViewConeHFOV) {
             string message =
                 $@"

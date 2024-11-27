@@ -17,6 +17,7 @@ namespace LookingGlass.Toolkit.CLI
         build_playlist,
         quiltify_RGBD,
         hide,
+        lkg_displays,
     }
 
     public class CommandLineOptions
