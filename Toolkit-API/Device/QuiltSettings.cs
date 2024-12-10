@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
+
 
 #if HAS_NEWTONSOFT_JSON
 using Newtonsoft.Json.Linq;
 #endif
 
-namespace LookingGlass.Toolkit {
+namespace LookingGlass.Toolkit
+{
     /// <summary>
     /// <para>
     /// Defines the resolution and layout of tiles in a quilt.
@@ -17,7 +20,8 @@ namespace LookingGlass.Toolkit {
     /// </para>
     /// </summary>
     [Serializable]
-    public struct QuiltSettings {
+    public struct QuiltSettings
+    {
         public const int MinSize = 256;
         public const int MaxSize = 8192 * 2;
         public const int MinRowColumnCount = 1;
@@ -73,20 +77,25 @@ namespace LookingGlass.Toolkit {
 
         public bool IsDefaultOrBlank => Equals(default) || Equals(Blank);
 
-        public void ResetTileCount() {
+        public void ResetTileCount()
+        {
             tileCount = columns * rows;
         }
 
-        public int TileWidth {
-            get {
+        public int TileWidth
+        {
+            get
+            {
                 if (columns <= 0)
                     return quiltWidth;
                 return quiltWidth / columns;
             }
         }
 
-        public int TileHeight {
-            get {
+        public int TileHeight
+        {
+            get
+            {
                 if (rows <= 0)
                     return quiltHeight;
                 return quiltHeight / rows;
@@ -94,12 +103,12 @@ namespace LookingGlass.Toolkit {
         }
         //NOTE: THIS IS DIFFERENT from what we use pretty much everywhere else.
         //This does NOT necessarily match the quiltAspect (of the native display resolution, if rendering fullscreen)
-        public float TileAspect => ((float) quiltWidth / columns) / ((float) quiltHeight / rows);
+        public float TileAspect => ((float)quiltWidth / columns) / ((float)quiltHeight / rows);
 
         public int PaddingHorizontal => quiltWidth - columns * TileWidth;
         public int PaddingVertical => quiltHeight - rows * TileHeight;
-        public float ViewPortionHorizontal => ((float) columns * TileWidth) / quiltWidth;
-        public float ViewPortionVertical => ((float) rows * TileHeight) / quiltHeight;
+        public float ViewPortionHorizontal => ((float)columns * TileWidth) / quiltWidth;
+        public float ViewPortionVertical => ((float)rows * TileHeight) / quiltHeight;
 
         /// <summary>
         /// Creates new arbitrary quilt settings.
@@ -109,7 +118,8 @@ namespace LookingGlass.Toolkit {
             int quiltHeight,
             int columns,
             int rows,
-            float renderAspect) {
+            float renderAspect)
+        {
 
             this.quiltWidth = Math.Clamp(quiltWidth, MinSize, MaxSize);
             this.quiltHeight = Math.Clamp(quiltHeight, MinSize, MaxSize);
@@ -129,7 +139,8 @@ namespace LookingGlass.Toolkit {
             int columns,
             int rows,
             float renderAspect,
-            int tileCount) {
+            int tileCount)
+        {
 
             this.quiltWidth = Math.Clamp(quiltWidth, MinSize, MaxSize);
             this.quiltHeight = Math.Clamp(quiltHeight, MinSize, MaxSize);
@@ -140,7 +151,8 @@ namespace LookingGlass.Toolkit {
         }
 
 #if HAS_NEWTONSOFT_JSON
-        public static QuiltSettings Parse(JObject obj) {
+        public static QuiltSettings Parse(JObject obj)
+        {
             QuiltSettings result = new QuiltSettings();
             if (!obj.TryGet<int>("quiltWidth", out result.quiltWidth))
                 obj.TryGet<int>("quiltX", out result.quiltWidth);               //NOTE: Old naming
@@ -161,9 +173,11 @@ namespace LookingGlass.Toolkit {
                 result.ResetTileCount();
             return result;
         }
+
 #endif
 
-        public bool Equals(QuiltSettings other) {
+        public bool Equals(QuiltSettings other)
+        {
             if (renderAspect == other.renderAspect
                 && quiltWidth == other.quiltWidth
                 && quiltHeight == other.quiltHeight
@@ -173,14 +187,21 @@ namespace LookingGlass.Toolkit {
             return false;
         }
 
-        public static QuiltSettings GetDefaultFor(LKGDeviceType deviceType) {
+        public static QuiltSettings GetDefaultFor(LKGDeviceType deviceType)
+        {
             ILKGDeviceTemplateSystem system = LookingGlass.Toolkit.ServiceLocator.Instance.GetSystem<ILKGDeviceTemplateSystem>();
-            if (system != null) {
+            if (system != null)
+            {
                 LKGDeviceTemplate template = system.GetTemplate(deviceType);
                 if (template != null)
                     return template.defaultQuilt;
             }
             return QuiltSettings.Blank;
+        }
+
+        public override bool Equals([NotNullWhen(true)] object obj)
+        {
+            return base.Equals(obj);
         }
     }
 }

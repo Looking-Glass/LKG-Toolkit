@@ -40,7 +40,7 @@ namespace LookingGlass.Toolkit.CLI.Samples
 
                 if (b.TryUpdateDevices())
                 {
-                    List<HardwareInfo> hardwareInfos = b.GetAllLKGDisplays();
+                    List<LKGDeviceInfo> hardwareInfos = b.GetAllLKGDisplays();
 
                     if (hardwareInfos.Count == 0)
                     {

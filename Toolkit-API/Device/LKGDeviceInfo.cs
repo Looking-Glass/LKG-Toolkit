@@ -6,9 +6,11 @@ using Newtonsoft.Json; // For JsonReaderException
 using Newtonsoft.Json.Linq;
 #endif
 
-namespace LookingGlass.Toolkit {
+namespace LookingGlass.Toolkit
+{
     [Serializable]
-    public struct HardwareInfo {
+    public struct LKGDeviceInfo
+    {
         public int index;
         public string hardwareVersion;
         public string hardwareVersionLong;
@@ -18,18 +20,21 @@ namespace LookingGlass.Toolkit {
         public float viewCone;
         public int resolutionWidth;
         public int resolutionHeight;
-        public string defaultQuilt;
-        public string calibration;
+        public QuiltSettings defaultQuilt;
+        public Calibration calibration;
 
 #if HAS_NEWTONSOFT_JSON
-        public static List<HardwareInfo> ParseAll(string message) {
-            List<HardwareInfo> hardwareInfoList = new();
+        public static List<LKGDeviceInfo> ParseAll(string message)
+        {
+            List<LKGDeviceInfo> hardwareInfoList = new();
 
             JObject messageObj;
-            try {
+            try
+            {
                 messageObj = JObject.Parse(message);
             }
-            catch (JsonReaderException ex) {
+            catch (JsonReaderException ex)
+            {
                 // Handle invalid JSON
                 Console.WriteLine("Invalid JSON string: " + ex.Message);
                 return hardwareInfoList;
@@ -39,15 +44,18 @@ namespace LookingGlass.Toolkit {
             if (messageObj.TryGetValue("payload", out JToken payloadToken) &&
                 payloadToken is JObject payloadObj &&
                 payloadObj.TryGetValue("value", out JToken payloadValueToken) &&
-                payloadValueToken is JObject payloadValueObj) {
+                payloadValueToken is JObject payloadValueObj)
+            {
 
                 // Iterate over each hardware item
-                foreach (var item in payloadValueObj.Properties()) {
+                foreach (JProperty item in payloadValueObj.Properties())
+                {
                     if (item.Value is JObject itemObj &&
                         itemObj.TryGetValue("value", out JToken itemValueToken) &&
-                        itemValueToken is JObject itemValueObj) {
+                        itemValueToken is JObject itemValueObj)
+                    {
 
-                        HardwareInfo hardwareInfo = new();
+                        LKGDeviceInfo hardwareInfo = new();
 
                         // Parse each property without extension method
                         hardwareInfo.index = GetValueFromProperty<int>(itemValueObj, "index");
@@ -59,8 +67,13 @@ namespace LookingGlass.Toolkit {
                         hardwareInfo.viewCone = GetValueFromProperty<float>(itemValueObj, "viewCone");
                         hardwareInfo.resolutionWidth = GetValueFromProperty<int>(itemValueObj, "resolutionWidth");
                         hardwareInfo.resolutionHeight = GetValueFromProperty<int>(itemValueObj, "resolutionHeight");
-                        hardwareInfo.defaultQuilt = GetValueFromProperty<string>(itemValueObj, "defaultQuilt");
-                        hardwareInfo.calibration = GetValueFromProperty<string>(itemValueObj, "calibration");
+                        hardwareInfo.defaultQuilt = QuiltSettings.Parse(JObject.Parse(GetValueFromProperty<string>(itemValueObj, "defaultQuilt")));
+
+                        string calibrationString = GetValueFromProperty<string>(itemValueObj, "calibration");
+                        if (calibrationString != "")
+                        {
+                            hardwareInfo.calibration = Calibration.Parse(JObject.Parse(calibrationString));
+                        }
 
                         hardwareInfoList.Add(hardwareInfo);
                     }
@@ -71,32 +84,17 @@ namespace LookingGlass.Toolkit {
         }
 
         // Helper method inside the struct
-        private static T GetValueFromProperty<T>(JObject obj, string propertyName) {
+        private static T GetValueFromProperty<T>(JObject obj, string propertyName)
+        {
             if (obj.TryGetValue(propertyName, out JToken token) &&
                 token is JObject valueObj &&
-                valueObj.TryGetValue("value", out JToken valueToken)) {
+                valueObj.TryGetValue("value", out JToken valueToken))
+            {
 
                 return valueToken.ToObject<T>();
             }
             return default;
         }
 #endif
-
-        public override int GetHashCode() => index.GetHashCode();
-        public override bool Equals(object obj) {
-            if (obj == null || !(obj is HardwareInfo other))
-                return false;
-            return index == other.index &&
-                   hardwareVersion == other.hardwareVersion &&
-                   hardwareVersionLong == other.hardwareVersionLong &&
-                   hasEdidCalibration == other.hasEdidCalibration &&
-                   hfov == other.hfov &&
-                   vfov == other.vfov &&
-                   viewCone == other.viewCone &&
-                   resolutionWidth == other.resolutionWidth &&
-                   resolutionHeight == other.resolutionHeight &&
-                   defaultQuilt == other.defaultQuilt &&
-                   calibration == other.calibration;
-        }
     }
 }
