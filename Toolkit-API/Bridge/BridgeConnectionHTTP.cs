@@ -9,8 +9,10 @@ using WebSocketSharp;
 using Newtonsoft.Json.Linq;
 #endif
 
-namespace LookingGlass.Toolkit.Bridge {
-    public class BridgeConnectionHTTP : IDisposable {
+namespace LookingGlass.Toolkit.Bridge 
+{
+    public partial class BridgeConnectionHTTP : IDisposable 
+    {
         public const string DefaultURL = "localhost";
         public const int DefaultPort = 33334;
         public const int DefaultWebSocketPort = 9724;
@@ -613,6 +615,19 @@ namespace LookingGlass.Toolkit.Bridge {
             if (!resp.IsNullOrEmpty())
                 return true;
             return false;
+        }
+
+
+        public List<LKGDeviceInfo> GetAllLKGDisplays() {
+            string message =
+                $@"
+                {{
+                    ""orchestration"": ""{session.Token}""
+                }}
+                ";
+
+            string resp = TrySendMessage("all_lkg_displays", message);
+            return LKGDeviceInfo.ParseAll(resp);
         }
 
         public bool TryGetCameraParams(out float displayViewCone, out float displayViewConeVFOV, out float displayViewConeHFOV) {

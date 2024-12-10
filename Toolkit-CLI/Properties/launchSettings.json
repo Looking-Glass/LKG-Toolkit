@@ -2,7 +2,7 @@
   "profiles": {
     "Toolkit-CLI": {
       "commandName": "Project",
-      "commandLineArgs": "Toolkit-CLI.exe -t listen"
+      "commandLineArgs": "Toolkit-CLI.exe"
     }
   }
 }
