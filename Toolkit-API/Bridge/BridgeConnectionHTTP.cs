@@ -13,6 +13,10 @@ namespace LookingGlass.Toolkit.Bridge
 {
     public partial class BridgeConnectionHTTP : IDisposable 
     {
+        //TODO: Use ServiceLocator instead of this:
+        private static BridgeConnectionHTTP lastInstance;
+        internal static BridgeConnectionHTTP LastInstance => lastInstance;
+
         public const string DefaultURL = "localhost";
         public const int DefaultPort = 33334;
         public const int DefaultWebSocketPort = 9724;
@@ -44,6 +48,7 @@ namespace LookingGlass.Toolkit.Bridge
 
         public BridgeConnectionHTTP(string url = DefaultURL, int port = DefaultPort, int webSocketPort = DefaultWebSocketPort) : this(null, null, url, port, webSocketPort) { }
         public BridgeConnectionHTTP(ILogger logger, IHttpSender httpSender, string url = DefaultURL, int port = DefaultPort, int webSocketPort = DefaultWebSocketPort) {
+            lastInstance = this;
             this.url = url;
             this.port = port;
             this.webSocketPort = webSocketPort;
