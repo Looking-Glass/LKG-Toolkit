@@ -38,9 +38,9 @@ namespace LookingGlass.Toolkit.CLI.Samples
                     return;
                 }
 
-                if (b.TryUpdateDevices())
+                if (b.TryUpdateConnectedDevices())
                 {
-                    List<Display> displays = b.GetLKGDisplays();
+                    List<Display> displays = b.GetConnectedLKGDisplays();
                     foreach (Display display in displays)
                     {
                         Console.WriteLine(display.GetInfoString());

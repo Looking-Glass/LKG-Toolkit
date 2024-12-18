@@ -38,9 +38,9 @@ namespace LookingGlass.Toolkit.CLI.Samples
                     return;
                 }
 
-                if (b.TryUpdateDevices())
+                if (b.TryUpdateConnectedDevices())
                 {
-                    List<LKGDeviceInfo> hardwareInfos = b.GetAllLKGDisplays();
+                    List<LKGDeviceInfo> hardwareInfos = b.GetAllSupportedLKGHardware();
 
                     if (hardwareInfos.Count == 0)
                     {
