@@ -9,10 +9,11 @@ using Newtonsoft.Json.Linq;
 
 namespace LookingGlass.Toolkit {
     /// <summary>
-    /// Contains data that is intrinsic to a specific LKG device. This data is used in rendering properly to the LKG display.
+    /// Contains data that is intrinsic to a specific Looking Glass (LKG) device. This data is used in rendering properly to the LKG display.
     /// </summary>
     [Serializable]
     public struct Calibration {
+        //TODO: Refactor this to use strings instead of enums so LKG Bridge can provide new displays in the future for free!
         //NOTE: Case insensitivity is started with (?i) and is removed with (?-i)
         internal static readonly Dictionary<Regex, LKGDeviceType> AutomaticSerialPatterns = new Dictionary<Regex, LKGDeviceType>() {
             { new Regex("(?i)(LKG-2K)"),                        LKGDeviceType._8_9inGen1 },

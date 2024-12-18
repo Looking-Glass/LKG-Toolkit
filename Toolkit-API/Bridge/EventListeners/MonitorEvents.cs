@@ -31,14 +31,9 @@ namespace LookingGlass.Toolkit.Bridge
             {
                 int head_index = int.Parse(root["head_index"]?["value"]?.ToString());
 
-                if (bridge.AllDisplays.ContainsKey(head_index))
+                if (bridge.ConnectedDisplays.ContainsKey(head_index))
                 {
-                    bridge.AllDisplays.Remove(head_index);
-                }
-
-                if(bridge.LKGDisplays.ContainsKey(head_index))
-                {
-                    bridge.LKGDisplays.Remove(head_index);
+                    bridge.ConnectedDisplays.Remove(head_index);
                 }
             }
 #endif
@@ -53,9 +48,9 @@ namespace LookingGlass.Toolkit.Bridge
             {
                 int head_index = int.Parse(root["head_index"]?["value"]?.ToString());
 
-                if (!bridge.AllDisplays.ContainsKey(head_index))
+                if (!bridge.ConnectedDisplays.ContainsKey(head_index))
                 {
-                    bridge.TryUpdateDevices();
+                    bridge.TryUpdateConnectedDevices();
                 }
             }
 #endif

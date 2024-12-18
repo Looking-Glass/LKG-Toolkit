@@ -5,8 +5,9 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using System;
 using System.Linq;
-using LookingGlass.Toolkit.GUI.Media;
+using System.Collections.Generic;
 using System.Diagnostics;
+using LookingGlass.Toolkit.GUI.Media;
 
 namespace LookingGlass.Toolkit.GUI
 {
@@ -89,9 +90,10 @@ namespace LookingGlass.Toolkit.GUI
                 Dispatcher.UIThread.Post(() =>
                 {
                     ConnectionStatus.Text = this.connectionStatus ? "Bridge Connected" : "Bridge Disconnected";
-                    if(this.connectionStatus && bridgeConnection.LKGDisplays.Count > 0)
+                    List<Display> lkgDisplays = bridgeConnection.GetConnectedLKGDisplays();
+                    if(this.connectionStatus && lkgDisplays.Count > 0)
                     {
-                        ConnectedDisplay.Text = bridgeConnection.GetLKGDisplays().First().hardwareInfo.hardwareVersion;
+                        ConnectedDisplay.Text = lkgDisplays.First().hardwareInfo.hardwareVersion;
                     }
                 });
             });
@@ -113,7 +115,7 @@ namespace LookingGlass.Toolkit.GUI
                     return;
                 }
 
-                if (!bridgeConnection.TryUpdateDevices())
+                if (!bridgeConnection.TryUpdateConnectedDevices())
                 {
                     Trace.WriteLine("Failed to update devices");
                     return;
