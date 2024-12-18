@@ -13,6 +13,8 @@ namespace LookingGlass.Toolkit {
             defaultQuilt = source.defaultQuilt;
         }
 
+        public LKGDeviceTemplate(in LKGDeviceInfo info) : this(info.calibration, info.defaultQuilt) { }
+
         public LKGDeviceTemplate(Calibration calibration, QuiltSettings defaultQuilt) {
             this.calibration = calibration;
             this.defaultQuilt = defaultQuilt;

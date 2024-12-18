@@ -15,11 +15,11 @@ namespace LookingGlass.Toolkit.Bridge {
                 //  For now, we'll use this because the UnityPlugin (and maybe other Toolkit-dependent codebase(s)?) may depend on instantiating BridgeConnectionHTTP themselves:
                 BridgeConnectionHTTP.LastInstance;
 
-            allLKGHardwareInfos = connection.GetAllLKGDisplays();
+            allLKGHardwareInfos = connection.GetAllSupportedLKGHardware();
 
             deviceTemplates = new Dictionary<LKGDeviceType, LKGDeviceTemplate>();
             foreach (LKGDeviceInfo info in allLKGHardwareInfos) {
-                LKGDeviceTemplate template = new(info.calibration, info.defaultQuilt);
+                LKGDeviceTemplate template = new(info);
                 deviceTemplates.Add(info.calibration.GetDeviceType(), template);
             }
         }

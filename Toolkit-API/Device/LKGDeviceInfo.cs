@@ -1,16 +1,15 @@
 using System;
-using System.Collections.Generic;
 
 #if HAS_NEWTONSOFT_JSON
-using Newtonsoft.Json; // For JsonReaderException
 using Newtonsoft.Json.Linq;
 #endif
 
-namespace LookingGlass.Toolkit
-{
+namespace LookingGlass.Toolkit {
+    /// <summary>
+    /// Contains template hardware data about a given type of Looking Glass (LKG) device, including templates for the calibration and quilt settings, and other hardware info.
+    /// </summary>
     [Serializable]
-    public struct LKGDeviceInfo
-    {
+    public struct LKGDeviceInfo {
         public int index;
         public string hardwareVersion;
         public string hardwareVersionLong;
@@ -24,76 +23,31 @@ namespace LookingGlass.Toolkit
         public Calibration calibration;
 
 #if HAS_NEWTONSOFT_JSON
-        public static List<LKGDeviceInfo> ParseAll(string message)
-        {
-            List<LKGDeviceInfo> hardwareInfoList = new();
-
-            JObject messageObj;
-            try
-            {
-                messageObj = JObject.Parse(message);
-            }
-            catch (JsonReaderException ex)
-            {
-                // Handle invalid JSON
-                Console.WriteLine("Invalid JSON string: " + ex.Message);
-                return hardwareInfoList;
-            }
-
-            // Navigate to the "payload" -> "value"
-            if (messageObj.TryGetValue("payload", out JToken payloadToken) &&
-                payloadToken is JObject payloadObj &&
-                payloadObj.TryGetValue("value", out JToken payloadValueToken) &&
-                payloadValueToken is JObject payloadValueObj)
-            {
-
-                // Iterate over each hardware item
-                foreach (JProperty item in payloadValueObj.Properties())
-                {
-                    if (item.Value is JObject itemObj &&
-                        itemObj.TryGetValue("value", out JToken itemValueToken) &&
-                        itemValueToken is JObject itemValueObj)
-                    {
-
-                        LKGDeviceInfo hardwareInfo = new();
-
-                        // Parse each property without extension method
-                        hardwareInfo.index = GetValueFromProperty<int>(itemValueObj, "index");
-                        hardwareInfo.hardwareVersion = GetValueFromProperty<string>(itemValueObj, "hardwareVersion");
-                        hardwareInfo.hardwareVersionLong = GetValueFromProperty<string>(itemValueObj, "hardwareVersionLong");
-                        hardwareInfo.hasEdidCalibration = GetValueFromProperty<bool>(itemValueObj, "hasEdidCalibration");
-                        hardwareInfo.hfov = GetValueFromProperty<float>(itemValueObj, "hfov");
-                        hardwareInfo.vfov = GetValueFromProperty<float>(itemValueObj, "vfov");
-                        hardwareInfo.viewCone = GetValueFromProperty<float>(itemValueObj, "viewCone");
-                        hardwareInfo.resolutionWidth = GetValueFromProperty<int>(itemValueObj, "resolutionWidth");
-                        hardwareInfo.resolutionHeight = GetValueFromProperty<int>(itemValueObj, "resolutionHeight");
-                        hardwareInfo.defaultQuilt = QuiltSettings.Parse(JObject.Parse(GetValueFromProperty<string>(itemValueObj, "defaultQuilt")));
-
-                        string calibrationString = GetValueFromProperty<string>(itemValueObj, "calibration");
-                        if (calibrationString != "")
-                        {
-                            hardwareInfo.calibration = Calibration.Parse(JObject.Parse(calibrationString));
-                        }
-
-                        hardwareInfoList.Add(hardwareInfo);
-                    }
-                }
-            }
-
-            return hardwareInfoList;
+        public static LKGDeviceInfo Parse(string json) {
+            JObject j = JObject.Parse(json);
+            return Parse(j);
         }
 
-        // Helper method inside the struct
-        private static T GetValueFromProperty<T>(JObject obj, string propertyName)
-        {
-            if (obj.TryGetValue(propertyName, out JToken token) &&
-                token is JObject valueObj &&
-                valueObj.TryGetValue("value", out JToken valueToken))
-            {
+        public static LKGDeviceInfo Parse(JObject obj) {
+            LKGDeviceInfo info = new();
+            obj.TryGet<int>("index", "value", out info.index);
+            obj.TryGet<string>("hardwareVersion", "value", out info.hardwareVersion);
+            obj.TryGet<string>("hardwareVersionLong", "value", out info.hardwareVersionLong);
+            obj.TryGet<bool>("hasEdidCalibration", "value", out info.hasEdidCalibration);
+            obj.TryGet<float>("hfov", "value", out info.hfov);
+            obj.TryGet<float>("vfov", "value", out info.vfov);
+            obj.TryGet<float>("viewCone", "value", out info.viewCone);
+            obj.TryGet<int>("resolutionWidth", "value", out info.resolutionWidth);
+            obj.TryGet<int>("resolutionHeight", "value", out info.resolutionHeight);
 
-                return valueToken.ToObject<T>();
-            }
-            return default;
+            obj.TryGet<string>("defaultQuilt", "value", out string defaultQuiltString);
+            if (!string.IsNullOrEmpty(defaultQuiltString))
+                info.defaultQuilt = QuiltSettings.Parse(JObject.Parse(defaultQuiltString));
+
+            obj.TryGet<string>("calibration", "value", out string calibrationString);
+            if (!string.IsNullOrEmpty(calibrationString))
+                info.calibration = Calibration.Parse(JObject.Parse(calibrationString));
+            return info;
         }
 #endif
     }
