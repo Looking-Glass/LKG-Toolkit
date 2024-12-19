@@ -16,20 +16,8 @@ namespace LookingGlass.Toolkit {
         public static ServiceLocator Instance {
             get {
                 if (instance == null) {
-                    Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-                    foreach (Type type in assemblies.SelectMany(a => a.GetTypes())) {
-                        if (typeof(ILKGToolkitBootstrapper).IsAssignableFrom(type)) {
-                            ConstructorInfo ctor = type.GetConstructor(new Type[0]);
-                            if (ctor != null) {
-                                ILKGToolkitBootstrapper bootstrapper = (ILKGToolkitBootstrapper) ctor.Invoke(new object[0]);
-                                if (bootstrapper != null) {
-                                    instance = new ServiceLocator();
-                                    bootstrapper.Bootstrap(instance);
-                                    break;
-                                }
-                            }
-                        }
-                    }
+                    instance = new ServiceLocator();
+                    instance.InvokeBootstrappers();
                 }
                 return instance;
             }
@@ -38,9 +26,33 @@ namespace LookingGlass.Toolkit {
 
         private List<object> systems = new();
 
-        public ServiceLocator() {
-            //NOTE: This adds core systems that LKG Toolkit should ALWAYS have no matter the environment:
-            AddSystem<ILKGDeviceTemplateSystem>(new LKGDeviceTemplateSystem());
+        private void InvokeBootstrappers() {
+            List<ILKGToolkitBootstrapper> bootstrappers = new();
+            ILogger temporaryLogger = new ConsoleLogger(); //NOTE: This is just used to convey errors during initialization, since ILoggers get setup during initialization -- they aren't ready yet.
+
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (Type type in assemblies.SelectMany(a => a.GetTypes())) {
+                if (typeof(ILKGToolkitBootstrapper).IsAssignableFrom(type)) {
+                    ConstructorInfo ctor = type.GetConstructor(new Type[0]);
+                    if (ctor != null) {
+                        ILKGToolkitBootstrapper b = (ILKGToolkitBootstrapper) ctor.Invoke(new object[0]);
+                        if (b != null) {
+                            bootstrappers.Add(b);
+                        }
+                    } else {
+                        temporaryLogger.LogError("Found an " + nameof(ILKGToolkitBootstrapper) + " that doesn't have a default/empty constructor -- failed to use it during initialization! (Type: " + type.FullName + ")");
+                    }
+                }
+            }
+
+            bootstrappers.Sort((left, right) => left.Order - right.Order);
+            foreach (ILKGToolkitBootstrapper b in bootstrappers) {
+                try {
+                    b.Bootstrap(this);
+                } catch (Exception e) {
+                    temporaryLogger.LogException(e);
+                }
+            }
         }
 
         public void Dispose() {
