@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using LookingGlass.Toolkit.Bridge;
 
-namespace LookingGlass.Toolkit.Bridge {
+namespace LookingGlass.Toolkit {
     /// <summary>
     /// Retrieves all possible Looking Glass templates from Bridge via HTTP.
     /// </summary>
@@ -9,12 +10,7 @@ namespace LookingGlass.Toolkit.Bridge {
         private Dictionary<LKGDeviceType, LKGDeviceTemplate> deviceTemplates;
 
         private void LoadAllTemplates() {
-            BridgeConnectionHTTP connection =
-                //TODO: Something like this:
-                //ServiceLocator.Instance.GetSystem<IBridgeConnectionHTTP>();
-                //  For now, we'll use this because the UnityPlugin (and maybe other Toolkit-dependent codebase(s)?) may depend on instantiating BridgeConnectionHTTP themselves:
-                BridgeConnectionHTTP.LastInstance;
-
+            BridgeConnectionHTTP connection = ServiceLocator.Instance.GetSystem<BridgeConnectionHTTP>();
             allLKGHardwareInfos = connection.GetAllSupportedLKGHardware();
 
             deviceTemplates = new Dictionary<LKGDeviceType, LKGDeviceTemplate>();

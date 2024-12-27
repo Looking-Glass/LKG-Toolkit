@@ -15,13 +15,11 @@ namespace LookingGlass.Toolkit.Bridge
 {
     public partial class BridgeConnectionHTTP : IDisposable 
     {
-        //TODO: Use ServiceLocator instead of this:
-        private static BridgeConnectionHTTP lastInstance;
-        internal static BridgeConnectionHTTP LastInstance => lastInstance;
-
         public const string DefaultURL = "localhost";
         public const int DefaultPort = 33334;
         public const int DefaultWebSocketPort = 9724;
+
+        private bool isConnected = false;
 
         private int port;
         private int webSocketPort;
@@ -37,8 +35,38 @@ namespace LookingGlass.Toolkit.Bridge
         private Orchestration session;
         private string currentPlaylistName = "";
 
-        public int Port => port;
-        public int WebSocketPort => webSocketPort;
+        public string URL {
+            get { return url; }
+            set {
+                if (isConnected) {
+                    logger.LogError("Setting the URL after already starting to connect (or being connected) is not yet implemented.");
+                    return;
+                }
+                url = value;
+            }
+        }
+
+        public int Port {
+            get { return port; }
+            set {
+                if (isConnected) {
+                    logger.LogError("Setting the port after already starting to connect (or being connected) is not yet implemented.");
+                    return;
+                }
+                port = value;
+            }
+        }
+
+        public int WebSocketPort {
+            get { return webSocketPort; }
+            set {
+                if (isConnected) {
+                    logger.LogError("Setting the webSocket port after already starting to connect (or being connected) is not yet implemented.");
+                    return;
+                }
+                webSocketPort = value;
+            }
+        }
 
         public BridgeLoggingFlags LoggingFlags { get; set; } = BridgeLoggingFlags.None;
         internal Dictionary<int, Display> ConnectedDisplays { get; private set; } = new();
@@ -48,36 +76,42 @@ namespace LookingGlass.Toolkit.Bridge
         private DisplayEvents monitorEvents;
         private HashSet<Action<bool>> connectionStateListeners;
 
-        public BridgeConnectionHTTP(string url = DefaultURL, int port = DefaultPort, int webSocketPort = DefaultWebSocketPort) : this(null, null, url, port, webSocketPort) { }
-        public BridgeConnectionHTTP(ILogger logger, IHttpSender httpSender, string url = DefaultURL, int port = DefaultPort, int webSocketPort = DefaultWebSocketPort) {
-            lastInstance = this;
+        public BridgeConnectionHTTP(string url = DefaultURL, int port = DefaultPort, int webSocketPort = DefaultWebSocketPort) {
             this.url = url;
             this.port = port;
             this.webSocketPort = webSocketPort;
 
-            //TODO: Use DI instead of putting defaults here:
-            if (logger == null)
-                logger = new ConsoleLogger();
-            if (httpSender == null)
-                httpSender = new DefaultHttpSender();
-            this.logger = logger;
-            this.httpSender = httpSender;
+            logger = ServiceLocator.Instance.GetSystem<ILogger>();
+            httpSender = ServiceLocator.Instance.GetSystem<IHttpSender>();
 
             eventListeners = new Dictionary<string, List<Action<string>>>();
             monitorEvents = new DisplayEvents(this);
             connectionStateListeners = new HashSet<Action<bool>>();
         }
 
+        public void Dispose() {
+            if (session != default)
+                TryExitOrchestration();
+
+            webSocket.Dispose();
+            if (logger is IDisposable l)
+                l.Dispose();
+            if (httpSender is IDisposable h)
+                h.Dispose();
+        }
+
         public bool Connect(int timeoutSeconds = 3000) {
+            isConnected = true;
             httpSender.TimeoutSeconds = timeoutSeconds;
             if (webSocket != null) {
                 webSocket.Dispose();
                 webSocket = null;
             }
             webSocket = new BridgeWebSocketClient(UpdateListeners);
-            return UpdateConnectionState(webSocket.TryConnect($"ws://{url}:{webSocketPort}/event_source"));
+            bool success = UpdateConnectionState(webSocket.TryConnect($"ws://{url}:{webSocketPort}/event_source"));
+            isConnected = success;
+            return success;
         }
-
 
         public bool UpdateConnectionState(bool state) {
             lastConnectionState = state;
@@ -728,17 +762,6 @@ namespace LookingGlass.Toolkit.Bridge
             if (!resp.IsNullOrEmpty())
                 return true;
             return false;
-        }
-
-        public void Dispose() {
-            if (session != default) 
-                TryExitOrchestration();
-
-            webSocket.Dispose();
-            if (logger is IDisposable l)
-                l.Dispose();
-            if (httpSender is IDisposable h)
-                h.Dispose();
         }
     }
 }
