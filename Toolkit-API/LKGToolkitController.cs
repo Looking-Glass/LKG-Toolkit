@@ -1,7 +1,10 @@
-﻿namespace LookingGlass.Toolkit {
+﻿using System;
+
+namespace LookingGlass.Toolkit {
     /// <summary>
     /// Allows you to easily initialize the major systems in LKG Toolkit.
     /// </summary>
+    [Obsolete("Deprecated: Please use " + nameof(ILKGToolkitBootstrapper) + "s to initialize systems instead.", true)]
     public static class LKGToolkitController {
         private static bool initialized = false;
 
