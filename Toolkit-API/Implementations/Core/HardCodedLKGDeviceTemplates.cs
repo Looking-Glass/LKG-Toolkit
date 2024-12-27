@@ -2,7 +2,7 @@
 using System.Linq;
 
 namespace LookingGlass.Toolkit {
-    public class LKGDeviceTemplateSystem : ILKGDeviceTemplateSystem {
+    public class HardCodedLKGDeviceTemplates : ILKGDeviceTemplateSystem {
         //WARNING: For now, this is manually kept in-sync with LKG Bridge manually.
         //  These values are written in Constants.h (Ctrl + P to find it in VS Code when you have the Git repo open locally).
         //Waiting on LKG-637 for LKG Bridge HTTP endpoints to query this data instead
