@@ -203,7 +203,7 @@ namespace LookingGlass.Toolkit.Bridge
         public List<Display> GetConnectedLKGDisplays() => ConnectedDisplays.Values.Where(d => d.IsLKG).Select(d => new Display(d)).ToList();
 
         /// <summary>
-        /// Sends a request to Bridge to retrieve info on all possible Looking Glass devices.
+        /// Retrieves info on all supported Looking Glass hardware.
         /// </summary>
         /// <returns></returns>
         public List<LKGDeviceInfo> GetAllSupportedLKGHardware() => new List<LKGDeviceInfo>(AllSupportedLKGHardware);

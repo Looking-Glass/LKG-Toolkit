@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
 
 namespace LookingGlass.Toolkit {
+    /// <summary>
+    /// Represents a system that can retrieve template data for all known/supported types of Looking Glass devices.
+    /// </summary>
     public interface ILKGDeviceTemplateSystem {
         public LKGDeviceTemplate GetDefaultTemplate() => GetTemplate(LKGDeviceTypeExtensions.GetDefault());
 

@@ -8,8 +8,18 @@ namespace LookingGlass.Toolkit {
     /// Represents a central collection of systems, for use in the entire program.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// The <see cref="ServiceLocator"/> makes it easy to choose what systems to use for the duration of the program.<br />
     /// It supports abstraction through parent classes and interfaces, allowing swappable systems to support different C# environments (such as pure .NET, Unity/C#, etc.).
+    /// </para>
+    /// <para>
+    /// The following systems are overridable via boostrapping:
+    /// <list type="bullet">
+    /// <item><see cref="ILogger"/> <em>(defaults to <see cref="ConsoleLogger"/>)</em></item>
+    /// <item><see cref="IHttpSender"/></item>
+    /// <item><see cref="ILKGDeviceTemplateSystem"/></item>
+    /// </list>
+    /// </para>
     /// </remarks>
     public class ServiceLocator : IDisposable {
         private static ServiceLocator instance;
