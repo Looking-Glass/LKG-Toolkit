@@ -574,39 +574,31 @@ namespace LookingGlass.Toolkit.Bridge
 #if HAS_NEWTONSOFT_JSON
                 if (!string.IsNullOrWhiteSpace(response))
                 {
-                    try
+                    // Parse the JSON response
+                    JObject rootJson = JObject.Parse(response);
+
+                    // Navigate to the "payload" -> "value"
+                    JObject payloadJson = rootJson["payload"]?["value"]?.Value<JObject>();
+
+                    if (payloadJson != null)
                     {
-                        // Parse the JSON response
-                        JObject rootJson = JObject.Parse(response);
-
-                        // Navigate to the "payload" -> "value"
-                        JObject payloadJson = rootJson["payload"]?["value"]?.Value<JObject>();
-
-                        if (payloadJson != null)
+                        // Iterate over each hardware item (e.g., "0", "1", "10", etc.)
+                        foreach (JProperty item in payloadJson.Properties())
                         {
-                            // Iterate over each hardware item (e.g., "0", "1", "10", etc.)
-                            foreach (JProperty item in payloadJson.Properties())
+                            if (item.Value is JObject itemObj)
                             {
-                                if (item.Value is JObject itemObj)
-                                {
-                                    // Extract the "value" field within the item
-                                    JObject itemValueJson = itemObj["value"]?.Value<JObject>();
+                                // Extract the "value" field within the item
+                                JObject itemValueJson = itemObj["value"]?.Value<JObject>();
 
-                                    if (itemValueJson != null)
-                                    {
-                                        // Parse the hardware info from the JSON object
-                                        LKGDeviceInfo info = LKGDeviceInfo.Parse(itemValueJson);
-                                        allSupported.Add(info);
-                                    }
+                                if (itemValueJson != null)
+                                {
+                                    // Parse the hardware info from the JSON object
+                                    LKGDeviceInfo info = LKGDeviceInfo.Parse(itemValueJson);
+                                    allSupported.Add(info);
                                 }
                             }
-                            return true;
                         }
-                    }
-                    catch (JsonReaderException e)
-                    {
-                        // Log the exception if needed
-                        throw; // Rethrow the exception for debugging
+                        return true;
                     }
                 }
 #endif
