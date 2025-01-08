@@ -40,6 +40,7 @@ namespace LookingGlass.Toolkit.CLI.Samples
 
                 if (b.TryUpdateConnectedDevices())
                 {
+                    b.UpdateAllSupportedLKGHardwareAsync().Wait();
                     List<LKGDeviceInfo> hardwareInfos = b.GetAllSupportedLKGHardware();
 
                     if (hardwareInfos.Count == 0)

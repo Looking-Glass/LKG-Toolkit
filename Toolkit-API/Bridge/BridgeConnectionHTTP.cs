@@ -551,7 +551,8 @@ namespace LookingGlass.Toolkit.Bridge
         }
 
         public Task<bool> UpdateAllSupportedLKGHardwareAsync() => UpdateAllSupportedLKGHardwareAsync(LoggingFlags);
-        public async Task<bool> UpdateAllSupportedLKGHardwareAsync(BridgeLoggingFlags loggingFlags) {
+        public async Task<bool> UpdateAllSupportedLKGHardwareAsync(BridgeLoggingFlags loggingFlags)
+        {
             if (session == null)
                 return false;
 
@@ -565,46 +566,57 @@ namespace LookingGlass.Toolkit.Bridge
                 }}
                 ";
 
-            string response = await SendMessageAsync("all_lkg_displays", message); //TrySendMessage("all_lkg_displays", message);
+            string response = await SendMessageAsync("all_supported_lkg_hardware", message);
 
             List<LKGDeviceInfo> allSupported = new();
-            try {
+            try
+            {
 #if HAS_NEWTONSOFT_JSON
-                if (!string.IsNullOrWhiteSpace(response)) {
-                    try {
+                if (!string.IsNullOrWhiteSpace(response))
+                {
+                    try
+                    {
+                        // Parse the JSON response
+                        JObject rootJson = JObject.Parse(response);
+
                         // Navigate to the "payload" -> "value"
-                        JObject payloadJson = JObject.Parse(response)?["payload"]?["value"]?.Value<JObject>();
+                        JObject payloadJson = rootJson["payload"]?["value"]?.Value<JObject>();
 
-                        if (payloadJson != null) {
-                            if (payloadJson.TryGetValue("payload", out JToken payloadToken) &&
-                                payloadToken is JObject payloadObj &&
-                                payloadObj.TryGetValue("value", out JToken payloadValueToken) &&
-                                payloadValueToken is JObject payloadValueObj) {
+                        if (payloadJson != null)
+                        {
+                            // Iterate over each hardware item (e.g., "0", "1", "10", etc.)
+                            foreach (JProperty item in payloadJson.Properties())
+                            {
+                                if (item.Value is JObject itemObj)
+                                {
+                                    // Extract the "value" field within the item
+                                    JObject itemValueJson = itemObj["value"]?.Value<JObject>();
 
-                                // Iterate over each hardware item
-                                foreach (JProperty item in payloadValueObj.Properties()) {
-                                    if (item.Value is JObject itemObj &&
-                                        itemObj.TryGetValue("value", out JToken itemValueToken) &&
-                                        itemValueToken is JObject obj) {
-
-                                        LKGDeviceInfo info = LKGDeviceInfo.Parse(obj);
+                                    if (itemValueJson != null)
+                                    {
+                                        // Parse the hardware info from the JSON object
+                                        LKGDeviceInfo info = LKGDeviceInfo.Parse(itemValueJson);
                                         allSupported.Add(info);
                                     }
                                 }
                             }
+                            return true;
                         }
-                        return true;
-                    } catch (JsonReaderException e) {
-                        Console.WriteLine("Invalid JSON string: " + e.Message);
-                        return false;
+                    }
+                    catch (JsonReaderException e)
+                    {
+                        // Log the exception if needed
+                        throw; // Rethrow the exception for debugging
                     }
                 }
 #endif
                 return false;
-            } finally {
+            }
+            finally
+            {
                 AllSupportedLKGHardware = allSupported;
                 if ((loggingFlags & BridgeLoggingFlags.Timing) != 0)
-                    PrintTime("all_lkg_displays", timer.Elapsed);
+                    PrintTime("all_supported_lkg_hardware", timer.Elapsed);
             }
         }
 
