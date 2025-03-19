@@ -32,6 +32,8 @@ namespace LookingGlass.Toolkit {
             { new Regex("(?i)(LKG-J)"),                         LKGDeviceType._16inLandscapeGen3 },
             { new Regex("(?i)(LKG-K)"),                         LKGDeviceType._32inPortraitGen3 },
             { new Regex("(?i)(LKG-L)"),                         LKGDeviceType._32inLandscapeGen3 },
+            { new Regex("(?i)(LKG-N)"),                         LKGDeviceType._27inPortraitGen3 },
+            { new Regex("(?i)(LKG-R)"),                         LKGDeviceType._27inLandscapeGen3 },
         };
 
         public const int MaxSubpixelPatterns = 10;

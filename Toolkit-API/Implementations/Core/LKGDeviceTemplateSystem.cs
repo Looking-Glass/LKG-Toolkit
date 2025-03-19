@@ -397,6 +397,64 @@ namespace LookingGlass.Toolkit {
                     new QuiltSettings(8190, 8190, 7, 7, 1.77778f)
                 )
             },
+            {
+                LKGDeviceType._27inPortraitGen3,
+                new LKGDeviceTemplate(
+                    new Calibration {
+                        configVersion = "3.0",
+                        serial = "LKG-N",
+                        pitch = 37.8156623840332f,
+                        slope = -6.621088981628418f,
+                        center = 0.4956521987915039f,
+                        fringe = 0,
+                        viewCone = 40,
+                        invView = 1,
+                        verticalAngle = 0,
+                        dpi = 217,
+                        screenW = 2880,
+                        screenH = 5120,
+                        flipImageX = 0,
+                        flipImageY = 0,
+                        flipSubp = 0,
+                        cellPatternMode = 0,
+                        subpixelCells = new SubpixelCell[] {
+                            new SubpixelCell {
+                                ROffsetX = 0,
+                                ROffsetY = -0.3330000042915344f,
+                                GOffsetX = 0,
+                                GOffsetY = 0,
+                                BOffsetX = 0,
+                                BOffsetY = 0.3330000042915344f
+                            }
+                        }
+                    },
+                    new QuiltSettings(7680, 4320, 8, 6, 0.5625f)
+                )
+            },
+            {
+                LKGDeviceType._27inLandscapeGen3,
+                new LKGDeviceTemplate(
+                    new Calibration {
+                        configVersion = "3.0",
+                        serial = "LKG-R",
+                        pitch = 37.811866760253909f,
+                        slope = -6.678580284118652f,
+                        center = 0.27391302585601809f,
+                        fringe = 0,
+                        viewCone = 40,
+                        invView = 1,
+                        verticalAngle = 0,
+                        dpi = 217,
+                        screenW = 5120,
+                        screenH = 2880,
+                        flipImageX = 0,
+                        flipImageY = 0,
+                        flipSubp = 0,
+                        cellPatternMode = 0,
+                    },
+                    new QuiltSettings(7680, 4320, 8, 6, 0.5625f)
+                )
+            },
         };
 
         public IEnumerable<LKGDeviceTemplate> GetAllTemplates() => Templates.OrderBy(p => p.Key).Select(p => p.Value);

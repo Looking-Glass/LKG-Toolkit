@@ -86,6 +86,16 @@ namespace LookingGlass.Toolkit {
         /// The 32" Looking Glass Spatial Display (Gen3, in landscape form).
         /// </summary>
         _32inLandscapeGen3,
+
+        /// <summary>
+        /// The 27" Looking Glass Spatial Display (Gen3, in portrait form).
+        /// </summary>
+        _27inPortraitGen3,
+
+        /// <summary>
+        /// The 27" Looking Glass Spatial Display (Gen3, in landscape form).
+        /// </summary>
+        _27inLandscapeGen3,
     }
 
     public static class LKGDeviceTypeExtensions {
@@ -110,7 +120,8 @@ namespace LookingGlass.Toolkit {
             { LKGDeviceType._16inLandscapeGen3,             "Looking Glass 16\" Spatial Display (Landscape)" },
             { LKGDeviceType._32inPortraitGen3,              "Looking Glass 32\" Spatial Display (Portrait)" },
             { LKGDeviceType._32inLandscapeGen3,             "Looking Glass 32\" Spatial Display (Landscape)" },
-            //17 (reserved)
+            { LKGDeviceType._27inPortraitGen3,              "Looking Glass 27\" Spatial Display (Portrait)" },
+            { LKGDeviceType._27inLandscapeGen3,             "Looking Glass 27\" Spatial Display (Landscape)" },
         };
 
         /// <summary>
