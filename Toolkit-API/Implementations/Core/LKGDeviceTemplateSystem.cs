@@ -428,7 +428,7 @@ namespace LookingGlass.Toolkit {
                             }
                         }
                     },
-                    new QuiltSettings(7680, 4320, 8, 6, 0.5625f)
+                    new QuiltSettings(7680, 4320, 12, 4, 0.5625f)
                 )
             },
             {
