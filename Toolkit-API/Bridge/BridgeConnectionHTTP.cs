@@ -3,17 +3,23 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using WebSocketSharp;
+using System.Linq;
 
 
 #if HAS_NEWTONSOFT_JSON
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 #endif
 
-namespace LookingGlass.Toolkit.Bridge {
-    public class BridgeConnectionHTTP : IDisposable {
+namespace LookingGlass.Toolkit.Bridge 
+{
+    public partial class BridgeConnectionHTTP : IDisposable 
+    {
         public const string DefaultURL = "localhost";
         public const int DefaultPort = 33334;
         public const int DefaultWebSocketPort = 9724;
+
+        private bool isConnected = false;
 
         private int port;
         private int webSocketPort;
@@ -29,49 +35,83 @@ namespace LookingGlass.Toolkit.Bridge {
         private Orchestration session;
         private string currentPlaylistName = "";
 
-        public int Port => port;
-        public int WebSocketPort => webSocketPort;
+        public string URL {
+            get { return url; }
+            set {
+                if (isConnected) {
+                    logger.LogError("Setting the URL after already starting to connect (or being connected) is not yet implemented.");
+                    return;
+                }
+                url = value;
+            }
+        }
+
+        public int Port {
+            get { return port; }
+            set {
+                if (isConnected) {
+                    logger.LogError("Setting the port after already starting to connect (or being connected) is not yet implemented.");
+                    return;
+                }
+                port = value;
+            }
+        }
+
+        public int WebSocketPort {
+            get { return webSocketPort; }
+            set {
+                if (isConnected) {
+                    logger.LogError("Setting the webSocket port after already starting to connect (or being connected) is not yet implemented.");
+                    return;
+                }
+                webSocketPort = value;
+            }
+        }
 
         public BridgeLoggingFlags LoggingFlags { get; set; } = BridgeLoggingFlags.None;
-        public Dictionary<int, Display> AllDisplays { get; private set; }
-        public Dictionary<int, Display> LKGDisplays { get; private set; }
+        internal Dictionary<int, Display> ConnectedDisplays { get; private set; } = new();
+        internal List<LKGDeviceInfo> AllSupportedLKGHardware { get; private set; } = new();
 
         private Dictionary<string, List<Action<string>>> eventListeners;
         private DisplayEvents monitorEvents;
         private HashSet<Action<bool>> connectionStateListeners;
 
-        public BridgeConnectionHTTP(string url = DefaultURL, int port = DefaultPort, int webSocketPort = DefaultWebSocketPort) : this(null, null, url, port, webSocketPort) { }
-        public BridgeConnectionHTTP(ILogger logger, IHttpSender httpSender, string url = DefaultURL, int port = DefaultPort, int webSocketPort = DefaultWebSocketPort) {
+        public BridgeConnectionHTTP(string url = DefaultURL, int port = DefaultPort, int webSocketPort = DefaultWebSocketPort) {
             this.url = url;
             this.port = port;
             this.webSocketPort = webSocketPort;
 
-            //TODO: Use DI instead of putting defaults here:
-            if (logger == null)
-                logger = new ConsoleLogger();
-            if (httpSender == null)
-                httpSender = new DefaultHttpSender();
-            this.logger = logger;
-            this.httpSender = httpSender;
-
-            AllDisplays = new Dictionary<int, Display>();
-            LKGDisplays = new Dictionary<int, Display>();
+            logger = ServiceLocator.Instance.GetSystem<ILogger>();
+            httpSender = ServiceLocator.Instance.GetSystem<IHttpSender>();
 
             eventListeners = new Dictionary<string, List<Action<string>>>();
             monitorEvents = new DisplayEvents(this);
             connectionStateListeners = new HashSet<Action<bool>>();
         }
 
+        public void Dispose() {
+            if (session != default)
+                TryExitOrchestration();
+
+            webSocket.Dispose();
+            if (logger is IDisposable l)
+                l.Dispose();
+            if (httpSender is IDisposable h)
+                h.Dispose();
+        }
+
         public bool Connect(int timeoutSeconds = 3000) {
+            isConnected = true;
             httpSender.TimeoutSeconds = timeoutSeconds;
             if (webSocket != null) {
                 webSocket.Dispose();
                 webSocket = null;
             }
             webSocket = new BridgeWebSocketClient(UpdateListeners);
-            return UpdateConnectionState(webSocket.TryConnect($"ws://{url}:{webSocketPort}/event_source"));
+            bool success = UpdateConnectionState(webSocket.TryConnect($"ws://{url}:{webSocketPort}/event_source"));
+            isConnected = success;
+            return success;
         }
-
 
         public bool UpdateConnectionState(bool state) {
             lastConnectionState = state;
@@ -145,19 +185,28 @@ namespace LookingGlass.Toolkit.Bridge {
 #endif
         }
 
-        public List<Display> GetAllDisplays() {
-            List<Display> displays = new();
-            foreach (KeyValuePair<int, Display> pair in AllDisplays)
-                displays.Add(pair.Value);
-            return displays;
-        }
+        /// <summary>
+        /// Retrieves all displays (both Looking Glass displays and regular monitors) that are currently connected to the system.
+        /// </summary>
+        /// <remarks>This requires that <see cref="TryUpdateConnectedDevices()"/> or <see cref="UpdateConnectedDevicesAsync()"/> complete first. This is simply retrieves a copy of the results afterwards.</remarks>
+        /// <returns>A list (copy) of all the displays retrieved from the last device update.</returns>
+        public List<Display> GetConnectedDisplays() => ConnectedDisplays.Values.Select(d => new Display(d)).ToList();
 
-        public List<Display> GetLKGDisplays() {
-            List<Display> displays = new();
-            foreach (KeyValuePair<int, Display> pair in LKGDisplays)
-                displays.Add(pair.Value);
-            return displays;
-        }
+        /// <summary>
+        /// Retrieves all Looking Glass displays that are currently connected to the system.
+        /// </summary>
+        /// <remarks>
+        /// This requires that <see cref="TryUpdateConnectedDevices()"/> or <see cref="UpdateConnectedDevicesAsync()"/> complete first.
+        /// This simply retrieves a copy of the results afterwards.
+        /// </remarks>
+        /// <returns>A list (copy) of all the displays retrieved from the last device update.</returns>
+        public List<Display> GetConnectedLKGDisplays() => ConnectedDisplays.Values.Where(d => d.IsLKG).Select(d => new Display(d)).ToList();
+
+        /// <summary>
+        /// Retrieves info on all supported Looking Glass hardware.
+        /// </summary>
+        /// <returns></returns>
+        public List<LKGDeviceInfo> GetAllSupportedLKGHardware() => new List<LKGDeviceInfo>(AllSupportedLKGHardware);
 
         public string TrySendMessage(string endpoint, string content) => TrySendMessage(endpoint, content, LoggingFlags);
         public string TrySendMessage(string endpoint, string content, BridgeLoggingFlags loggingFlags) {
@@ -450,11 +499,11 @@ namespace LookingGlass.Toolkit.Bridge {
             return resp != null;
         }
 
-        public bool TryUpdateDevices() => TryUpdateDevices(LoggingFlags);
-        public bool TryUpdateDevices(BridgeLoggingFlags loggingFlags) => UpdateDevicesAsync(loggingFlags).Result;
+        public bool TryUpdateConnectedDevices() => TryUpdateConnectedDevices(LoggingFlags);
+        public bool TryUpdateConnectedDevices(BridgeLoggingFlags loggingFlags) => UpdateConnectedDevicesAsync(loggingFlags).Result;
 
-        public Task<bool> UpdateDevicesAsync() => UpdateDevicesAsync(LoggingFlags);
-        public async Task<bool> UpdateDevicesAsync(BridgeLoggingFlags loggingFlags) {
+        public Task<bool> UpdateConnectedDevicesAsync() => UpdateConnectedDevicesAsync(LoggingFlags);
+        public async Task<bool> UpdateConnectedDevicesAsync(BridgeLoggingFlags loggingFlags) {
             if (session == null)
                 return false;
 
@@ -469,41 +518,98 @@ namespace LookingGlass.Toolkit.Bridge {
                 ";
 
             string response = await SendMessageAsync("available_output_devices", message, loggingFlags);
+
+            Dictionary<int, Display> connectedDisplays = new();
             try {
-                return UpdateDisplays(response);
+#if HAS_NEWTONSOFT_JSON
+                if (!string.IsNullOrWhiteSpace(response)) {
+                    try {
+                        JObject payloadJson = JObject.Parse(response)?["payload"]?["value"]?.Value<JObject>();
+
+                        if (payloadJson != null) {
+                            for (int i = 0; i < payloadJson.Count; i++) {
+                                JObject displayJson = payloadJson[i.ToString()]!["value"]!.Value<JObject>();
+                                Display display = Display.Parse(i, displayJson);
+                                if (!connectedDisplays.ContainsKey(display.hardwareInfo.index))
+                                    connectedDisplays.Add(display.hardwareInfo.index, display);
+                            }
+                        }
+
+                        return true;
+                    } catch (JsonReaderException e) {
+                        Console.WriteLine("Invalid JSON string: " + e.Message);
+                        return false;
+                    }
+                }
+#endif
+                return false;
             } finally {
+                ConnectedDisplays = connectedDisplays;
                 if ((loggingFlags & BridgeLoggingFlags.Timing) != 0)
                     PrintTime("available_output_devices", timer.Elapsed);
             }
         }
 
-        private bool UpdateDisplays(string response) {
+        public Task<bool> UpdateAllSupportedLKGHardwareAsync() => UpdateAllSupportedLKGHardwareAsync(LoggingFlags);
+        public async Task<bool> UpdateAllSupportedLKGHardwareAsync(BridgeLoggingFlags loggingFlags)
+        {
+            if (session == null)
+                return false;
+
+            if ((loggingFlags & BridgeLoggingFlags.Timing) != 0)
+                timer.Restart();
+
+            string message =
+                $@"
+                {{
+                    ""orchestration"": ""{session.Token}""
+                }}
+                ";
+
+            string response = await SendMessageAsync("all_supported_lkg_hardware", message);
+
+            List<LKGDeviceInfo> allSupported = new();
+            try
+            {
 #if HAS_NEWTONSOFT_JSON
-            if (!string.IsNullOrWhiteSpace(response)) {
-                JObject payloadJson = JObject.Parse(response)?["payload"]?["value"]?.Value<JObject>();
+                if (!string.IsNullOrWhiteSpace(response))
+                {
+                    // Parse the JSON response
+                    JObject rootJson = JObject.Parse(response);
 
-                if (payloadJson != null) {
-                    Dictionary<int, Display> allDisplays = new();
-                    Dictionary<int, Display> lkgDisplays = new();
+                    // Navigate to the "payload" -> "value"
+                    JObject payloadJson = rootJson["payload"]?["value"]?.Value<JObject>();
 
-                    for (int i = 0; i < payloadJson.Count; i++) {
-                        JObject displayJson = payloadJson[i.ToString()]!["value"]!.Value<JObject>();
-                        Display display = Display.Parse(i, displayJson);
-                        if (!allDisplays.ContainsKey(display.hardwareInfo.index))
-                            allDisplays.Add(display.hardwareInfo.index, display);
+                    if (payloadJson != null)
+                    {
+                        // Iterate over each hardware item (e.g., "0", "1", "10", etc.)
+                        foreach (JProperty item in payloadJson.Properties())
+                        {
+                            if (item.Value is JObject itemObj)
+                            {
+                                // Extract the "value" field within the item
+                                JObject itemValueJson = itemObj["value"]?.Value<JObject>();
 
-                        if (display.IsLKG && !lkgDisplays.ContainsKey(display.hardwareInfo.index))
-                            lkgDisplays.Add(display.hardwareInfo.index, display);
+                                if (itemValueJson != null)
+                                {
+                                    // Parse the hardware info from the JSON object
+                                    LKGDeviceInfo info = LKGDeviceInfo.Parse(itemValueJson);
+                                    allSupported.Add(info);
+                                }
+                            }
+                        }
+                        return true;
                     }
-
-                    AllDisplays = allDisplays;
-                    LKGDisplays = lkgDisplays;
                 }
-
-                return true;
-            }
 #endif
-            return false;
+                return false;
+            }
+            finally
+            {
+                AllSupportedLKGHardware = allSupported;
+                if ((loggingFlags & BridgeLoggingFlags.Timing) != 0)
+                    PrintTime("all_supported_lkg_hardware", timer.Elapsed);
+            }
         }
 
         public bool TryDeletePlaylist(Playlist p) {
@@ -660,17 +766,6 @@ namespace LookingGlass.Toolkit.Bridge {
             if (!resp.IsNullOrEmpty())
                 return true;
             return false;
-        }
-
-        public void Dispose() {
-            if (session != default) 
-                TryExitOrchestration();
-
-            webSocket.Dispose();
-            if (logger is IDisposable l)
-                l.Dispose();
-            if (httpSender is IDisposable h)
-                h.Dispose();
         }
     }
 }

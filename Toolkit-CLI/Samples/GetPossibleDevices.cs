@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using LookingGlass.Toolkit.Bridge;
 
 namespace LookingGlass.Toolkit.CLI.Samples
 {
-    internal class PlayQuiltItem
+    internal class GetPossibleDevices
     {
         public static void Run(CommandLineOptions args)
         {
@@ -26,6 +25,7 @@ namespace LookingGlass.Toolkit.CLI.Samples
                 // This is similar to a session but multiple
                 // clients can connect to the same instance, receive
                 // the same events and control the same state
+
                 if (!b.TryEnterOrchestration(args.orchestrationName))
                 {
                     Console.WriteLine("Failed to enter orchestration");
@@ -38,18 +38,29 @@ namespace LookingGlass.Toolkit.CLI.Samples
                     return;
                 }
 
-                if (!b.TryUpdateConnectedDevices())
+                if (b.TryUpdateConnectedDevices())
+                {
+                    b.UpdateAllSupportedLKGHardwareAsync().Wait();
+                    List<LKGDeviceInfo> hardwareInfos = b.GetAllSupportedLKGHardware();
+
+                    if (hardwareInfos.Count == 0)
+                    {
+                        Console.WriteLine("No hardware infos found.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Hardware Infos:");
+                        foreach (var hardwareInfo in hardwareInfos)
+                        {
+                            Console.WriteLine($"Index: {hardwareInfo.index}");
+                            Console.WriteLine($"Hardware Version Long: {hardwareInfo.hardwareVersionLong}");
+                            Console.WriteLine(new string('-', 50));
+                        }
+                    }                
+                }
+                else
                 {
                     Console.WriteLine("Failed to update devices");
-                    return;
-                }
-
-                Playlist p = new Playlist("default", args.loopPlaylist);
-                p.AddQuiltItem(args.inputFile, args.rows, args.cols, args.aspect, args.viewCount);
-
-                if (!b.TryPlayPlaylist(p, args.head))
-                {
-                    Console.WriteLine("Failed to play playlist");
                     return;
                 }
             }
@@ -59,9 +70,6 @@ namespace LookingGlass.Toolkit.CLI.Samples
                 return;
             }
 
-            Console.WriteLine("Listening for events, press any key to stop.");
-            Console.ReadKey();
         }
-
     }
 }

@@ -37,7 +37,7 @@ namespace LookingGlass.Toolkit.CLI.Samples
                     return;
                 }
 
-                if (!b.TryUpdateDevices())
+                if (!b.TryUpdateConnectedDevices())
                 {
                     Console.WriteLine("Failed to update devices");
                     return;

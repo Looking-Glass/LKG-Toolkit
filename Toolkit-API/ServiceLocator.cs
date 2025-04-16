@@ -8,28 +8,26 @@ namespace LookingGlass.Toolkit {
     /// Represents a central collection of systems, for use in the entire program.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// The <see cref="ServiceLocator"/> makes it easy to choose what systems to use for the duration of the program.<br />
     /// It supports abstraction through parent classes and interfaces, allowing swappable systems to support different C# environments (such as pure .NET, Unity/C#, etc.).
+    /// </para>
+    /// <para>
+    /// The following systems are overridable via boostrapping:
+    /// <list type="bullet">
+    /// <item><see cref="ILogger"/> <em>(defaults to <see cref="ConsoleLogger"/>)</em></item>
+    /// <item><see cref="IHttpSender"/></item>
+    /// <item><see cref="ILKGDeviceTemplateSystem"/></item>
+    /// </list>
+    /// </para>
     /// </remarks>
     public class ServiceLocator : IDisposable {
         private static ServiceLocator instance;
         public static ServiceLocator Instance {
             get {
                 if (instance == null) {
-                    Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-                    foreach (Type type in assemblies.SelectMany(a => a.GetTypes())) {
-                        if (typeof(ILKGToolkitBootstrapper).IsAssignableFrom(type)) {
-                            ConstructorInfo ctor = type.GetConstructor(new Type[0]);
-                            if (ctor != null) {
-                                ILKGToolkitBootstrapper bootstrapper = (ILKGToolkitBootstrapper) ctor.Invoke(new object[0]);
-                                if (bootstrapper != null) {
-                                    instance = new ServiceLocator();
-                                    bootstrapper.Bootstrap(instance);
-                                    break;
-                                }
-                            }
-                        }
-                    }
+                    instance = new ServiceLocator();
+                    instance.InvokeBootstrappers();
                 }
                 return instance;
             }
@@ -38,9 +36,33 @@ namespace LookingGlass.Toolkit {
 
         private List<object> systems = new();
 
-        public ServiceLocator() {
-            //NOTE: This adds core systems that LKG Toolkit should ALWAYS have no matter the environment:
-            AddSystem<ILKGDeviceTemplateSystem>(new LKGDeviceTemplateSystem());
+        private void InvokeBootstrappers() {
+            List<ILKGToolkitBootstrapper> bootstrappers = new();
+            ILogger temporaryLogger = new ConsoleLogger(); //NOTE: This is just used to convey errors during initialization, since ILoggers get setup during initialization -- they aren't ready yet.
+
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (Type type in assemblies.SelectMany(a => a.GetTypes())) {
+                if (typeof(ILKGToolkitBootstrapper).IsAssignableFrom(type)) {
+                    ConstructorInfo ctor = type.GetConstructor(new Type[0]);
+                    if (ctor != null) {
+                        ILKGToolkitBootstrapper b = (ILKGToolkitBootstrapper) ctor.Invoke(new object[0]);
+                        if (b != null) {
+                            bootstrappers.Add(b);
+                        }
+                    } else {
+                        temporaryLogger.LogError("Found an " + nameof(ILKGToolkitBootstrapper) + " that doesn't have a default/empty constructor -- failed to use it during initialization! (Type: " + type.FullName + ")");
+                    }
+                }
+            }
+
+            bootstrappers.Sort((left, right) => left.Order - right.Order);
+            foreach (ILKGToolkitBootstrapper b in bootstrappers) {
+                try {
+                    b.Bootstrap(this);
+                } catch (Exception e) {
+                    temporaryLogger.LogException(e);
+                }
+            }
         }
 
         public void Dispose() {

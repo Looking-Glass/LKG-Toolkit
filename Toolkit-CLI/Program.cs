@@ -35,6 +35,9 @@ namespace LookingGlass.Toolkit.CLI
                     break;
                 case CLI_Task.playlist:
                     break;
+                case CLI_Task.lkg_displays:
+                    GetPossibleDevices.Run(args);
+                    break;
             }
 
         }
