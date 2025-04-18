@@ -452,7 +452,7 @@ namespace LookingGlass.Toolkit {
                         flipSubp = 0,
                         cellPatternMode = 0,
                     },
-                    new QuiltSettings(7680, 4320, 8, 6, 0.5625f)
+                    new QuiltSettings(7680, 4320, 8, 6, 1.7778f)
                 )
             },
         };
